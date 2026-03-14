@@ -300,3 +300,7 @@ button:active {
         display: block;
     }
 }
+
+a{
+    text-decoration: none;
+}

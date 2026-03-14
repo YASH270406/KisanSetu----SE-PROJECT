@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Equipment Owner Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="equipment_dashboard_style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <header class="dashboard-header">
+            <div class="user-info">
+                <img src="images/buyer_profile.jpg" alt="Profile" class="profile-pic" onerror="this.src='https://via.placeholder.com/50?text=Owner'">
+                <div>
+                    <h2 class="greeting">Hello, Balram</h2>
+                    <p class="location"><i class="fa-solid fa-location-dot"></i> Rohtak, Haryana</p>
+                </div>
+            </div>
+            <div class="sync-status online" id="sync-indicator" onclick="toggleSyncStatus()">
+                <span class="pulse-dot"></span> Online
+            </div>
+        </header>
+
+        <div class="earnings-widget">
+            <div class="earnings-info">
+                <h3>₹ 8,400 <i class="fa-solid fa-wallet" style="font-size: 1.2rem; margin-left: 10px;"></i></h3>
+                <p>Earnings this month • 2 Assets Rented</p>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <div class="action-card">
+                <img src="images/manage_fleet.jpg" alt="My Fleet" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Fleet'">
+                <p>Manage Fleet</p>
+            </div>
+            <div class="action-card">
+                <img src="images/booking_request.jpg" alt="Booking Requests" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Requests'">
+                <p>Booking Requests</p>
+            </div>
+            <div class="action-card">
+                <img src="images/rental_cal.jpg" alt="Rental Calendar" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Calendar'">
+                <p>Rental Calendar</p>
+            </div>
+            <div class="action-card">
+                <img src="images/earning_report.jpg" alt="Reports" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Reports'">
+                <p>Earnings Report</p>
+            </div>
+        </div>
+
+        <div class="recent-alerts">
+            <h3 class="section-title">Action Required</h3>
+            <div class="alert-item warning">
+                <i class="fa-solid fa-bell"></i>
+                <div class="alert-text">
+                    <h4>New Booking Request!</h4>
+                    <p>Farmer Ramesh wants Mahindra Tractor for 2 days (15-16 Oct).</p>
+                </div>
+            </div>
+            <div class="alert-item success">
+                <i class="fa-solid fa-rotate-left"></i>
+                <div class="alert-text">
+                    <h4>Equipment Returned</h4>
+                    <p>Seed Drill returned by Farmer Amit. Ready for next rental.</p>
+                </div>
+            </div>
+        </div>
+
+        <button class="voice-fab" id="add-equip-btn" onclick="addNewEquipment()">
+            <i class="fa-solid fa-plus" style="font-size: 28px; color: #37474f;"></i>
+        </button>
+
+    </div>
+
+    <script src="equipment_dashboard.js"></script>
+</body>
+</html>
