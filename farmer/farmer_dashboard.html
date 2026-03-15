@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Farmer Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="farmer_dashboard_style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <header class="dashboard-header">
+            <div class="user-info">
+                <img src="../images/farmer_profile.jpeg" alt="Profile" class="profile-pic" onerror="this.src='https://via.placeholder.com/50?text=User'">
+                <div>
+                    <h2 class="greeting">Namaste Kisan!</h2>
+                    <p class="location"><i class="fa-solid fa-location-dot"></i> Ambedkar Nagar, Uttar Pradesh</p>
+                </div>
+            </div>
+            <div class="sync-status online" id="sync-indicator" onclick="toggleSyncStatus()">
+                <span class="pulse-dot"></span> Online
+            </div>
+        </header>
+
+        <div class="weather-widget">
+            <div class="weather-info">
+                <h3>32°C <img src="../images/sun_icon.jpeg" alt="Sunny" class="weather-icon" onerror="this.src='https://via.placeholder.com/30?text=Sun'"></h3>
+                <p>Sunny • Good day for harvesting</p>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <a href="sell_produce.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="../images/sell_produce.jpeg" alt="Sell Crop" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Sell'">
+                    <p>Sell Produce</p>
+                </div>
+            </a>
+            <div class="action-card">
+                <img src="../images/rent_equipment.png" alt="Rent Equipment" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Rent'">
+                <p>Rent Equipment</p>
+            </div>
+            <div class="action-card">
+                <img src="../images/mandi_price.png" alt="Market Prices" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Prices'">
+                <p>Mandi Prices</p>
+            </div>
+            <div class="action-card">
+                <img src="../images/soil_health.jpg" alt="Soil Test" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Soil'">
+                <p>Soil Health</p>
+            </div>
+        </div>
+
+        <div class="recent-alerts">
+            <h3 class="section-title">Recent Updates</h3>
+            <div class="alert-item success">
+                <i class="fa-solid fa-check-circle"></i>
+                <div class="alert-text">
+                    <h4>Payment Received</h4>
+                    <p>₹12,500 credited for Wheat batch #402</p>
+                </div>
+            </div>
+            <div class="alert-item warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div class="alert-text">
+                    <h4>Weather Alert</h4>
+                    <p>Light rain expected tomorrow evening.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- <button class="voice-fab" id="voice-btn" onclick="activateVoice()">
+            <img src="mic_icon.png" alt="Voice Assistant" class="mic-img" onerror="this.src='https://via.placeholder.com/40?text=Mic'">
+        </button> -->
+        <button class="voice-fab" id="voice-btn" onclick="activateVoice()">
+            <i class="fa-solid fa-microphone" style="font-size: 24px; color: #37474f;"></i>
+        </button>
+
+    </div>
+
+    <script src="farmer_dashboard.js"></script>
+</body>
+</ht
