@@ -24,7 +24,7 @@ body {
     min-height: 100vh;
 }
 
-/* App Container (Simulating a mobile screen layout by default) */
+/* App Container */
 .app-container {
     width: 100%;
     max-width: 400px; 
@@ -86,6 +86,22 @@ body {
     color: var(--soil-brown);
     font-size: 0.95rem;
     margin-bottom: 30px;
+}
+
+/* Login / Register Group on Language Screen */
+.auth-group {
+    margin-top: auto; /* Pushes the buttons to the bottom of the screen */
+    padding-top: 30px;
+}
+
+.auth-prompt {
+    text-align: center;
+    color: var(--charcoal);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Inputs & Forms */
@@ -286,10 +302,11 @@ button:active {
     }
 
     /* Center forms on large screens */
-    .input-group, .otp-inputs, .button-group, .accent-btn {
+    .input-group, .otp-inputs, .button-group, .auth-group, .accent-btn {
         max-width: 500px;
         margin-left: auto;
         margin-right: auto;
+        width: 100%;
     }
 
     /* Center images on large screens */
@@ -299,8 +316,4 @@ button:active {
         margin-right: auto;
         display: block;
     }
-}
-
-a{
-    text-decoration: none;
 }
