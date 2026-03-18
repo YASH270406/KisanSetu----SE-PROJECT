@@ -92,6 +92,7 @@ body {
     gap: 6px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .pulse-dot {
@@ -103,6 +104,12 @@ body {
     animation: pulse 1.5s infinite;
 }
 
+/* Added offline specific pill styles */
+.sync-status.offline {
+    color: var(--danger-red);
+    background: rgba(211, 47, 47, 0.15); /* Light red background */
+}
+
 .sync-status.offline .pulse-dot {
     background-color: var(--danger-red);
     box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7);
@@ -112,6 +119,52 @@ body {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
     70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+}
+
+/* ===== NEW: Offline Sync Banner ===== */
+.offline-banner {
+    margin: 15px 20px 0;
+    background-color: #fff3e0;
+    border: 1px solid #ffb74d;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+
+.offline-banner .sync-icon {
+    color: #f57c00;
+    font-size: 1.5rem;
+    margin-right: 12px;
+}
+
+.offline-banner h4 {
+    color: #e65100;
+    margin: 0 0 4px 0;
+    font-size: 0.9rem;
+}
+
+.offline-banner p {
+    font-size: 0.75rem;
+    color: var(--soil-brown);
+    margin: 0;
+}
+
+.sync-btn {
+    margin-left: auto;
+    padding: 8px 16px;
+    background: #f57c00;
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.sync-btn:hover {
+    background: #e65100;
 }
 
 /* Weather Widget */
@@ -227,7 +280,6 @@ body {
 .alert-text p { font-size: 0.75rem; color: var(--soil-brown); margin-top: 3px; }
 
 /* Floating Voice Action Button (FAB) */
-
 .voice-fab {
     position: fixed; /* CHANGED from absolute to fixed */
     bottom: 30px;
@@ -251,13 +303,20 @@ body {
     background-color: #f9a825;
 }
 
+/* ===== NEW: Voice "Listening" State ===== */
+.voice-fab.listening {
+    background-color: var(--danger-red) !important;
+    animation: pulse 1.5s infinite;
+}
+
+.voice-fab.listening .mic-icon {
+    color: var(--white) !important;
+}
+
 .mic-img {
     width: 35px;
     height: 35px;
 }
-
-
-
 
 /* Responsive Design for Dashboard on Laptops */
 @media (min-width: 768px) {
@@ -276,21 +335,11 @@ body {
     }
 
     /* Center the weather and alerts on the wide screen */
-    .weather-widget, .recent-alerts {
+    .weather-widget, .recent-alerts, .offline-banner {
         max-width: 1000px;
         margin-left: auto;
         margin-right: auto;
     }
-
-    /* Make the action cards slightly taller for easier clicking */
-    /* .action-card {
-        padding: 30px 15px;
-    }
-
-    .action-img {
-        width: 80px;
-        height: 80px;
-    } */
 
     .action-card p {
         font-size: 1.1rem;
