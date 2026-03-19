@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Phase 1 Authentication</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <div id="splash-screen" class="screen active splash-flex" style="cursor: pointer;" onclick="goToScreen('language-screen')">
+            <img src="images/logo.jpeg" alt="KisanSetu Logo" class="app-logo" onerror="this.src='https://via.placeholder.com/150?text=KisanSetu+Logo'">
+            <h1 class="brand-name">KisanSetu</h1>
+            <p class="tagline">Empowering the Agri-Ecosystem</p>
+        </div>
+
+        <div id="language-screen" class="screen">
+            <h2 class="screen-title">Choose Language</h2>
+            <p class="screen-subtitle">भाषा चुनें</p>
+            
+            <div class="button-group">
+                <button class="primary-btn">English</button>
+                <button class="secondary-btn">हिंदी (Hindi)</button>
+                <button class="secondary-btn">मराठी (Marathi)</button>
+            </div>
+
+            <div class="auth-group">
+                <p class="auth-prompt">Get Started</p>
+                <button class="primary-btn full-width" style="margin-bottom: 15px;" onclick="goToScreen('login-screen')">Login</button>
+                <button class="accent-btn full-width" onclick="window.location.href='registration.html'">Register</button>
+            </div>
+        </div>
+
+        <div id="login-screen" class="screen">
+            <img src="welcome_illustration.jpeg" alt="Welcome Image" class="header-image" onerror="this.src='https://via.placeholder.com/300x150?text=Welcome+Image'">
+            <h2 class="screen-title">Welcome Back</h2>
+            <p class="screen-subtitle">Enter your mobile number to proceed</p>
+            
+            <div class="input-group">
+                <span class="country-code">+91</span>
+                <input type="tel" id="mobile-input" placeholder="10-digit mobile number" maxlength="10">
+            </div>
+            
+            <button class="accent-btn full-width" onclick="goToScreen('otp-screen')">Send OTP</button>
+        </div>
+
+        <div id="otp-screen" class="screen">
+            <h2 class="screen-title">Verify Mobile</h2>
+            <p class="screen-subtitle">We have sent a 4-digit OTP to your number</p>
+            
+            <div class="otp-inputs">
+                <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box">
+            </div>
+            
+            <button class="accent-btn full-width" onclick="goToScreen('role-screen')">Verify & Proceed</button>
+            <p class="resend-text" onclick="goToScreen('login-screen')">Wrong number? Go back.</p>
+        </div>
+
+        <div id="role-screen" class="screen">
+            <h2 class="screen-title">Who are you?</h2>
+            <p class="screen-subtitle">Select your profile to continue</p>
+            
+            <div class="role-cards">
+                <div class="role-card" onclick="window.location.href='farmer/farmer_dashboard.html'">
+                    <img src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=400&auto=format&fit=crop" alt="Farmer" onerror="this.src='https://via.placeholder.com/60?text=Farm'">
+                    <h3>Farmer</h3>
+                    <p>Sell produce & rent equipment</p>
+                </div>
+                
+                <div class="role-card" onclick="window.location.href='buyer/buyer_dashboard.html'">
+                   <img src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=400&auto=format&fit=crop" alt="Buyer" onerror="this.src='https://via.placeholder.com/60?text=Buy'">
+                    <h3>Buyer</h3>
+                    <p>Purchase fresh produce</p>
+                </div>
+                
+                <div class="role-card" onclick="selectRole('Equipment Owner')">
+                    <img src="https://images.unsplash.com/photo-1592982537447-6f2a6a0a5523?q=80&w=400&auto=format&fit=crop" alt="Equipment" onerror="this.src='https://via.placeholder.com/60?text=Eqp'">
+                    <h3>Equipment Owner</h3>
+                    <p>Rent out your machinery</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
