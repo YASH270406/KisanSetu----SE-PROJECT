@@ -20,10 +20,21 @@
                     <p class="location"><i class="fa-solid fa-location-dot"></i> Ambedkar Nagar, Uttar Pradesh</p>
                 </div>
             </div>
-            <div class="sync-status online" id="sync-indicator" onclick="toggleSyncStatus()">
+            <div class="sync-status online" id="sync-indicator">
                 <span class="pulse-dot"></span> Online
             </div>
         </header>
+
+        <div id="offline-sync-banner" class="alert-item warning offline-banner" style="display: none;">
+            <i class="fa-solid fa-cloud-arrow-up sync-icon"></i>
+            <div class="alert-text">
+                <h4>Pending Uploads</h4>
+                <p id="sync-banner-text">You have listings waiting to sync.</p>
+            </div>
+            <button onclick="syncOfflineData()" class="sync-btn">
+                Sync Now
+            </button>
+        </div>
 
         <div class="weather-widget">
             <div class="weather-info">
@@ -39,26 +50,18 @@
                     <p>Sell Produce</p>
                 </div>
             </a>
-                      <a href="rent_equipment.html" style="text-decoration: none; display: contents;">
             <div class="action-card">
                 <img src="../images/rent_equipment.png" alt="Rent Equipment" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Rent'">
                 <p>Rent Equipment</p>
             </div>
-                      </a>
-                        <a href="Mandi_prices.html" style="text-decoration: none; display: contents;">
-
             <div class="action-card">
                 <img src="../images/mandi_price.png" alt="Market Prices" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Prices'">
                 <p>Mandi Prices</p>
             </div>
-                        </a>
-                         <a href="soil_card.html" style="text-decoration: none; display: contents;">
-
             <div class="action-card">
                 <img src="../images/soil_health.jpg" alt="Soil Test" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Soil'">
                 <p>Soil Health</p>
             </div>
-                         </a>
         </div>
 
         <div class="recent-alerts">
@@ -79,15 +82,12 @@
             </div>
         </div>
 
-        <!-- <button class="voice-fab" id="voice-btn" onclick="activateVoice()">
-            <img src="mic_icon.png" alt="Voice Assistant" class="mic-img" onerror="this.src='https://via.placeholder.com/40?text=Mic'">
-        </button> -->
         <button class="voice-fab" id="voice-btn" onclick="activateVoice()">
-            <i class="fa-solid fa-microphone" style="font-size: 24px; color: #37474f;"></i>
+            <i class="fa-solid fa-microphone mic-icon"></i>
         </button>
 
     </div>
 
     <script src="farmer_dashboard.js"></script>
 </body>
-</ht
+</html>
