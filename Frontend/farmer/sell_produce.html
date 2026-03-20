@@ -4,44 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KisanSetu | Sell Produce</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css"> <link rel="stylesheet" href="form_style.css"> </head>
+    
+    <style>
+        :root {
+            --primary-green: #2e7d32;   
+            --soil-brown: #8d6e63;      
+            --harvest-yellow: #fbc02d;  
+            --charcoal: #37474f;        
+            --white: #ffffff;
+            --light-bg: #f4f7f6;
+            --input-border: #e0e0e0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--light-bg); color: var(--charcoal); }
+
+        .hero-header {
+            background: linear-gradient(rgba(46, 125, 50, 0.85), rgba(46, 125, 50, 0.9)), 
+                        url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1200&q=80') center/cover;
+            color: var(--white); padding: 40px 20px 80px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-top { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .back-btn { color: var(--white); text-decoration: none; font-size: 1.4rem; transition: transform 0.2s; }
+        .back-btn:hover { transform: translateX(-4px); }
+        .hero-header h1 { font-size: 2rem; font-weight: 700; letter-spacing: 0.5px; }
+        .hero-header p { font-size: 1rem; color: #e8f5e9; font-weight: 300; max-width: 800px; margin: 0 auto; text-align: left; padding-left: 36px; }
+
+        .form-container {
+            background: var(--white); max-width: 800px; margin: -50px auto 40px auto; padding: 40px;
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); position: relative; z-index: 10;
+        }
+
+        .form-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+        .form-group.full { min-width: 100%; }
+
+        label { font-size: 0.9rem; color: var(--soil-brown); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        label i { color: var(--primary-green); font-size: 1rem; }
+
+        input, select {
+            padding: 14px 16px; border: 2px solid var(--input-border); border-radius: 10px;
+            font-size: 0.95rem; color: var(--charcoal); outline: none; background: #fafafa;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus { border-color: var(--primary-green); background: var(--white); box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1); }
+        
+        /* Input with prefix (Rupee) */
+        .input-with-icon { position: relative; display: flex; align-items: center; }
+        .currency-symbol { position: absolute; left: 16px; font-weight: 600; color: var(--charcoal); font-size: 1rem; }
+        .input-with-icon input { padding-left: 36px; width: 100%; }
+
+        .helper-text { font-size: 0.75rem; color: #666; margin-top: -4px; font-style: italic; }
+
+        /* File Upload specialized stylings */
+        .file-upload-box {
+            border: 2px dashed #90caf9; background: #f3f8fe; padding: 40px 20px; border-radius: 12px;
+            text-align: center; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .file-upload-box:hover { border-color: #1976d2; background: #e3f2fd; }
+        .file-upload-box i { font-size: 2.5rem; color: #42a5f5; }
+        .file-upload-box p { font-size: 0.95rem; font-weight: 500; color: #1565c0; }
+        .file-upload-box span { font-size: 0.75rem; color: #555; }
+
+        .submit-btn {
+            background: var(--primary-green); color: var(--white); padding: 16px; border: none; border-radius: 12px;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 100%; margin-top: 10px; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+        .submit-btn:hover { background: #1b5e20; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4); }
+
+        /* Responsive breakpoints */
+        @media (max-width: 600px) {
+            .form-container { margin: -30px 15px 30px 15px; padding: 25px 20px; }
+            .hero-header h1 { font-size: 1.6rem; }
+            .hero-header p { padding-left: 30px; font-size: 0.85rem; }
+            .form-row { flex-direction: column; gap: 0; }
+        }
+    </style>
+</head>
 <body>
 
-    <div class="app-container">
-        
-        <header class="form-header">
+    <header class="hero-header">
+        <div class="header-top">
             <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>Create Listing</h2>
-            <div style="width: 24px;"></div> </header>
+            <h1>Create Listing</h1>
+        </div>
+        <p>List your harvest for verified buyers across the country. Get the best rates directly from your farm.</p>
+    </header>
 
-        <form id="produce-form" class="listing-form">
+    <div class="form-container">
+        <form id="produce-form">
             
-            <div class="form-group">
-                <label for="cropName">Crop Name *</label>
-                <select id="cropName" required>
-                    <option value="" disabled selected>Select a crop...</option>
-                    <option value="Wheat">Wheat</option>
-                    <option value="Rice/Paddy">Rice / Paddy</option>
-                    <option value="Tomato">Tomato</option>
-                    <option value="Onion">Onion</option>
-                    <option value="Potato">Potato</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group full">
+                    <label for="cropName"><i class="fa-solid fa-wheat-awn"></i> Crop Name *</label>
+                    <select id="cropName" required>
+                        <option value="" disabled selected>Select a crop...</option>
+                        <option value="Wheat">Wheat</option>
+                        <option value="Rice/Paddy">Rice / Paddy</option>
+                        <option value="Tomato">Tomato</option>
+                        <option value="Onion">Onion</option>
+                        <option value="Potato">Potato</option>
+                        <option value="Soyabean">Soyabean</option>
+                        <option value="Corn">Corn</option>
+                        <option value="Cauliflower">Cauliflower</option>
+                        <option value="Cotton">Cotton</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="variety">Variety</label>
-                <input type="text" id="variety" placeholder="e.g., Sharbati, Basmati" required>
+            <div class="form-group full">
+                <label for="variety"><i class="fa-solid fa-tag"></i> Variety</label>
+                <input type="text" id="variety" placeholder="e.g., Sharbati, Basmati, Local" required>
             </div>
 
             <div class="form-row">
-                <div class="form-group half">
-                    <label for="quantity">Quantity *</label>
+                <div class="form-group">
+                    <label for="quantity"><i class="fa-solid fa-scale-balanced"></i> Quantity *</label>
                     <input type="number" id="quantity" placeholder="e.g., 50" required>
                 </div>
-                <div class="form-group half">
-                    <label for="unit">Unit *</label>
+                <div class="form-group">
+                    <label for="unit"><i class="fa-solid fa-weight-hanging"></i> Unit *</label>
                     <select id="unit" required>
                         <option value="Quintal">Quintal</option>
                         <option value="Kg">Kg</option>
@@ -50,32 +136,34 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="price">Expected Base Price (per unit) *</label>
+            <div class="form-group full">
+                <label for="price"><i class="fa-solid fa-hand-holding-dollar"></i> Expected Base Price (per unit) *</label>
                 <div class="input-with-icon">
                     <span class="currency-symbol">₹</span>
                     <input type="number" id="price" placeholder="e.g., 2500" required>
                 </div>
-                <small class="helper-text">Mandi Average today: ₹2450/Quintal</small>
+                <small class="helper-text">Check Mandi Prices to set a competitive rate.</small>
             </div>
 
-            <div class="form-group">
-                <label for="harvestDate">Expected Harvest Date *</label>
+            <div class="form-group full">
+                <label for="harvestDate"><i class="fa-regular fa-calendar-check"></i> Expected Harvest Date *</label>
                 <input type="date" id="harvestDate" required>
             </div>
 
-            <div class="form-group">
-                <label for="cropImage">Upload Photos (Max 3)</label>
+            <div class="form-group full" style="margin-top: 10px;">
+                <label for="cropImage"><i class="fa-solid fa-camera"></i> Upload Crop Photos (Max 3)</label>
                 <div class="file-upload-box" onclick="document.getElementById('cropImage').click()">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <p>Tap to upload images</p>
+                    <span>JPEG, PNG formats supported</span>
                 </div>
                 <input type="file" id="cropImage" accept="image/*" multiple style="display: none;">
             </div>
 
-            <button type="submit" class="accent-btn full-width submit-btn">Publish Listing</button>
+            <button type="submit" class="submit-btn">
+                Publish Listing <i class="fa-regular fa-paper-plane"></i>
+            </button>
         </form>
-
     </div>
 
     <script src="sell_produce.js"></script>
