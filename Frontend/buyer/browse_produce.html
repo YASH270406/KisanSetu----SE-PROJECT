@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Browse Produce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="browse_produce_style.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="buyer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>Browse Produce Marketplace</h2>
+    </header>
+
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>Crop Type</label>
+            <select id="crop-filter">
+                <option value="">All Crops</option>
+                <option value="Wheat">Wheat</option>
+                <option value="Rice">Rice</option>
+                <option value="Tomato">Tomato</option>
+                <option value="Potato">Potato</option>
+                <option value="Onion">Onion</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>State</label>
+            <select id="state-filter">
+                <option value="">All States</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Max Price (₹/Quintal)</label>
+            <input type="number" id="price-filter" placeholder="e.g. 3000">
+        </div>
+    </div>
+
+    <div id="listings-container">
+        <div class="listing-card static-example">
+            <div class="card-header">
+                <div>
+                    <h3 class="crop-name">Wheat</h3>
+                    <span class="crop-variety">Sharbati</span>
+                </div>
+                <div class="price">₹2,800 <small style="font-size:0.7rem; color:#666;">/ Qtl</small></div>
+            </div>
+            <div class="card-body">
+                <p><strong>Farmer:</strong> <span>Ramesh Kumar</span></p>
+                <p><strong>Location:</strong> <span>Sehore, Madhya Pradesh</span></p>
+                <p><strong>Quantity:</strong> <span>50 Quintals</span></p>
+                <p><strong>Harvest Date:</strong> <span>2026-03-10</span></p>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-buy" onclick="alert('JS not loaded yet')"><i
+                        class="fa-solid fa-cart-shopping"></i> Buy Now</button>
+                <button class="btn btn-offer" onclick="alert('JS not loaded yet')"><i class="fa-solid fa-handshake"></i>
+                    Make Offer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../states_data.js"></script>
+    <script src="browse_produce.js"></script>
+</body>
+
+</html>
