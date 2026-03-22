@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,13 +9,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="farmer_dashboard_style.css">
 </head>
+
 <body>
 
     <div class="app-container">
-        
+
         <header class="dashboard-header">
             <div class="user-info">
-                <img src="../images/farmer_profile.jpeg" alt="Profile" class="profile-pic" onerror="this.src='https://via.placeholder.com/50?text=User'">
+                <img src="../images/farmer_profile.jpeg" alt="Profile" class="profile-pic"
+                    onerror="this.src='https://via.placeholder.com/50?text=User'">
                 <div>
                     <h2 class="greeting">Namaste Kisan!</h2>
                     <p class="location"><i class="fa-solid fa-location-dot"></i> Ambedkar Nagar, Uttar Pradesh</p>
@@ -38,11 +41,12 @@
 
         <div class="weather-widget">
             <div class="weather-info">
-                <h3>32°C <img src="../images/sun_icon.jpeg" alt="Sunny" class="weather-icon" onerror="this.src='https://via.placeholder.com/30?text=Sun'"></h3>
+                <h3>32°C <img src="../images/sun_icon.jpeg" alt="Sunny" class="weather-icon"
+                        onerror="this.src='https://via.placeholder.com/30?text=Sun'"></h3>
                 <p>Sunny • Good day for harvesting</p>
             </div>
         </div>
-
+        <!--
         <div class="action-grid">
             <a href="sell_produce.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
@@ -54,7 +58,7 @@
                 <img src="../images/rent_equipment.png" alt="Rent Equipment" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Rent'">
                 <p>Rent Equipment</p>
             </div>
-            <a href="mandi_prices.html" style="text-decoration: none; color: inherit; display: block;">
+            <!--<a href="mandi_prices.html" style="text-decoration: none; color: inherit; display: block;">
     <div class="action-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; border: none; text-align: center;">
         <div class="card-icon" style="background: #e8f5e9; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
             <i class="fa-solid fa-chart-line" style="color: #2e7d32; font-size: 1.5rem;"></i>
@@ -70,7 +74,56 @@
                 <p>Soil Health</p>
             </div>
         </div>
-    </a>
+    </a>-->
+        <div class="action-grid">
+            <a href="sell_produce.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="../images/sell_produce.jpeg" alt="Sell Crop" class="action-img"
+                        onerror="this.src='https://placehold.co/200x200/e8f5e9/2e7d32?text=Sell'">
+                    <p>Sell Produce</p>
+                </div>
+            </a>
+
+            <a href="inventory.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=300&q=80"
+                        alt="Inventory" class="action-img">
+                    <p>Inventory</p>
+                </div>
+            </a>
+
+            <a href="mandi_prices.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80"
+                        alt="Mandi Prices" class="action-img">
+                    <p>Mandi Prices</p>
+                </div>
+            </a>
+
+            <a href="soilhealth.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="../images/soil_health.jpg" alt="Soil Test" class="action-img"
+                        onerror="this.src='https://placehold.co/200x200/e8f5e9/2e7d32?text=Soil'">
+                    <p>Soil Health</p>
+                </div>
+            </a>
+
+            <a href="bid.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1604594849809-dfedbc827105?auto=format&fit=crop&w=300&q=80"
+                        alt="Bid Inbox" class="action-img">
+                    <p>Bid Inbox</p>
+                </div>
+            </a>
+
+            <a href="payment_status.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=300&q=80"
+                        alt="Payments" class="action-img">
+                    <p>Payments</p>
+                </div>
+            </a>
+        </div>
 
         <div class="recent-alerts">
             <h3 class="section-title">Recent Updates</h3>
@@ -98,4 +151,5 @@
 
     <script src="farmer_dashboard.js"></script>
 </body>
+
 </html>
