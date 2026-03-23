@@ -712,7 +712,7 @@ body {
 .btn-receipt-sm:hover { background: var(--primary-green); color: var(--white); }
 
 /* ── CALENDAR (TAB 4) ── */
-.calendar-wrap {}
+/* .calendar-wrap {} */
 
 .cal-eq-selector {
     background: var(--white);

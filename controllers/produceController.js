@@ -1,41 +1,75 @@
-const fs = require('fs');
-const path = require('path');
+// controllers/produceController.js
+const connectDB = require('../config/db');
 
-// Point to the data folder
-const dataFilePath = path.join(__dirname, '../data/produce_listings.json');
+// --- ADD SINGLE LIVE CROP LISTING ---
+const addProduce = async (req, res) => {
+    // These names now perfectly match what sell_produce.js is sending
+    const { crop, variety, quantity, unit, price, harvestDate } = req.body;
 
-exports.syncProduce = (req, res) => {
+    if (!crop || !quantity || !price) {
+        return res.status(400).json({ success: false, message: 'Missing required crop details.' });
+    }
+
     try {
-        const newListing = req.body;
-        let listings = [];
+        const db = await connectDB();
+        const createdAt = new Date().toISOString();
 
-        // 1. Check if file exists and read it safely
-        if (fs.existsSync(dataFilePath)) {
-            const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-            // Only try to parse if the file is not empty
-            if (fileData.trim() !== '') {
-                listings = JSON.parse(fileData);
-            }
-        }
+        await db.run(
+            `INSERT INTO Produce (cropName, variety, quantity, unit, price, harvestDate, createdAt) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [crop, variety, quantity, unit, price, harvestDate, createdAt]
+        );
 
-        // 2. Add the new incoming data to the array
-        listings.push(newListing);
+        console.log(`🌾 New Live Crop Listed: ${quantity}${unit} of ${crop}`);
+        res.status(201).json({ success: true, message: 'Produce listed successfully!' });
 
-        // 3. Ensure the 'data' folder exists, create it automatically if it doesn't
-        const dir = path.dirname(dataFilePath);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-
-        // 4. Write the updated array back to the JSON file safely
-        fs.writeFileSync(dataFilePath, JSON.stringify(listings, null, 2));
-        console.log("✅ Successfully saved to JSON:", newListing.crop);
-
-        // 5. Send a success response back to the frontend
-        res.status(201).json({ message: 'Listing successfully synced to the market!', data: newListing });
-        
     } catch (error) {
-        console.error("❌ Backend Error saving JSON:", error);
-        res.status(500).json({ error: 'Failed to sync data to the server' });
+        console.error("Database Error adding produce:", error);
+        res.status(500).json({ success: false, message: 'Failed to list produce.' });
     }
 };
+
+// --- SYNC OFFLINE DATA (Bulk Upload) ---
+const syncProduce = async (req, res) => {
+    // Expects an array of items sent from the frontend localStorage
+    const offlineItems = req.body.items; 
+
+    if (!offlineItems || !Array.isArray(offlineItems) || offlineItems.length === 0) {
+        return res.status(400).json({ success: false, message: 'No valid data to sync.' });
+    }
+
+    try {
+        const db = await connectDB();
+        let syncedCount = 0;
+
+        for (let item of offlineItems) {
+            await db.run(
+                `INSERT INTO Produce (cropName, variety, quantity, unit, price, harvestDate, createdAt) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [item.crop, item.variety, item.quantity, item.unit, item.price, item.harvestDate, new Date().toISOString()]
+            );
+            syncedCount++;
+        }
+
+        console.log(`🔄 Bulk Synced ${syncedCount} offline listings to the cloud!`);
+        res.status(200).json({ success: true, message: `Successfully synced ${syncedCount} items.` });
+
+    } catch (error) {
+        console.error("Database Error syncing produce:", error);
+        res.status(500).json({ success: false, message: 'Failed to sync offline data.' });
+    }
+};
+
+// --- FETCH ALL PRODUCE ---
+const getAllProduce = async (req, res) => {
+    try {
+        const db = await connectDB();
+        const produceList = await db.all(`SELECT * FROM Produce WHERE status = 'Available' ORDER BY id DESC`);
+        res.status(200).json({ success: true, data: produceList });
+    } catch (error) {
+        console.error("Database Error fetching produce:", error);
+        res.status(500).json({ success: false, message: 'Failed to fetch marketplace data.' });
+    }
+};
+
+module.exports = { addProduce, getAllProduce, syncProduce };
