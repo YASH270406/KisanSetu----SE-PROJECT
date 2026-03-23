@@ -1,11 +1,15 @@
-
 /* Color Palette Variables */
 :root {
-    --primary-green: #2e7d32;   /* Leaf Green - Trust & Growth */
-    --soil-brown: #8d6e63;      /* Warm Earth - Stability */
-    --harvest-yellow: #fbc02d;  /* Accent - High visibility */
-    --off-white: #f9fbe7;       /* Background - Easy on the eyes */
-    --charcoal: #37474f;        /* Text - High contrast readability */
+    --primary-green: #2e7d32;
+    /* Leaf Green - Trust & Growth */
+    --soil-brown: #8d6e63;
+    /* Warm Earth - Stability */
+    --harvest-yellow: #fbc02d;
+    /* Accent - High visibility */
+    --off-white: #f9fbe7;
+    /* Background - Easy on the eyes */
+    --charcoal: #37474f;
+    /* Text - High contrast readability */
     --white: #ffffff;
 }
 
@@ -18,7 +22,8 @@
 }
 
 body {
-    background-color: #e0e0e0; /* Darker background to make the app container pop */
+    background-color: #e0e0e0;
+    /* Darker background to make the app container pop */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -28,31 +33,41 @@ body {
 /* App Container */
 .app-container {
     width: 100%;
-    max-width: 400px; 
+    max-width: 400px;
     height: 100vh;
     background-color: var(--off-white);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 /* Screen Management */
 .screen {
-    display: none; /* Hidden by default */
+    display: none;
+    /* Hidden by default */
     padding: 30px 20px;
     height: 100%;
     flex-direction: column;
     animation: fadeIn 0.4s ease-in-out;
-    overflow-y: auto; /* Enables scrolling for overflowing content */
+    overflow-y: auto;
+    /* Enables scrolling for overflowing content */
 }
 
 .screen.active {
-    display: flex; /* Shown when active class is added */
+    display: flex;
+    /* Shown when active class is added */
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Splash Screen Specifics */
@@ -91,7 +106,8 @@ body {
 
 /* Login / Register Group on Language Screen */
 .auth-group {
-    margin-top: auto; /* Pushes the buttons to the bottom of the screen */
+    margin-top: auto;
+    /* Pushes the buttons to the bottom of the screen */
     padding-top: 30px;
 }
 
@@ -214,9 +230,11 @@ button:active {
 /* Role Selection Cards */
 .role-cards {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Creates two equal columns */
+    grid-template-columns: 1fr 1fr;
+    /* Creates two equal columns */
     gap: 15px;
-    padding-bottom: 30px; /* Gives scrolling breathing room */
+    padding-bottom: 30px;
+    /* Gives scrolling breathing room */
 }
 
 .role-card {
@@ -227,11 +245,13 @@ button:active {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Centers content vertically */
+    justify-content: center;
+    /* Centers content vertically */
     text-align: center;
     cursor: pointer;
     transition: 0.2s;
-    aspect-ratio: 1 / 1; /* Forces the card to be a perfect square */
+    aspect-ratio: 1 / 1;
+    /* Forces the card to be a perfect square */
 }
 
 .role-card img {
@@ -264,14 +284,16 @@ button:active {
 ======================================================== */
 @media (min-width: 768px) {
     .app-container {
-        max-width: 900px; /* Expands container to a landscape view */
-        height: 80vh; /* Limits height to 80% of the laptop screen */
+        max-width: 900px;
+        /* Expands container to a landscape view */
+        height: 80vh;
+        /* Limits height to 80% of the laptop screen */
         border-radius: 20px;
     }
 
     /* Screen padding increases for breathing room */
     .screen {
-        padding: 50px 60px; 
+        padding: 50px 60px;
     }
 
     /* Make the splash screen elements larger */
@@ -280,9 +302,9 @@ button:active {
         height: 180px;
         margin-bottom: 30px;
     }
-    
+
     .screen-title {
-        font-size: 2.8rem; 
+        font-size: 2.8rem;
     }
 
     .screen-subtitle {
@@ -291,8 +313,8 @@ button:active {
 
     /* Put the 3 role cards in a single horizontal row instead of a 2x2 grid */
     .role-cards {
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 30px; 
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
         margin-top: 20px;
     }
 
@@ -303,7 +325,11 @@ button:active {
     }
 
     /* Center forms on large screens */
-    .input-group, .otp-inputs, .button-group, .auth-group, .accent-btn {
+    .input-group,
+    .otp-inputs,
+    .button-group,
+    .auth-group,
+    .accent-btn {
         max-width: 500px;
         margin-left: auto;
         margin-right: auto;
@@ -316,5 +342,30 @@ button:active {
         margin-left: auto;
         margin-right: auto;
         display: block;
+    }
+}
+
+/* OTP shake on wrong entry */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-8px);
+    }
+
+    40% {
+        transform: translateX(8px);
+    }
+
+    60% {
+        transform: translateX(-6px);
+    }
+
+    80% {
+        transform: translateX(6px);
     }
 }
