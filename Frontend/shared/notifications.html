@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Notifications</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="notifications_style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="page-header">
+            <button class="back-btn" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i></button>
+            <h1 class="page-title">Notifications</h1>
+            <button class="mark-all-btn" onclick="markAllAsRead()">Mark all as read</button>
+        </header>
+
+        <div class="filter-bar">
+            <div class="filter-chips">
+                <button class="chip active" onclick="filterNotifications('all')">All</button>
+                <button class="chip" onclick="filterNotifications('Order')">Orders</button>
+                <button class="chip" onclick="filterNotifications('Booking')">Bookings</button>
+                <button class="chip" onclick="filterNotifications('Price')">Price</button>
+                <button class="chip" onclick="filterNotifications('Payment')">Payments</button>
+            </div>
+        </div>
+
+        <div id="notifications-list" class="notifications-list">
+            <!-- Notifications will be injected here -->
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <i class="fa-regular fa-bell-slash"></i>
+            <p>No notifications yet</p>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+</body>
+</html>
