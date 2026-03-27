@@ -3,70 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KisanSetu - Inventory Dashboard</title>
-    <link rel="stylesheet" href="inventoryandsoilhealth.css">
+    <title>KisanSetu - Smart Storage</title>
+    <link rel="stylesheet" href="inventory.css">
 </head>
 <body>
     <div class="app-container">
         <div class="dashboard-header">
             <div class="user-info">
-                <span class="greeting">📦 Inventory</span>
-            </div>
-            <div class="sync-status" id="syncIndicator">
-                <div class="pulse-dot"></div> Online
+                <span class="greeting">🌾 Smart Storage & Inventory</span>
             </div>
         </div>
 
         <div class="content-wrapper">
-            <div id="expiryAlerts" class="sys-alert"></div>
+            <div class="metrics-grid">
+                <div class="metric-card metric-green">
+                    <p class="metric-title">Total Portfolio Value</p>
+                    <h2 id="totalValueDisplay">₹ 0</h2>
+                    <p class="metric-subtitle">Based on Live Mandi Rates</p>
+                </div>
+                <div class="metric-card metric-red" id="spoilageAlertCard">
+                    <p class="metric-title">Spoilage Alert</p>
+                    <h2 id="riskDisplay">0 Batches</h2>
+                    <p class="metric-subtitle">Require immediate sale</p>
+                </div>
+            </div>
 
-            <div class="card">
-                <h3>Add New Batch</h3>
-                <form id="batchForm">
-                    <div class="form-group">
-                        <label>Crop Type</label>
-                        <select id="cropType" required>
-                            <option value="Tomato">Tomato</option>
-                            <option value="Potato">Potato</option>
-                            <option value="Wheat">Wheat</option>
+            <button class="btn-primary" onclick="toggleAddForm()" style="margin-bottom: 20px;">
+                ➕ Add New Stock
+            </button>
+
+            <div class="card" id="addStockForm" style="display: none; border: 2px solid var(--primary-green);">
+                <h3 style="color: var(--primary-green);">Add Inventory</h3>
+                <form id="inventoryForm">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label>Category</label>
+                        <select id="itemCategory" onchange="updateFormFields()" required>
+                            <option value="produce">Harvested Produce (To Sell)</option>
+                            <option value="input">Farm Input (To Use)</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Quantity (Quintals)</label>
-                        <input type="number" id="qty" min="1" required>
+                    
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label>Item Name</label>
+                        <select id="itemName" required>
+                            </select>
                     </div>
-                    <div class="form-group">
-                        <label>Storage Location</label>
-                        <input type="text" id="storageLoc" placeholder="e.g., Warehouse A" required>
+
+                    <div class="form-group" style="margin-bottom: 15px;" id="qualityGradeContainer">
+                        <label>Quality Grade (Produces Only)</label>
+                        <select id="itemGrade">
+                            <option value="A">Grade A (Premium +15%)</option>
+                            <option value="B" selected>Grade B (Standard Market Rate)</option>
+                            <option value="C">Grade C (Sub-Standard -15%)</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label>Harvest Date</label>
-                        <input type="date" id="harvestDate" required>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Quantity</label>
+                        <div class="input-wrapper" style="display: flex; gap: 10px;">
+                            <input type="number" id="itemQty" placeholder="e.g., 50" required style="width: 70%;">
+                            <select id="itemUnit" style="width: 30%;">
+                                <option value="Quintals">Qtl</option>
+                                <option value="Kg">Kg</option>
+                                <option value="Bags">Bags</option>
+                            </select>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary">Log Batch</button>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn-primary" style="flex: 1;">Save Stock</button>
+                        <button type="button" class="btn-primary btn-secondary" onclick="toggleAddForm()" style="flex: 1; margin-top: 0;">Cancel</button>
+                    </div>
                 </form>
             </div>
 
-            <div class="card">
-                <h3>Current Stock</h3>
-                <button id="downloadPdfBtn" class="btn-primary btn-secondary">Download Summary (PDF)</button>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Crop</th>
-                                <th>Qty</th>
-                                <th>Location</th>
-                                <th>Expiry</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventoryTableBody">
-                            </tbody>
-                    </table>
-                </div>
+            <div class="tab-container">
+                <button class="tab-btn active" onclick="switchTab('produce')" id="tabProduce">Harvested Produce</button>
+                <button class="tab-btn" onclick="switchTab('input')" id="tabInput">Farm Inputs</button>
             </div>
+
+            <div id="produceList" class="inventory-list">
+                </div>
+
+            <div id="inputList" class="inventory-list" style="display: none;">
+                </div>
+
         </div>
     </div>
+
+    <div id="listingModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="card" style="width: 90%; max-width: 400px; position: relative; border-left: 6px solid var(--harvest-yellow);">
+            <h3 style="color: var(--charcoal); margin-bottom: 5px;">Sell on Marketplace</h3>
+            <p id="listingModalItemName" style="color: var(--primary-green); font-weight: bold; font-size: 1.1rem; margin-bottom: 15px;">Crop Name</p>
+            
+            <form id="listingForm">
+                <input type="hidden" id="listItemId">
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>Quantity to List (<span id="maxQtyLabel">Max: 0</span>)</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="number" id="listQty" step="0.1" required style="flex: 1;">
+                        <span id="listUnitLabel" style="font-weight: bold; color: var(--charcoal);">Qtl</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Your Asking Price (per <span class="unit-text">Qtl</span>)</label>
+                    <p style="font-size: 0.8rem; color: var(--soil-brown); margin-bottom: 5px;">Suggested based on Live Mandi & Grade: <span id="suggestedPriceLabel" style="font-weight: bold; color: var(--primary-green);">₹0</span></p>
+                    <input type="number" id="listPrice" required>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-primary" style="background-color: var(--harvest-yellow); color: var(--charcoal);">Confirm Listing</button>
+                    <button type="button" class="btn-primary btn-secondary" onclick="closeListingModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="inventory.js"></script>
 </body>
 </html>
