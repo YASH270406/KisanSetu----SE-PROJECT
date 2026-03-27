@@ -3,63 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KisanSetu - Soil Health & Advisory</title>
-    <link rel="stylesheet" href="inventoryandsoilhealth.css">
+    <title>KisanSetu - Soil Health & Schemes Hub</title>
+    <link rel="stylesheet" href="soilhealth.css">
 </head>
 <body>
     <div class="app-container">
         <div class="dashboard-header">
             <div class="user-info">
-                <span class="greeting">🌱 Soil Health</span>
-            </div>
-            <div class="sync-status" id="syncIndicator">
-                <div class="pulse-dot"></div> Online
-            </div>
-        </div>
-
-        <div class="offline-banner" id="apiFallback" style="display: none;">
-            <div>
-                <h4>⚠️ Working Offline</h4>
-                <p>Unable to reach govt servers. Showing cached data.</p>
+                <span class="greeting">🌱 Soil Health Report  & Schemes Hub</span>
             </div>
         </div>
 
         <div class="content-wrapper">
-            <div class="card">
-                <h3>Fetch Soil Health Card</h3>
-                <div class="form-group">
-                    <input type="text" id="shcId" placeholder="Enter 12-digit SHC ID" required>
+            
+            <div class="card card-blue">
+                <h3>📄 Get Official Soil Health Card</h3>
+                <p class="card-text">
+                    Don't have your soil data? Fetch your official 12-parameter card from the Govt. portal, then enter the details below.
+                </p>
+                <a href="https://soilhealth.dac.gov.in/soilhealthcard" target="_blank" style="text-decoration: none;">
+                    <button class="btn-primary btn-blue">
+                        Open Govt. Portal ↗️
+                    </button>
+                </a>
+            </div>
+
+            <div class="ai-intro" style="margin-top: 25px;">
+                <h3>Krishi-AI Soil Advisor </h3>
+                <p>Enter your Soil Health Card details for instant, expert recommendations.</p>
+            </div>
+
+            <div class="card" id="soilInputCard">
+                <form id="soilForm">
+                    <div class="parameter-grid">
+                        <div class="form-group input-wrapper">
+                            <label>Nitrogen (N)</label>
+                            <input type="number" id="valN" placeholder="e.g., 250" required>
+                            <span class="input-unit">kg/ha</span>
+                        </div>
+                        <div class="form-group input-wrapper">
+                            <label>Phosphorus (P)</label>
+                            <input type="number" id="valP" placeholder="e.g., 25" required>
+                            <span class="input-unit">kg/ha</span>
+                        </div>
+                        <div class="form-group input-wrapper">
+                            <label>Potassium (K)</label>
+                            <input type="number" id="valK" placeholder="e.g., 150" required>
+                            <span class="input-unit">kg/ha</span>
+                        </div>
+                        <div class="form-group input-wrapper">
+                            <label>Soil pH</label>
+                            <input type="number" step="0.1" id="valPH" placeholder="e.g., 6.8" required>
+                            <span class="input-unit">pH</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">✨ Ask AI</button>
+                </form>
+            </div>
+
+            <div class="ai-processing" id="soilLoadingState">
+                <div class="spinner"></div>
+                <p class="processing-text">Krishi-AI is analyzing your soil data...</p>
+            </div>
+
+            <div class="ai-results-card" id="soilResultsCard">
+                <h4 class="results-title">🤖 Krishi-AI's Agronomy Report</h4>
+                <div id="geminiSoilOutput" class="gemini-output-box"></div>
+                <button class="btn-primary btn-secondary" onclick="resetSoilForm()">Analyze New Data</button>
+            </div>
+
+
+            <div style="margin-top: 40px; border-top: 2px solid #ccc; padding-top: 20px;">
+                <div class="ai-intro">
+                    <h3 style="color: #e65100;">🏛️ Government Schemes Hub</h3>
+                    <p>Subsidies, loans, and support plans available to you.</p>
                 </div>
-                <button id="fetchDataBtn" class="btn-primary">Get Recommendations</button>
-                
-                <div id="resultsContainer" style="display: none;">
-                    <div class="npk-grid">
-                        <div class="npk-box">Nitrogen<span id="valN">-</span></div>
-                        <div class="npk-box">Phosphorus<span id="valP">-</span></div>
-                        <div class="npk-box">Potassium<span id="valK">-</span></div>
-                    </div>
+
+                <div class="card card-yellow">
+                    <h3> IN Central Government Schemes</h3>
+                    <p class="card-text">
+                        Discover which agricultural subsidies, loans, and insurance plans (like PM-KISAN, PMFBY) you are eligible for.
+                    </p>
+                    <a href="https://pmkisan.gov.in/" target="_blank" style="text-decoration: none;">
+                        <button class="btn-primary btn-yellow">
+                            Find All Central Schemes ↗️
+                        </button>
+                    </a>
+                </div>
+
+                <div class="card card-yellow">
+                    <h3>🗺️ State Government Portals</h3>
+                    <p class="card-text">Select your state to find specific regional agriculture portals and schemes.</p>
                     
-                    <div class="recommendation-box">
-                        <strong>Expert Advice:</strong>
-                        <p id="recommendationText" style="margin-top: 5px;"></p>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>Select Your State</label>
+                       <select id="stateSelect">
+    <option value="">-- Choose State / UT --</option>
+    <option value="AN">Andaman and Nicobar Islands</option>
+    <option value="AP">Andhra Pradesh</option>
+    <option value="AR">Arunachal Pradesh</option>
+    <option value="AS">Assam</option>
+    <option value="BR">Bihar</option>
+    <option value="CH">Chandigarh</option>
+    <option value="CG">Chhattisgarh</option>
+    <option value="DN">Dadra and Nagar Haveli & Daman and Diu</option>
+    <option value="DL">Delhi</option>
+    <option value="GA">Goa</option>
+    <option value="GJ">Gujarat</option>
+    <option value="HR">Haryana</option>
+    <option value="HP">Himachal Pradesh</option>
+    <option value="JK">Jammu & Kashmir</option>
+    <option value="JH">Jharkhand</option>
+    <option value="KA">Karnataka</option>
+    <option value="KL">Kerala</option>
+    <option value="LD">Lakshadweep</option>
+    <option value="MP">Madhya Pradesh</option>
+    <option value="MH">Maharashtra</option>
+    <option value="MN">Manipur</option>
+    <option value="ML">Meghalaya</option>
+    <option value="MZ">Mizoram</option>
+    <option value="NL">Nagaland</option>
+    <option value="OR">Odisha</option>
+    <option value="PY">Puducherry</option>
+    <option value="PB">Punjab</option>
+    <option value="RJ">Rajasthan</option>
+    <option value="SK">Sikkim</option>
+    <option value="TN">Tamil Nadu</option>
+    <option value="TG">Telangana</option>
+    <option value="TR">Tripura</option>
+    <option value="UP">Uttar Pradesh</option>
+    <option value="UK">Uttarakhand</option>
+    <option value="WB">West Bengal</option>
+</select>
                     </div>
+
+                    <div id="stateResult" class="state-result-box" style="display: none;">
+                        <p id="stateMessage" style="font-weight: 600; font-size: 0.95rem; color: #e65100; margin-bottom: 10px;"></p>
+                        <a id="stateLink" href="#" target="_blank" style="text-decoration: none;">
+                            <button class="btn-primary btn-yellow">Visit State Portal ↗️</button>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card card-ai-explainer">
+                    <h3>💡 Krishi-AI Scheme Explainer</h3>
+                    <p class="card-text">
+                        Type the name of any scheme below (e.g., PM-KISAN, KCC) and Krishi-AI will explain it clearly.
+                    </p>
+                    <form id="explainerForm" style="margin-top: 15px;">
+                        <input type="text" id="schemeNameInput" placeholder="Enter Scheme Name..." required style="margin-bottom: 10px;">
+                        <button type="submit" class="btn-primary" style="background-color: var(--soil-brown);">✨ Explain This Scheme</button>
+                    </form>
+                    
+                    <div class="ai-processing" id="explainerLoadingState">
+                        <div class="spinner" style="border-left-color: var(--soil-brown);"></div>
+                        <p class="processing-text" style="color: var(--soil-brown);">Asking Krishi-AI to explain...</p>
+                    </div>
+
+                    <div id="explainerResults" class="gemini-output-box" style="display: none; border-left-color: var(--soil-brown);">
+                        </div>
                 </div>
             </div>
 
-            <div class="card">
-                <h3>Local Schemes</h3>
-                <div class="form-group">
-                    <select id="stateFilter">
-                        <option value="UP">Uttar Pradesh</option>
-                        <option value="MP">Madhya Pradesh</option>
-                        <option value="MH">Maharashtra</option>
-                    </select>
-                </div>
-                <div id="newsFeed" style="margin-top: 15px;">
-                    </div>
-            </div>
         </div>
     </div>
-    <script src="soil_health.js"></script>
+    <script src="soilhealth.js"></script>
 </body>
 </html>
