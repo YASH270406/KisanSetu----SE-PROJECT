@@ -10,9 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    // Replace the cloud icon and text with the image preview
                     uploadBox.innerHTML = `<img src="${event.target.result}" style="max-width: 100%; max-height: 120px; border-radius: 8px; object-fit: cover;">`;
-                    uploadBox.style.padding = "10px"; // Adjust padding for the image
+                    uploadBox.style.padding = "10px"; 
                 };
                 reader.readAsDataURL(file);
             }
@@ -24,15 +23,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (form) {
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent page reload
+            e.preventDefault(); 
 
-            console.log("Form submitted!"); // Debugging check
-
-            // 3. Validate harvest date (Must be today or in the future)
             const harvestDateInput = document.getElementById('harvestDate').value;
             const harvestDate = new Date(harvestDateInput);
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate date comparison
+            today.setHours(0, 0, 0, 0); 
 
             if (harvestDate < today) {
                 alert("Harvest date cannot be in the past!");
@@ -51,55 +47,59 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             // Check connection status
-            console.log("Network status is:", navigator.onLine ? "Online" : "Offline");
-
             if (navigator.onLine) {
-                sendToDatabase(produceData, false); // Online: send straight to backend
+                sendLiveToDatabase(produceData); // Online: Send single item to /add
             } else {
-                saveToOfflineQueue(produceData); // Offline: save to localStorage
+                saveToOfflineQueue(produceData); // Offline: Save to localStorage
             }
         });
     }
 });
 
-// 4. Add offline queue array to localStorage
+// 3. Add offline queue array to localStorage
 function saveToOfflineQueue(data) {
-    console.log("Saving to local storage...", data);
-    
-    // Get existing queue or create empty array
     let queue = JSON.parse(localStorage.getItem('kisanSetuOfflineQueue')) || [];
     queue.push(data);
-    
-    // Save back to browser storage
     localStorage.setItem('kisanSetuOfflineQueue', JSON.stringify(queue));
     
-    alert(`You are currently offline. Your listing for ${data.quantity} ${data.unit} of ${data.crop} has been saved and will publish automatically when your internet is restored.`);
+    alert(`You are offline. Your listing for ${data.quantity} ${data.unit} of ${data.crop} is saved and will publish automatically when internet is restored.`);
     window.location.href = 'farmer_dashboard.html';
 }
 
-// 5. Sync if navigator.onLine is restored while still on this page
-window.addEventListener('online', function() {
+// 4. Sync if navigator.onLine is restored
+window.addEventListener('online', async function() {
     let queue = JSON.parse(localStorage.getItem('kisanSetuOfflineQueue')) || [];
     
     if (queue.length > 0) {
-        console.log("Internet restored! Syncing " + queue.length + " saved listings...");
+        console.log(`Internet restored! Syncing ${queue.length} saved listings...`);
         
-        queue.forEach(item => {
-            sendToDatabase(item, true); // true flag indicates it's a background sync
-        });
-        
-        // Clear the queue after successful sync
-        localStorage.removeItem('kisanSetuOfflineQueue');
-        alert("Your saved offline listings have been successfully published!");
+        try {
+            // Send the entire array at once to the sync endpoint
+            const response = await fetch('http://localhost:3000/api/produce/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: queue }) 
+            });
+
+            if (response.ok) {
+                localStorage.removeItem('kisanSetuOfflineQueue');
+                alert("Your saved offline listings have been successfully published to the marketplace!");
+            }
+        } catch (error) {
+            console.error("Background sync failed:", error);
+        }
     }
 });
 
-// 6. Actual backend API call using fetch
-async function sendToDatabase(data, isBackgroundSync = false) {
-    console.log("Sending direct to database...", data);
-    
+// 5. Actual backend API call for LIVE single uploads
+async function sendLiveToDatabase(data) {
+    const submitBtn = document.querySelector('.submit-btn');
+    const originalText = submitBtn.innerText;
+    submitBtn.innerText = "Publishing...";
+    submitBtn.disabled = true;
+
     try {
-        const response = await fetch('/api/produce/sync', {
+        const response = await fetch('http://localhost:3000/api/produce/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -107,14 +107,12 @@ async function sendToDatabase(data, isBackgroundSync = false) {
 
         if (!response.ok) throw new Error("Upload failed");
         
-        // If this is a direct submission (not a background sync), show success and redirect
-        if (!isBackgroundSync) {
-            alert(`Success! Your listing for ${data.quantity} ${data.unit} of ${data.crop} at ₹${data.price}/${data.unit} has been published.`);
-            window.location.href = 'farmer_dashboard.html';
-        }
+        alert(`Success! Your listing for ${data.quantity} ${data.unit} of ${data.crop} has been published.`);
+        window.location.href = 'farmer_dashboard.html';
+        
     } catch (error) {
         console.error("Error:", error);
         alert("Failed to reach server. We will save this offline instead.");
-        saveToOfflineQueue(data); // Fallback if server is down or request fails
+        saveToOfflineQueue(data); 
     }
 }
