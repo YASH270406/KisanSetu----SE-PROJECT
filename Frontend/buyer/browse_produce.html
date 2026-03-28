@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Browse Produce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="browse_produce_style.css">
+</head>
+
+<body>
+
+    <header class="hero-header">
+        <div class="header-top">
+            <a href="buyer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1>Marketplace</h1>
+        </div>
+        <p>Browse fresh harvests directly from verified farmers. Secure exactly what you need at transparent rates.</p>
+    </header>
+
+    <div class="filter-container">
+        <div class="filter-group">
+            <label><i class="fa-solid fa-wheat-awn"></i> Crop</label>
+            <select id="crop-filter">
+                <option value="">All Crops</option>
+                <option value="Wheat">Wheat</option>
+                <option value="Rice">Rice</option>
+                <option value="Tomato">Tomato</option>
+                <option value="Onion">Onion</option>
+                <option value="Potato">Potato</option>
+                <option value="Soyabean">Soyabean</option>
+                <option value="Cauliflower">Cauliflower</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fa-solid fa-map-location-dot"></i> State</label>
+            <select id="state-filter">
+                <option value="">All States</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fa-solid fa-hand-holding-dollar"></i> Max Price (₹/Qtl)</label>
+            <input type="number" id="price-filter" placeholder="e.g. 3000">
+        </div>
+    </div>
+
+    <div class="listings-wrapper" id="listings-container">
+    </div>
+
+    <script src="../states_data.js"></script>
+    <script src="../shared/toast.js"></script>
+    <script src="browse_produce.js"></script>
+</body>
+
+</html>

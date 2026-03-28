@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu - Live Mandi Prices</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mandiandtrackorder.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="dashboard-header">
+            <div class="user-info">
+                <a href="buyer_dashboard.html" style="color: white; text-decoration: none; margin-right: 10px; font-size: 1.2rem;">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <span class="greeting">📈 Market Prices</span>
+            </div>
+            <div class="sync-status">
+                <div class="pulse-dot"></div> Live
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div id="priceAlert" class="sys-alert pulse-alert" style="display:none;">
+                <i class="fa-solid fa-bolt"></i>
+                <strong>Opportunity:</strong> Current price is significantly below average!
+            </div>
+
+            <div class="card glass-card">
+                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+                    <img id="cropImage" src="https://placehold.co/150x150/e8f5e9/2e7d32?text=C" alt="Crop Image" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 3px solid white; margin-bottom: 15px;">
+                </div>
+                <div class="form-group">
+                    <label>Select Commodity</label>
+                    <select id="cropSelect">
+                        <!-- Options generated dynamically by JS -->
+                    </select>
+                </div>
+                
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <span class="metric-label">Current Price / Qtl</span>
+                        <h4 id="currentPrice" class="metric-value">₹2,150</h4>
+                        <div id="trendIndicator" class="trend-badge trend-down"><i class="fa-solid fa-arrow-down"></i> 12% vs Avg</div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">30-Day Average</span>
+                        <h4 id="avgPrice" class="metric-value">₹2,443</h4>
+                        <div id="stabilityBadge" class="trend-badge trend-neutral"><i class="fa-solid fa-minus"></i> Stable</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="mandiChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="livemandi.js"></script>
+</body>
+</html>
