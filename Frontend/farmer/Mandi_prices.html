@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mandi_prices_style.css">
 
     <style>
         :root {
@@ -144,7 +145,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px;
+            min-width: 850px;
         }
 
         th,
@@ -229,6 +230,9 @@
             <h1>Mandi Prices</h1>
         </div>
         <p><i class="fa-solid fa-chart-line"></i> Real-time APMC market rates across India.</p>
+        <div id="last-updated-badge" style="margin-top: 15px; font-size: 0.8rem; background: rgba(255,255,255,0.2); display: inline-block; padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.4);">
+            <i class="fa-solid fa-clock"></i> Fetching Live Data...
+        </div>
     </header>
 
     <div class="filter-container">
@@ -266,20 +270,19 @@
 
     <div class="dashboard-container">
         <div class="info-banner">
-            <i class="fa-solid fa-circle-info"></i>
-            <span><strong>Note:</strong> "Best near you" routing is optimized for local mock data. Live data.gov.in API
-                records default to a 999km distance.</span>
+            <i class="fa-solid fa-earth-americas"></i>
+            <span id="geocode-progress"><strong>Calculating Live Routes:</strong> Fetching real OpenStreetMap geographic data...</span>
         </div>
 
         <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
-                        <th>Commodity</th>
-                        <th>Market Location</th>
-                        <th>Modal Price (₹/Qtl)</th>
-                        <th>Arrival Date</th>
-                        <th>Distance</th>
+                        <th onclick="sortTable('commodity')" style="cursor: pointer; user-select: none;" title="Click to sort">Commodity <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                        <th onclick="sortTable('location')" style="cursor: pointer; user-select: none;" title="Click to sort">Market Location <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                        <th onclick="sortTable('price')" style="cursor: pointer; user-select: none;" title="Click to sort">Modal Price (₹/Qtl) <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                        <th onclick="sortTable('date')" style="cursor: pointer; user-select: none;" title="Click to sort">Arrival Date <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                        <th onclick="sortTable('distance')" style="cursor: pointer; user-select: none;" title="Click to sort">Distance <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
                     </tr>
                 </thead>
                 <tbody id="mandi-table-body">
@@ -288,6 +291,20 @@
         </div>
     </div>
 
+    <!-- Chart.js Modal -->
+    <div id="trend-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Crop Price Trend</h3>
+                <button class="close-btn" onclick="closeTrendModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../states_data.js"></script>
     <script src="mandi_prices.js"></script>
 </body>

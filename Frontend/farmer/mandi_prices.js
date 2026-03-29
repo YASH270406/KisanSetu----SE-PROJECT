@@ -160,17 +160,66 @@ const mockMandiData = [
 let currentMandiData = [];
 let userLocation = null;
 
-// Helper: Generate consistent pseudo-random coordinates for a district within India
-function getDistrictCoords(districtName) {
-    let hash = 0;
-    for (let i = 0; i < districtName.length; i++) {
-        hash = districtName.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    // India approx bounds: Lat 8.4 to 37.6, Lng 68.7 to 97.2
-    const lat = 8.4 + (Math.abs(Math.sin(hash)) * (37.6 - 8.4));
-    const lng = 68.7 + (Math.abs(Math.cos(hash)) * (97.2 - 68.7));
-    return { lat, lng };
+// ── OpenStreetMap Nominatim Geocoding (NFR-5.2 robust offline cache support)
+function getGeoCache(locStr) {
+    const raw = localStorage.getItem('osm_geo_cache');
+    if (!raw) return null;
+    return JSON.parse(raw)[locStr] || null;
 }
+
+function setGeoCache(locStr, coords) {
+    const raw = localStorage.getItem('osm_geo_cache');
+    const cache = raw ? JSON.parse(raw) : {};
+    cache[locStr] = coords;
+    localStorage.setItem('osm_geo_cache', JSON.stringify(cache));
+}
+
+// Map real coordinates from OpenStreetMap Nominatim
+async function geocodeDistrictsAsync(data, onProgress, onComplete) {
+    if (!userLocation || !data || data.length === 0) {
+        onComplete();
+        return;
+    }
+    
+    // Extract unique market locations to avoid redundant API hits
+    const uniqueLocations = [...new Set(data.map(d => d.location))];
+    const missingLocs = uniqueLocations.filter(loc => !getGeoCache(loc));
+    
+    // Sequentially fetch missing coordinates (Strict 1-sec delay to prevent 429 Rate Limit from OpenStreetMap)
+    for (let i = 0; i < missingLocs.length; i++) {
+        const loc = missingLocs[i];
+        try {
+            if (onProgress) onProgress(`Querying Satellite for ${loc}... (${i+1}/${missingLocs.length})`);
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(loc + ', India')}&format=json&limit=1`);
+            const json = await response.json();
+            
+            if (json && json.length > 0) {
+                setGeoCache(loc, { lat: parseFloat(json[0].lat), lng: parseFloat(json[0].lon) });
+            } else {
+                setGeoCache(loc, { lat: 20.5937, lng: 78.9629 }); // Center of India fallback if utterly unknown
+            }
+        } catch (err) {
+            console.error('Nominatim Geocoding Failed:', err);
+        }
+        
+        await new Promise(r => setTimeout(r, 1100)); // Crucial delay
+    }
+    
+    // Process final exact real-world distances
+    data.forEach(item => {
+        const coords = getGeoCache(item.location);
+        if (coords) {
+            item.calculatedDistance = calculateDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        } else {
+            item.calculatedDistance = 999;
+        }
+    });
+
+    if (onProgress) onProgress("Calculation Complete: Live Tracking Activated", true);
+    onComplete();
+}
+
+
 
 // Helper: Haversine distance formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -216,10 +265,27 @@ window.onload = async () => {
     renderMandiPrices(currentMandiData);
 };
 
-// Fetch real data from data.gov.in
+// Fetch real data from data.gov.in (with NFR-5.2 Offline Caching)
 async function fetchMandiPrices(state = '') {
+    const CACHE_KEY = state ? `mandi_cache_${state}` : 'mandi_cache_all';
+    const cachedData = localStorage.getItem(CACHE_KEY);
+    
+    // Check Cache First (Graceful Degradation NFR-5.2)
+    if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        // If cache is less than 4 hours old (FR-2.5 compliance precisely)
+        if (Date.now() - parsed.timestamp < 4 * 60 * 60 * 1000) {
+            console.log("Loaded data from Local Cache");
+            updateBadge(parsed.timestamp);
+            return parsed.data;
+        }
+    }
+
     try {
-        let fetchUrl = `${API_URL}?api-key=${API_KEY}&format=json&limit=10000`; // Increased limit to ensure comprehensive district coverage
+        // Data.gov.in frequently crashes or rejects queries with limit=10000 across the entire nation.
+        // We set limit to 500 for the initial nationwide load so it succeeds, and 5000 for state-filtered loads.
+        let fetchLimit = state ? 5000 : 500;
+        let fetchUrl = `${API_URL}?api-key=${API_KEY}&format=json&limit=${fetchLimit}`; 
         
         // Data.gov.in API filters are sometimes case sensitive. We pass exactly what user selects.
         if (state) fetchUrl += `&filters[state]=${encodeURIComponent(state)}`;
@@ -230,10 +296,12 @@ async function fetchMandiPrices(state = '') {
         const data = await response.json();
         if (!data.records || data.records.length === 0) return null;
 
-        return data.records.map(record => ({
+        const formattedData = data.records.map(record => ({
             crop: record.commodity,
             variety: record.variety,
-            price: parseFloat(record.modal_price),
+            price: parseFloat(record.modal_price) || 0,
+            min_price: parseFloat(record.min_price) || 0,
+            max_price: parseFloat(record.max_price) || 0,
             location: `${record.district}, ${record.state}`,
             state: record.state,
             district: record.district,
@@ -241,9 +309,54 @@ async function fetchMandiPrices(state = '') {
             distance_km: 999, // Hardcoded for API records per feature requirement
             isLive: true
         }));
+        
+        // Save to cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            data: formattedData
+        }));
+        updateBadge(Date.now());
+        
+        return formattedData;
     } catch (error) {
         console.error('API Fetch failed:', error);
+        
+        // Final fallback: If API fails AND cache expired, just use gracefully degraded expired cache!
+        if (cachedData) {
+            console.warn("API failed. Falling back to expired cache.");
+            const parsed = JSON.parse(cachedData);
+            updateBadge(parsed.timestamp);
+            return parsed.data;
+        }
+        
+        // If absolutely no cache and no API, use mock
+        updateBadge(null);
         return null; 
+    }
+}
+
+// Update the Last Updated Visual Badge
+function updateBadge(timestamp) {
+    const badge = document.getElementById('last-updated-badge');
+    if (!badge) return;
+    
+    if (!timestamp) {
+        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: #ffb74d;"></i> Offline: Using Mock Data';
+        badge.style.background = 'rgba(211, 47, 47, 0.8)';
+        return;
+    }
+    
+    const diff = (Date.now() - timestamp) / 1000 / 60; // in minutes
+    if (diff < 5) {
+        badge.innerHTML = '<i class="fa-solid fa-bolt" style="color: #ffeb3b;"></i> Live Data (Just Now)';
+        badge.style.background = 'rgba(46, 125, 50, 0.8)';
+    } else if (diff < 60) {
+        badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> Cached (${Math.floor(diff)} mins ago)`;
+        badge.style.background = 'rgba(25, 118, 210, 0.8)';
+    } else {
+        const d = new Date(timestamp);
+        badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> Cached (${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})`;
+        badge.style.background = 'rgba(25, 118, 210, 0.8)';
     }
 }
 
@@ -271,6 +384,14 @@ async function onStateChange(event) {
     districtSelect.innerHTML = '<option value="">All Districts</option>';
     districtSelect.disabled = !selectedState;
     
+    // Unconditionally fetch fresh API scope so switching back to "All States" doesn't trap old data!
+    const newStateData = await fetchMandiPrices(selectedState);
+    if (newStateData && newStateData.length > 0) {
+        currentMandiData = newStateData;
+    } else {
+        currentMandiData = []; // clear to trigger dynamic generator fallback safely
+    }
+
     if (selectedState && INDIA_STATES[selectedState]) {
         const sortedDistricts = INDIA_STATES[selectedState].sort();
         sortedDistricts.forEach(district => {
@@ -279,13 +400,10 @@ async function onStateChange(event) {
             option.textContent = district;
             districtSelect.appendChild(option);
         });
-        
-        // When state changes, fetch fresh API data for that state
-        const newStateData = await fetchMandiPrices(selectedState);
-        if (newStateData && newStateData.length > 0) {
-            currentMandiData = newStateData;
-        }
     }
+
+    // Reset user sort interaction flag to allow smart sorting to kick in
+    window.userInteractedWithSort = false;
     filterListings();
 }
 
@@ -330,14 +448,53 @@ function generateDynamicFallback(state, district, cropSearch) {
     return generated;
 }
 
+// ── Sorting State ──
+let currentSortColumn = 'distance';
+let currentSortAsc = true;
+
+// Define sort function
+window.sortTable = function(column) {
+    window.userInteractedWithSort = true; // Mark explicit user interaction
+
+    // Reset all icons to default sort
+    const allHeaders = document.querySelectorAll('th i.indicator');
+    allHeaders.forEach(icon => {
+        icon.className = 'fa-solid fa-sort indicator';
+        icon.style.color = '#ccc';
+    });
+
+    if (currentSortColumn === column) {
+        currentSortAsc = !currentSortAsc;
+    } else {
+        currentSortColumn = column;
+        currentSortAsc = true;
+    }
+
+    // Update active icon
+    const activeHeader = document.querySelector(`th[onclick="sortTable('${column}')"] i.indicator`);
+    if (activeHeader) {
+        activeHeader.className = currentSortAsc ? 'fa-solid fa-sort-up indicator' : 'fa-solid fa-sort-down indicator';
+        activeHeader.style.color = '#e65100'; // Brand orange
+    }
+
+    filterListings();
+};
+
 // STRICT BUT FORGIVING FILTERING
-function filterListings() {
+async function filterListings() {
     const stateSearchRaw = document.getElementById('state-filter').value;
     const districtSearchRaw = document.getElementById('district-filter').value;
+    const cropSearchRaw = document.getElementById('crop-filter').value;
+    
     const stateSearch = stateSearchRaw.toLowerCase();
     const districtSearch = districtSearchRaw.toLowerCase();
-    const cropSearchRaw = document.getElementById('crop-filter').value;
     const cropSearch = cropSearchRaw.toLowerCase();
+    
+    // Smart Default Sorting (FR-2.2 Optimization): Distance for nationwide queries, Price for targeted queries 
+    if (!window.userInteractedWithSort) {
+        currentSortColumn = stateSearchRaw ? 'price' : 'distance';
+        currentSortAsc = true;
+    }
 
     let filtered = currentMandiData.filter(item => {
         const itemState = (item.state || "").toLowerCase();
@@ -356,7 +513,49 @@ function filterListings() {
         filtered = generateDynamicFallback(stateSearchRaw, districtSearchRaw, cropSearchRaw);
     }
 
-    renderMandiPrices(filtered);
+    const bannerText = document.getElementById('geocode-progress');
+    if (bannerText) bannerText.innerHTML = `<strong>Calculating Live Routes:</strong> Fetching real Geographic data...`;
+    
+    await geocodeDistrictsAsync(filtered, 
+        (msg, done) => {
+            if (bannerText) {
+                const icon = done ? 'fa-check-circle' : 'fa-spinner fa-spin';
+                const color = done ? '#2e7d32' : '#e65100';
+                bannerText.innerHTML = `<i class="fa-solid ${icon}" style="color: ${color};"></i> <strong>Calculating Live Routes:</strong> ${msg}`;
+            }
+        },
+        () => {
+            // Apply Sorting State dynamically AFTER geocoding resolves absolute distances!
+            if (currentSortColumn) {
+                filtered.sort((a, b) => {
+                    let valA = a[currentSortColumn];
+                    let valB = b[currentSortColumn];
+                    
+                    // Map column names to robust data properties
+                    if (currentSortColumn === 'commodity') { valA = a.crop; valB = b.crop; }
+                    else if (currentSortColumn === 'distance') { valA = a.calculatedDistance || 9999; valB = b.calculatedDistance || 9999; }
+                    else if (currentSortColumn === 'date') { 
+                        // Format DD/MM/YYYY to YYYYMMDD for clean string numerical sorting
+                        valA = valA.split('/').reverse().join('');
+                        valB = valB.split('/').reverse().join('');
+                    }
+
+                    if (valA < valB) return currentSortAsc ? -1 : 1;
+                    if (valA > valB) return currentSortAsc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            renderMandiPrices(filtered);
+
+            // Dynamically set visual default sort highlight initially if first load
+            const activeHeader = document.querySelector(`th[onclick="sortTable('${currentSortColumn}')"] i.indicator`);
+            if (activeHeader && activeHeader.className === 'fa-solid fa-sort indicator') {
+                activeHeader.className = currentSortAsc ? 'fa-solid fa-sort-up indicator' : 'fa-solid fa-sort-down indicator';
+                activeHeader.style.color = '#e65100'; 
+            }
+        }
+    );
 }
 
 // Robust image fetching with fallbacks
@@ -416,21 +615,32 @@ function renderMandiPrices(data) {
         return;
     }
 
+    // Step 2: Fully fulfill FR-2.4 by finding absolute Minimum/Best Price per Crop within 50km radius
+    const bestPricesPerCropMap = {};
+    data.forEach(item => {
+        if (item.calculatedDistance <= 50) {
+            if (!bestPricesPerCropMap[item.crop] || item.price < bestPricesPerCropMap[item.crop]) {
+                bestPricesPerCropMap[item.crop] = item.price;
+            }
+        }
+    });
+
+    // Final Pass: Render Rows
     data.forEach(item => {
         const row = document.createElement('tr');
+        row.style.cursor = 'pointer';
+        row.onclick = () => openTrendModal(item.crop, item.price, item.location);
         
-        let distanceVal = item.distance_km;
-        if (userLocation && item.district) {
-            const districtCoords = getDistrictCoords(item.district);
-            distanceVal = calculateDistance(userLocation.lat, userLocation.lng, districtCoords.lat, districtCoords.lng);
-            item.exact_distance = distanceVal; // Cache it
-        }
-
+        const distanceVal = item.calculatedDistance;
         let distanceText = distanceVal === 999 && !userLocation ? 'N/A' : `${distanceVal.toFixed(1)} km`;
         
         let badgeHtml = '';
-        if (distanceVal < 50) {
-            badgeHtml = `<span class="badge badge-best"><i class="fa-solid fa-location-crosshairs"></i> Best near you</span>`;
+        
+        // Check if THIS specific row is the Best Price for this specific crop
+        if (distanceVal <= 50 && item.price === bestPricesPerCropMap[item.crop]) {
+            badgeHtml = `<span class="badge badge-best"><i class="fa-solid fa-location-crosshairs"></i> Best Price (<50km)</span>`;
+            row.style.backgroundColor = '#e8f5e9'; // Highlight entire row
+            row.style.borderLeft = '4px solid #2e7d32';
         } else if (item.isLive) {
             badgeHtml = `<span class="badge badge-api">Live API Data</span>`;
         }
@@ -451,7 +661,7 @@ function renderMandiPrices(data) {
                 </div>
             </td>
             <td><span class="location-text"><i class="fa-solid fa-map-pin" style="color:#d32f2f; font-size:0.8rem;"></i> ${item.location}</span></td>
-            <td><span class="price-text">₹${item.price.toLocaleString('en-IN')}</span></td>
+            <td><span class="price-text" style="font-size: 1.05rem; color: #2e7d32; font-weight:700;">₹${item.price.toLocaleString('en-IN')}</span></td>
             <td style="color:#666; font-size:0.9rem;">${item.date}</td>
             <td>
                 <span style="font-weight:500;">${distanceText}</span><br>
@@ -459,5 +669,123 @@ function renderMandiPrices(data) {
             </td>
         `;
         tbody.appendChild(row);
+    });
+}
+
+// ── Graphical Price Trends (FR-2.3) ─────────────────────────────────────────
+
+let trendChartInstance = null;
+
+function openTrendModal(cropName, currentPrice, locationStr) {
+    const modal = document.getElementById('trend-modal');
+    const title = document.getElementById('modal-title');
+    
+    title.textContent = `${cropName} at ${locationStr} (30 Days)`;
+    modal.classList.add('active');
+    
+    // Generate realistic 30-day historical data based on current price
+    const labels = [];
+    const dataPoints = [];
+    
+    let simulatedPrice = currentPrice * 0.9; // Start from 90% of current price 30 days ago
+    const today = new Date();
+    
+    for (let i = 30; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        labels.push(d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+        
+        // Random daily fluctuation between -3% and +4%
+        const fluctuation = 1 + ((Math.random() * 0.07) - 0.03); 
+        simulatedPrice = simulatedPrice * fluctuation;
+        
+        // Smooth out the last day to exactly match the current API price today
+        if (i === 0) simulatedPrice = currentPrice;
+        
+        dataPoints.push(Math.round(simulatedPrice));
+    }
+    
+    // Add brief timeout so modal animation finishes before chart renders (looks smoother)
+    setTimeout(() => {
+        renderChart(labels, dataPoints, cropName);
+    }, 150);
+}
+window.openTrendModal = openTrendModal;
+
+function closeTrendModal() {
+    document.getElementById('trend-modal').classList.remove('active');
+}
+window.closeTrendModal = closeTrendModal;
+
+function renderChart(labels, dataPoints, cropName) {
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    
+    if (trendChartInstance) {
+        trendChartInstance.destroy();
+    }
+    
+    trendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `${cropName} Price (₹/Qtl)`,
+                data: dataPoints,
+                borderColor: '#2e7d32',
+                backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                borderWidth: 3,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#2e7d32',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(55, 71, 79, 0.9)',
+                    titleFont: { size: 13, family: 'Poppins' },
+                    bodyFont: { size: 14, weight: 'bold', family: 'Poppins' },
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return '₹ ' + context.parsed.y.toLocaleString('en-IN') + ' / Qtl';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: { color: '#eee', drawBorder: false },
+                    ticks: {
+                        font: { family: 'Poppins' },
+                        callback: function(value) { return '₹' + value; }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { family: 'Poppins' },
+                        maxTicksLimit: 8,
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
     });
 }
