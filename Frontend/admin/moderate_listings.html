@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Moderate Listings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        .admin-content { padding: 20px; }
+        .moderate-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .item-info { flex: 1; }
+        .item-info h4 { margin: 0; font-size: 1rem; }
+        .item-info p { margin: 0; font-size: 0.8rem; color: #666; }
+        .action-btns { display: flex; gap: 8px; }
+        .action-btns button { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s; }
+        .action-btns button:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <header class="dashboard-header" style="background: linear-gradient(135deg, #2e7d32, #1b5e20); color: white; padding: 25px 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                <div>
+                    <h1 style="font-size: 1.5rem;">Marketplace Oversight</h1>
+                    <p style="font-size: 0.85rem; opacity: 0.9;">Verify & moderate produce listings</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <div id="listings-list">
+                <p style="text-align: center; color: #999;">Loading listings...</p>
+            </div>
+
+            <p style="text-align: center; color: #666; font-size: 0.85rem; margin-top: 30px;">
+                <i class="fa-solid fa-circle-info"></i> All listings are currently being tracked for safety.
+            </p>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { supabase } from '../supabase-config.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchListings();
+        });
+
+        async function fetchListings() {
+            try {
+                const { data, error } = await supabase
+                    .from('produce')
+                    .select(`*, farmer:farmer_id (full_name)`)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('listings-list');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; padding: 20px;">No produce listings found.</p>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'moderate-item';
+                    row.innerHTML = `
+                        <div class="crop-icon" style="background:#e8f5e9; padding: 10px; border-radius: 8px; color: #2e7d32; font-weight: bold;">${item.crop_name.charAt(0)}</div>
+                        <div class="item-info">
+                            <h4>${item.crop_name} - ${item.quantity} ${item.unit}</h4>
+                            <p>Posted by: ${item.farmer?.full_name || 'N/A'} • ₹${item.price}/${item.unit}</p>
+                        </div>
+                        <div class="action-btns">
+                            <button style="background: #e8f5e9; color: #2e7d32;" onclick="window.moderateDeal('${item.id}', 'Verified')"><i class="fa-solid fa-check"></i></button>
+                            <button style="background: #ffebee; color: #d32f2f;" onclick="window.moderateDeal('${item.id}', 'Rejected')"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    `;
+
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Fetch listings error:", err);
+            }
+        }
+
+        window.moderateDeal = async (listingId, status) => {
+            // Future development: Add approval logic
+            alert('Listing marked as ' + status + ' (Logic implementation in Phase 5 part B)');
+        }
+    </script>
+</body>
+</html>

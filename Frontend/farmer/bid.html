@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+
 
     <style>
         :root {
@@ -405,72 +407,30 @@
     <header class="hero-header">
         <div class="header-top">
             <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <h1>Bid Inbox <span class="header-badge" id="bid-count">1</span></h1>
+            <h1>Bid Inbox <span class="header-badge" id="bid-count">0</span></h1>
         </div>
+
         <p>Manage incoming offers from verified buyers. Accept directly or send a counter-offer to negotiate better
             rates.</p>
     </header>
+
+    <nav class="tab-navigation">
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tab-active" onclick="window.setViewMode('active')">
+                <i class="fa-solid fa-bolt"></i> Active Bids
+            </button>
+            <button class="tab-btn" id="tab-history" onclick="window.setViewMode('history')">
+                <i class="fa-solid fa-clock-rotate-left"></i> History
+            </button>
+        </div>
+    </nav>
 
     <div class="inbox-container">
 
         <!-- JS will replace this container with real cards -->
         <div id="bids-container">
 
-            <!-- STATIC EXAMPLE CARD (shows layout before JS loads) -->
-            <div class="bid-card" id="example-card">
-                <div class="bid-card-header">
-                    <div class="buyer-info">
-                        <div class="buyer-avatar"><i class="fa-solid fa-user-tie"></i></div>
-                        <div>
-                            <h4 class="buyer-name">SevaMart Holdings</h4>
-                            <p class="bid-time"><i class="fa-regular fa-clock"></i> 2 hours ago</p>
-                        </div>
-                    </div>
-                    <span class="status-badge status-pending">Pending</span>
-                </div>
 
-                <div class="bid-details">
-                    <div class="detail-card">
-                        <span class="detail-label">Crop & Quantity</span>
-                        <span class="detail-value">Wheat • 50 Qtl</span>
-                    </div>
-                    <div class="detail-card">
-                        <span class="detail-label">Your Asking</span>
-                        <span class="detail-value">₹2,500 / Qtl</span>
-                    </div>
-                    <div class="detail-card highlight">
-                        <span class="detail-label">Buyer Offer</span>
-                        <span class="detail-value offer-price">₹2,350 / Qtl</span>
-                    </div>
-                    <div class="detail-card total">
-                        <span class="detail-label">Total Value</span>
-                        <span class="detail-value total-value">₹1,17,500</span>
-                    </div>
-                </div>
-
-                <div class="bid-actions">
-                    <button class="btn-accept" onclick="acceptBid('example')">
-                        <i class="fa-solid fa-check"></i> Accept Deal
-                    </button>
-                    <button class="btn-reject" onclick="rejectBid('example')">
-                        <i class="fa-solid fa-xmark"></i> Decline
-                    </button>
-                    <button class="btn-counter" onclick="counterOffer('example')">
-                        <i class="fa-solid fa-arrow-right-arrow-left"></i> Counter-offer
-                    </button>
-                </div>
-
-                <!-- Counter-offer input (hidden by default) -->
-                <div class="counter-form" id="counter-example" style="display:none">
-                    <label>Propose a new price (₹ per Quintal)</label>
-                    <div class="counter-input-row">
-                        <span class="currency-sym">₹</span>
-                        <input type="number" id="counter-val-example" placeholder="e.g. 2450" min="1">
-                        <button onclick="submitCounter('example')">Send Offer</button>
-                    </div>
-                </div>
-            </div>
-            <!-- end static example card -->
 
         </div>
 
@@ -483,7 +443,7 @@
     </div>
 
     <!-- We keep the JS logic reference exactly as it was -->
-    <script src="bid_inbox.js"></script>
+    <script type="module" src="bid_inbox.js"></script>
     <script src="shared/toast.js"></script>
 </body>
 

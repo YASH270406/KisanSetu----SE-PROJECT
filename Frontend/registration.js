@@ -472,6 +472,8 @@ function verifyRegistrationOTP() {
 
 // ─── KisanSetu | Registration — Supabase Migration ──────────────────────────
 import { supabase, uploadFile } from './supabase-config.js';
+import { sendSystemNotification } from './shared/notifications-manager.js';
+
 
 // Shared key — same as app.js
 const FAST2SMS_KEY = 'YOUR_FAST2SMS_API_KEY'; 
@@ -632,6 +634,7 @@ window.finalSubmit = finalSubmit;
 
 // ── Verify OTP and create account ─────────────────────────────────────────────
 async function verifyRegistrationOTP() {
+    const finalBtn = document.getElementById('final-verify-btn');
     const boxes = document.querySelectorAll('#otp-view input[maxlength="1"]');
     const enteredOTP = Array.from(boxes).map(b => b.value).join('').trim();
 
@@ -659,7 +662,10 @@ async function verifyRegistrationOTP() {
         return;
     }
 
-    sessionStorage.removeItem('kisansetu_reg_otp');
+    // Disable button to prevent double-submission loop
+    const originalBtnHTML = finalBtn.innerHTML;
+    finalBtn.disabled = true;
+    finalBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Account...';
 
     const fullName = document.getElementById('prev-name').innerText;
     const email = document.getElementById('prev-email').innerText;
@@ -668,10 +674,10 @@ async function verifyRegistrationOTP() {
     const role = document.getElementById('prev-role').innerText;
     const pincode = document.getElementById('prev-pincode').innerText;
 
-    showRegToast('Creating your Secure account...', 'info');
+    showRegToast('Saving your profile...', 'info');
 
     try {
-        // 1. Sign up user in Supabase Auth with metadata (this fires the DB Trigger)
+        // 1. Sign up user in Supabase Auth (fires DB Trigger)
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email: email,
             password: password,
@@ -685,9 +691,18 @@ async function verifyRegistrationOTP() {
             }
         });
 
-        if (authError) throw authError;
+        if (authError) {
+            // Check for conflict (user already exists)
+            if (authError.status === 400 || authError.message.includes('already registered')) {
+                showRegToast('This email is already registered. Please login.', 'warning');
+                setTimeout(() => window.location.href = 'index.html', 2000);
+                return;
+            }
+            throw authError;
+        }
 
         const user = authData.user;
+        sessionStorage.removeItem('kisansetu_reg_otp');
 
         // 2. Upload Profile Image to Supabase Storage (if selected)
         let profileImageUrl = null;
@@ -695,30 +710,42 @@ async function verifyRegistrationOTP() {
             try {
                 profileImageUrl = await uploadFile(profileFile, 'profiles', user.id);
                 
-                // 3. Update the existing profile record (created by trigger) with the image URL
+                // 3. Update profile with image
                 const { error: updateError } = await supabase
                     .from('users')
-                    .update({ profile_image: profileImageUrl, pincode: pincode }) // Ensure pincode is updated too
+                    .update({ profile_image: profileImageUrl, pincode: pincode })
                     .eq('id', user.id);
 
-                if (updateError) console.warn('Pincode/Image update failed, but account exists.', updateError);
+                if (updateError) console.warn('Pincode/Image update failed.', updateError);
             } catch (uploadErr) {
-                console.warn('Profile image upload failed, proceeding without it.', uploadErr);
+                console.warn('Profile image upload failed.', uploadErr);
             }
         }
 
+        // Local backup
         const users = JSON.parse(localStorage.getItem('kisan_registered_users')) || {};
         users[mobile] = { name: fullName, email: email, role, pincode, uid: user.id };
         localStorage.setItem('kisan_registered_users', JSON.stringify(users));
 
-        showRegToast(`Account securely created! Welcome, ${fullName}.`, 'success');
+        // 4. Create a "Welcome" notification for the new user (FR-7)
+        await sendSystemNotification(
+            user.id,
+            'Welcome to KisanSetu!',
+            `Namaste ${fullName}, your account was successfully created as a ${role}. Explore the marketplace today!`,
+            'info'
+        );
+
+        showRegToast(`Account created! Welcome, ${fullName}.`, 'success');
         setTimeout(() => window.location.href = 'index.html', 1500);
 
     } catch (error) {
         console.error("Registration Error:", error);
-        showRegToast(error.message || 'An error occurred during registration.', 'error');
+        showRegToast(error.message || 'Registration failed. Please try again.', 'error');
+        
+        // RE-ENABLE button on recoverable error
+        finalBtn.disabled = false;
+        finalBtn.innerHTML = originalBtnHTML;
     }
-
 }
 
 function moveToNext(current) {

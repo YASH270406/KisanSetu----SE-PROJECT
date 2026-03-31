@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        body { background-color: #f4f7f6; color: #37474f; }
+        .checkout-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        
+        .checkout-card {
+            background: white; border-radius: 16px; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 1.2rem; font-weight: 600; color: var(--primary-green);
+            margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+        }
+
+        .order-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid #f9f9f9;
+        }
+        .item-meta h4 { font-size: 1rem; margin-bottom: 2px; }
+        .item-meta p { font-size: 0.85rem; color: #777; }
+        .item-total { font-weight: 600; color: var(--charcoal); }
+
+        .summary-row {
+            display: flex; justify-content: space-between; margin-top: 15px;
+            font-size: 0.95rem; color: #666;
+        }
+        .summary-row.grand-total {
+            margin-top: 25px; padding-top: 20px; border-top: 2px solid #eee;
+            font-weight: 700; font-size: 1.3rem; color: var(--primary-green);
+        }
+
+        .confirm-btn {
+            width: 100%; padding: 18px; background: var(--primary-green);
+            color: white; border: none; border-radius: 12px; margin-top: 30px;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            transition: all 0.3s ease;
+        }
+        .confirm-btn:hover { background: #1b5e20; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(27, 94, 32, 0.3); }
+
+        .empty-cart-state { text-align: center; padding: 60px 20px; }
+        .empty-cart-state i { font-size: 4rem; color: #ccc; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <header class="dashboard-header" style="background: var(--primary-green); color: white; padding: 25px 20px;">
+        <div style="display: flex; align-items: center; gap: 15px; max-width: 800px; margin: 0 auto;">
+            <a href="browse_produce.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h1 style="font-size: 1.5rem;">Secure Checkout</h1>
+                <p style="font-size: 0.85rem; opacity: 0.9;">Review your items and place your order</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="checkout-container">
+        
+        <div id="checkout-content" class="checkout-card">
+            <h2 class="section-title"><i class="fa-solid fa-receipt"></i> Order Summary</h2>
+            
+            <div id="order-items-list">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="summary-details">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Platform Fee (Escrow)</span>
+                    <span>₹0</span>
+                </div>
+                <div class="summary-row grand-total">
+                    <span>Amount to Pay</span>
+                    <span id="grand-total">₹0</span>
+                </div>
+            </div>
+
+            <button class="confirm-btn" onclick="window.placeOrder()">
+                Place Order & Confirm <i class="fa-solid fa-circle-check"></i>
+            </button>
+        </div>
+
+        <div id="empty-state" class="empty-cart-state" style="display: none;">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <h3>Your cart is empty</h3>
+            <p>Go back to the marketplace to add some fresh produce.</p>
+            <a href="browse_produce.html" class="primary-btn" style="display:inline-block; margin-top:20px; text-decoration:none; padding: 12px 25px; border-radius: 8px;">Explore Marketplace</a>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { getCart, clearCart } from '../shared/cart-manager.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const cart = getCart();
+            const orderList = document.getElementById('order-items-list');
+            const subtotalEl = document.getElementById('subtotal');
+            const totalEl = document.getElementById('grand-total');
+
+            if (cart.length === 0) {
+                document.getElementById('checkout-content').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'block';
+                return;
+            }
+
+            let total = 0;
+            cart.forEach(item => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+
+                const div = document.createElement('div');
+                div.className = 'order-item';
+                div.innerHTML = `
+                    <div class="item-meta">
+                        <h4>${item.name}</h4>
+                        <p>${item.variety} | ${item.qty} ${item.unit} | ₹${item.price} per unit</p>
+                    </div>
+                    <div class="item-total">₹${itemTotal.toLocaleString('en-IN')}</div>
+                `;
+                orderList.appendChild(div);
+            });
+
+            subtotalEl.innerText = `₹${total.toLocaleString('en-IN')}`;
+            totalEl.innerText = `₹${total.toLocaleString('en-IN')}`;
+        });
+
+        window.placeOrder = () => {
+            alert("Order Placed Successfully! \n\n(Note: As per requirements, Payment Integration (FR-3.4) and Inventory Decrement (FR-3.5) will be handled in the next phase.)");
+            clearCart();
+            window.location.href = 'buyer_dashboard.html';
+        };
+    </script>
+
+</body>
+</html>

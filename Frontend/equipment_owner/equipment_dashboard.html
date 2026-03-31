@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="equipment_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
 </head>
 <body>
 
@@ -14,16 +15,15 @@
         
         <header class="dashboard-header">
             <div class="user-info">
-                <img src="../images/buyer_profile.jpg" alt="Profile" class="profile-pic" onerror="this.src='https://via.placeholder.com/50?text=Owner'">
+                <img src="../images/buyer_profile.jpg" alt="Profile" class="profile-pic" onerror="this.src='https://placehold.co/50?text=Owner'">
                 <div>
-                    <h2 class="greeting">Hello, Balram</h2>
+                    <h2 class="greeting">Hello!</h2>
                     <p class="location"><i class="fa-solid fa-location-dot"></i> Rohtak, Haryana</p>
                 </div>
             </div>
-            <div class="sync-status online" id="sync-indicator" onclick="toggleSyncStatus()">
-                <span class="pulse-dot"></span> Online
-            </div>
+            <!-- Auth Helper will inject Logout Button here -->
         </header>
+
 
         <div class="earnings-widget">
             <div class="earnings-info">
@@ -35,25 +35,25 @@
         <div class="action-grid">
             <a href="manage_fleet.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
-                    <img src="../images/manage_fleet.jpg" alt="My Fleet" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Fleet'">
+                    <img src="../images/manage_fleet.jpg" alt="My Fleet" class="action-img" onerror="this.src='https://placehold.co/80?text=Fleet'">
                     <p>Manage Fleet</p>
                 </div>
             </a>
             <a href="booking_requests.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
-                    <img src="../images/booking_request.jpg" alt="Booking Requests" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Requests'">
+                    <img src="../images/booking_request.jpg" alt="Booking Requests" class="action-img" onerror="this.src='https://placehold.co/80?text=Requests'">
                     <p>Booking Requests</p>
                 </div>
             </a>
             <a href="rental_calendar.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
-                    <img src="../images/rental_cal.jpg" alt="Rental Calendar" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Calendar'">
+                    <img src="../images/rental_cal.jpg" alt="Rental Calendar" class="action-img" onerror="this.src='https://placehold.co/80?text=Calendar'">
                     <p>Rental Calendar</p>
                 </div>
             </a>
             <a href="earnings_report.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
-                    <img src="../images/earning_report.jpg" alt="Reports" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Reports'">
+                    <img src="../images/earning_report.jpg" alt="Reports" class="action-img" onerror="this.src='https://placehold.co/80?text=Reports'">
                     <p>Earnings Report</p>
                 </div>
             </a>
@@ -83,6 +83,6 @@
 
     </div>
 
-    <script src="equipment_dashboard.js"></script>
+    <script type="module" src="equipment_dashboard.js"></script>
 </body>
 </html>

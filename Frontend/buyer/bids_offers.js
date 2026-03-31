@@ -1,184 +1,256 @@
-// ─── KisanSetu | Buyer Bids & Offers ───────────────────────────────
+// Frontend/buyer/bids_offers.js
+import { supabase } from '../supabase-config.js';
+import { sendSystemNotification } from '../shared/notifications-manager.js';
 
-const fallbackMockBids = [
-    {
-        bidId:        'bid_001',
-        buyerName:    'SevaMart Wholesale',
-        buyerInitials:'SW',
-        crop:         'Wheat',
-        qty:          50,
-        unit:         'Quintal',
-        askingPrice:  2500,
-        offeredPrice: 2350,
-        listingId:    'listing_101',
-        timeAgo:      '2 hours ago',
-        status:       'Pending'
-    },
-    {
-        bidId:        'bid_002',
-        buyerName:    'SevaMart Wholesale',
-        buyerInitials:'SW',
-        crop:         'Tomato',
-        qty:          10,
-        unit:         'Quintal',
-        askingPrice:  1200,
-        offeredPrice: 1100,
-        listingId:    'listing_103',
-        timeAgo:      '2 days ago',
-        status:       'Countered',
-        counterPrice: 1150
-    }
-];
+let bids = [];
 
-let myBids = [];
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("Buyer Bids/Offers initialized.");
+    await loadBids();
+});
 
-function loadBids() {
-    const saved = localStorage.getItem('kisansetu_bids');
-    if (saved) {
-        try {
-            myBids = JSON.parse(saved);
-        } catch (e) {
-            myBids = [...fallbackMockBids];
-            saveBids();
+/**
+ * Handle page focus to auto-refresh data (Bidirectional sync)
+ */
+window.addEventListener('focus', async () => {
+    console.log("Page focused, refreshing bids...");
+    await loadBids();
+});
+
+async function loadBids() {
+    const CACHE_KEY = 'ks_cache_buyer_bids';
+    let isOffline = false;
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            window.location.href = '../index.html';
+            return;
         }
-    } else {
-        myBids = [...fallbackMockBids];
-        saveBids();
-    }
-}
 
-function saveBids() {
-    localStorage.setItem('kisansetu_bids', JSON.stringify(myBids));
-}
+        // Fresh fetch from DB
+        const { data, error } = await supabase
+            .from('bids')
+            .select(`
+                *,
+                produce:produce_id (
+                    crop_name, 
+                    quantity, 
+                    unit, 
+                    price,
+                    farmer_id,
+                    farmer:farmer_id (full_name)
+                )
+            `)
+            .eq('buyer_id', user.id)
+            .order('created_at', { ascending: false });
 
-function buildBidCard(bid) {
-    const totalValue = (bid.qty * bid.offeredPrice).toLocaleString('en-IN');
-    const isActionable = (bid.status === 'Countered');
-    const statusClass  = 'status-' + bid.status.toLowerCase();
-    const cardClass    = (bid.status === 'Rejected' || bid.status === 'Disabled')
-        ? 'bid-card rejected'
-        : 'bid-card';
+        if (error) throw error;
 
-    let actionsHTML = '';
-    let counterInfoHTML = '';
-
-    if (bid.status === 'Countered' && bid.counterPrice) {
-        const counterTotal = (bid.qty * bid.counterPrice).toLocaleString('en-IN');
-        counterInfoHTML = `
-            <div class="detail-row highlight" style="color: #f57f17; background: #fffde7; margin-top: 5px; padding: 5px;">
-                <span class="detail-label"><i class="fa-solid fa-code-compare"></i> Farmer Counter</span>
-                <span class="detail-value">₹${bid.counterPrice.toLocaleString('en-IN')} / ${bid.unit}</span>
-            </div>
-            <div class="detail-row" style="background: #fffde7; padding: 0 5px 5px 5px;">
-                <span class="detail-label">New deal value</span>
-                <span class="detail-value total-value" style="color:#d32f2f">₹${counterTotal}</span>
-            </div>
-        `;
-
-        actionsHTML = `
-            <div class="bid-actions" style="margin-top:15px;">
-                <button class="btn-accept" onclick="acceptCounter('${bid.bidId}')">
-                    <i class="fa-solid fa-check"></i> Accept Counter
-                </button>
-                <button class="btn-reject" onclick="declineCounter('${bid.bidId}')">
-                    <i class="fa-solid fa-xmark"></i> Decline
-                </button>
-            </div>
-        `;
+        bids = data;
+        
+        // Update local cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            data: bids,
+            timestamp: Date.now()
+        }));
+    } catch (err) {
+        console.warn("Network error or fetch failed. Using cache.", err);
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            bids = parsed.data;
+            isOffline = true;
+        }
     }
 
-    return `
-    <div class="${cardClass}" id="card-${bid.bidId}">
-        <div class="bid-card-header">
-            <div class="buyer-info">
-                <div class="buyer-avatar" style="background:#4caf50"><i class="fa-solid fa-leaf" style="color:#fff"></i></div>
-                <div>
-                    <h4 class="buyer-name">Farmer Listing</h4>
-                    <p class="bid-time">${bid.timeAgo}</p>
-                </div>
-            </div>
-            <span class="status-badge ${statusClass}">${bid.status}</span>
-        </div>
-
-        <div class="bid-details">
-            <div class="detail-row">
-                <span class="detail-label">Crop</span>
-                <span class="detail-value">${bid.crop}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Quantity</span>
-                <span class="detail-value">${bid.qty} ${bid.unit}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Asking price</span>
-                <span class="detail-value">₹${bid.askingPrice.toLocaleString('en-IN')} / ${bid.unit}</span>
-            </div>
-            <div class="detail-row highlight">
-                <span class="detail-label">Your offer</span>
-                <span class="detail-value offer-price">₹${bid.offeredPrice.toLocaleString('en-IN')} / ${bid.unit}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Original total</span>
-                <span class="detail-value total-value">₹${totalValue}</span>
-            </div>
-            ${counterInfoHTML}
-        </div>
-        ${actionsHTML}
-    </div>`;
+    renderBids(bids, isOffline);
 }
 
-function renderBids() {
-    const container  = document.getElementById('bids-container');
-    const emptyMsg   = document.getElementById('empty-msg');
-    const countBadge = document.getElementById('bid-count');
 
-    // Only show bids that belong to "SevaMart Wholesale" for realism, or just show all for demo
-    const displayBids = myBids.filter(b => b.buyerName === 'SevaMart Wholesale' || !b.buyerName);
+function renderBids(bidList, isOffline = false) {
+    const container = document.getElementById('bids-container');
+    const emptyMsg = document.getElementById('empty-msg');
+    const bidCountBadge = document.getElementById('bid-count');
 
-    const pendingCount = displayBids.filter(b => b.status === 'Pending' || b.status === 'Countered').length;
-
-    if (pendingCount > 0) {
-        countBadge.textContent = pendingCount;
-        countBadge.style.display = 'inline-block';
-    } else {
-        countBadge.style.display = 'none';
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (bidCountBadge) {
+        bidCountBadge.innerText = bidList.length;
+        bidCountBadge.style.display = bidList.length > 0 ? 'inline-block' : 'none';
     }
 
-    if (displayBids.length === 0) {
-        container.innerHTML = '';
-        emptyMsg.style.display = 'block';
+    if (isOffline) {
+        const warning = document.createElement('div');
+        warning.className = 'offline-badge sync-pulse';
+        warning.style.width = '100%';
+        warning.style.justifyContent = 'center';
+        warning.style.marginBottom = '20px';
+        warning.innerHTML = '<i class="fa-solid fa-cloud-slash"></i> Viewing Offline Data';
+        container.appendChild(warning);
+    }
+
+    if (bidList.length === 0) {
+        if (emptyMsg) emptyMsg.style.display = 'block';
         return;
     }
 
-    emptyMsg.style.display = 'none';
-    container.innerHTML = displayBids.map(bid => buildBidCard(bid)).join('');
+    if (emptyMsg) emptyMsg.style.display = 'none';
+
+    bidList.forEach(bid => {
+        const timeAgo = getTimeAgo(new Date(bid.created_at));
+        const quantity = bid.produce?.quantity || 1;
+        const totalValue = bid.bid_price * quantity;
+        const farmerName = bid.produce?.farmer?.full_name || 'Verified Farmer';
+
+        const card = document.createElement('div');
+        card.className = 'bid-card glass-card';
+        card.style.marginBottom = '20px';
+        
+        card.innerHTML = `
+            <div class="bid-card-header">
+                <div class="buyer-info">
+                    <div class="buyer-avatar"><i class="fa-solid fa-tractor"></i></div>
+                    <div>
+                        <h4 class="buyer-name">${bid.produce?.crop_name || 'Produce'} • ${quantity} ${bid.produce?.unit || ''}</h4>
+                        <p class="bid-time">
+                            <i class="fa-regular fa-user"></i> Seller: ${farmerName} | 
+                            <i class="fa-regular fa-clock"></i> ${timeAgo}
+                        </p>
+                    </div>
+                </div>
+                <span class="status-badge" style="background: ${getStatusColor(bid.status)}; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">${bid.status}</span>
+            </div>
+
+            <div class="bid-details">
+                <div class="detail-row">
+                    <span class="detail-label">Farmer Asking</span>
+                    <span class="detail-value">₹${bid.produce?.price || 0} / ${bid.produce?.unit || ''}</span>
+                </div>
+                <div class="detail-row highlight" style="background: ${bid.status === 'Counter-Offer' ? '#fff9c4' : '#fffde7'}">
+                    <span class="detail-label">${bid.status === 'Counter-Offer' ? 'Counter-Offer Received' : 'Your Offer'}</span>
+                    <span class="detail-value offer-price" style="color: ${bid.status === 'Counter-Offer' ? '#e65100' : ''}">₹${bid.bid_price} / ${bid.produce?.unit || ''}</span>
+                </div>
+                <div class="detail-row total" style="background: #fffde7; padding: 8px; border-radius: 6px; margin-top: 5px;">
+                    <span class="detail-label">Total Value</span>
+                    <span class="detail-value total-value">₹${totalValue.toLocaleString('en-IN')}</span>
+                </div>
+            </div>
+
+            <div class="bid-actions" style="margin-top: 15px; display: flex; gap: 10px;">
+                ${bid.status === 'Accepted' ? `
+                    <button class="btn-accept" style="width: 100%;" onclick="window.location.href='checkout.html?bid=${bid.id}'">
+                        <i class="fa-solid fa-credit-card"></i> Pay Now
+                    </button>
+                ` : bid.status === 'Counter-Offer' ? `
+                    <button class="btn-accept" style="flex: 1;" onclick="window.handleCounterResponse('${bid.id}', 'Accepted')">
+                        <i class="fa-solid fa-check"></i> Accept
+                    </button>
+                    <button class="btn-counter" style="flex: 1;" onclick="window.handleReverseCounter('${bid.id}', ${bid.bid_price})">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i> Negotiate
+                    </button>
+                    <button class="btn-reject" style="flex: 1;" onclick="window.handleCounterResponse('${bid.id}', 'Rejected')">
+                        <i class="fa-solid fa-xmark"></i> Decline
+                    </button>
+                ` : bid.status === 'Pending' ? `
+                    <div style="text-align: center; width: 100%; color: #888; font-size: 0.85rem; padding: 10px; background: #f5f5f5; border-radius: 8px;">
+                        <i class="fa-solid fa-hourglass-half"></i> Waiting for Farmer Response
+                    </div>
+                ` : `
+                    <div style="text-align: center; width: 100%; color: #888; font-size: 0.85rem; padding: 10px; background: #f5f5f5; border-radius: 8px;">
+                        Status: ${bid.status}
+                    </div>
+                `}
+            </div>
+        `;
+        container.appendChild(card);
+    });
 }
 
-function acceptCounter(bidId) {
-    if(confirm("Accept the farmer's counter offer? This will finalize the deal.")) {
-        const bid = myBids.find(b => b.bidId === bidId);
-        if(bid) {
-            bid.status = 'Accepted';
-            bid.offeredPrice = bid.counterPrice; // Update the final deal price
-            saveBids();
-            renderBids();
-            alert("Deal Accepted! The order has been moved to Track Orders.");
-        }
+window.handleCounterResponse = async (bidId, finalStatus) => {
+    if (!confirm(`Are you sure you want to ${finalStatus.toLowerCase()} this counter-offer?`)) return;
+
+    try {
+        const { error } = await supabase
+            .from('bids')
+            .update({ status: finalStatus })
+            .eq('id', bidId);
+
+        if (error) throw error;
+
+        // Notify Farmer
+        const bid = bids.find(b => b.id === bidId);
+        const buyerName = sessionStorage.getItem('kisansetu_user_name') || 'The buyer';
+        
+        await sendSystemNotification(
+            bid.produce?.farmer_id,
+            `Offer ${finalStatus}!`,
+            `${buyerName} has ${finalStatus.toLowerCase()} your counter-offer for ${bid.produce?.crop_name || 'produce'}.`,
+            finalStatus === 'Accepted' ? 'success' : 'warning'
+        );
+
+        alert(`Response sent: ${finalStatus}`);
+        await loadBids();
+    } catch (err) {
+        alert("Action failed: " + err.message);
     }
-}
-
-function declineCounter(bidId) {
-    if(confirm("Decline this counter offer? The bid will be rejected.")) {
-        const bid = myBids.find(b => b.bidId === bidId);
-        if(bid) {
-            bid.status = 'Rejected';
-            saveBids();
-            renderBids();
-        }
-    }
-}
-
-window.onload = function () {
-    loadBids();
-    renderBids();
 };
+
+window.handleReverseCounter = async (bidId, currentPrice) => {
+    const newPrice = prompt("Enter your new negotiated price (per unit):", currentPrice);
+    if (!newPrice || isNaN(newPrice) || parseFloat(newPrice) === currentPrice) return;
+
+    try {
+        const { error } = await supabase
+            .from('bids')
+            .update({ 
+                bid_price: parseFloat(newPrice),
+                status: 'Pending' 
+            })
+            .eq('id', bidId);
+
+        if (error) throw error;
+
+        // Notify Farmer
+        const bid = bids.find(b => b.id === bidId);
+        const buyerName = sessionStorage.getItem('kisansetu_user_name') || 'The buyer';
+
+        await sendSystemNotification(
+            bid.produce?.farmer_id,
+            'Price Renegotiated!',
+            `${buyerName} proposed a new price of ₹${newPrice} for ${bid.produce?.crop_name || 'produce'}.`,
+            'info'
+        );
+
+        alert("New offer sent to farmer!");
+        await loadBids();
+    } catch (err) {
+        alert("Negotiation failed: " + err.message);
+    }
+};
+
+function getStatusColor(status) {
+    switch (status) {
+        case 'Accepted': return '#2e7d32'; // Green
+        case 'Rejected': return '#d32f2f'; // Red
+        case 'Counter-Offer': return '#fbc02d'; // Yellow/Gold
+        case 'Pending': return '#f57c00'; // Orange
+        default: return '#78909c'; // Gray
+    }
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " minutes ago";
+    return Math.floor(seconds) + " seconds ago";
+}

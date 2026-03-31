@@ -1,36 +1,23 @@
-// Simulate the Offline/Online Connectivity Monitor
+import { initializeDashboard } from '../shared/auth-helper.js';
+import { initializeNotifications } from '../shared/notifications-manager.js';
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Initialize Auth and Profile
+    await initializeDashboard('Equipment Owner');
+    await initializeNotifications();
+
+
+    console.log("Equipment Console: Fleet and Bookings synced.");
+});
+
 function toggleSyncStatus() {
-    const indicator = document.getElementById('sync-indicator');
-    
-    if (indicator.classList.contains('online')) {
-        indicator.classList.remove('online');
-        indicator.classList.add('offline');
-        indicator.innerHTML = '<span class="pulse-dot"></span> Offline';
-        
-        alert("Network lost. Operating in offline mode. Booking approvals will be queued and sent when connection is restored.");
-    } else {
-        indicator.classList.remove('offline');
-        indicator.classList.add('online');
-        indicator.innerHTML = '<span class="pulse-dot"></span> Online';
-        
-        alert("Network restored. Syncing calendar and approvals to the cloud...");
-    }
+    alert("System Status: Synchronized with Supabase Cloud.");
 }
+window.toggleSyncStatus = toggleSyncStatus;
 
 // Handle the Add Equipment FAB
 function addNewEquipment() {
-    const btn = document.getElementById('add-equip-btn');
-    
-    // Visual cue
-    btn.style.backgroundColor = "#e65100"; 
-    
-    setTimeout(() => {
-        btn.style.backgroundColor = "var(--harvest-yellow)"; 
-        
-        const equipName = prompt("Quick Add Asset:\nEnter equipment name (e.g., 'Mahindra Tractor 50HP'):");
-        
-        if(equipName) {
-            alert(`Draft created for: "${equipName}"\nRedirecting to specification and pricing form...`);
-        }
-    }, 200);
+     window.location.href = 'manage_fleet.html';
 }
+window.addNewEquipment = addNewEquipment;

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Rent Equipment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        body { background-color: #f4f7f6; color: #37474f; }
+        .hero-header { background: linear-gradient(135deg, #ef6c00, #fb8c00); color: white; padding: 40px 20px; }
+        
+        .market-container { padding: 30px 20px; max-width: 1200px; margin: 0 auto; }
+        .market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        
+        .asset-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .asset-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .asset-type { background: #fff3e0; color: #e65100; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
+        .asset-price { font-size: 1.25rem; font-weight: 700; color: var(--primary-green); }
+        
+        .book-btn { width: 100%; margin-top: 20px; padding: 12px; border-radius: 10px; border: none; background: #ef6c00; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .book-btn:hover { background: #e65100; transform: translateY(-2px); }
+
+        /* Booking Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal.open { display: flex; }
+        .modal-content { background: white; width: 90%; max-width: 450px; border-radius: 20px; padding: 30px; animation: slideUp 0.3s ease-out; }
+        
+        .cost-calc { background: #f9f9f9; padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px dashed #ddd; }
+        .total-cost { font-size: 1.2rem; font-weight: 700; color: var(--primary-green); text-align: right; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <header class="hero-header">
+        <div style="display: flex; align-items: center; gap: 15px; max-width: 1200px; margin: 0 auto;">
+            <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h1 style="font-size: 1.8rem;">Rent Farm Machinery</h1>
+                <p style="font-size: 0.9rem; opacity: 0.9;">Secure high-quality equipment for your farm needs on an hourly basis.</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="market-container">
+        <div id="equipment-grid" class="market-grid">
+            <!-- Machine cards injected here -->
+        </div>
+    </div>
+
+    <!-- Booking Modal (FR-4.3, FR-4.5) -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" style="color: #ef6c00;">Book Equipment</h3>
+            <p id="modal-subtitle" style="font-size: 0.85rem; color: #666; margin-bottom: 20px;"></p>
+            
+            <form id="booking-form">
+                <input type="hidden" id="booking-equip-id">
+                <input type="hidden" id="booking-rate">
+
+                <div class="form-group">
+                    <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; display: block;">Start Date & Time</label>
+                    <input type="datetime-local" id="book-start" class="full-width" style="padding: 10px; width: 100%;" required>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; display: block;">End Date & Time</label>
+                    <input type="datetime-local" id="book-end" class="full-width" style="padding: 10px; width: 100%;" required>
+                </div>
+
+                <div class="cost-calc">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                        <span>Estimated Duration:</span>
+                        <span id="calc-hours">0 Hours</span>
+                    </div>
+                    <div class="total-cost" id="calc-total">₹ 0.00</div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="secondary-btn" style="flex: 1; padding: 12px;" onclick="window.toggleModal(false)">Cancel</button>
+                    <button type="submit" class="primary-btn" style="flex: 2; padding: 12px; background: #ef6c00;">Request Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="browse_equipment.js"></script>
+</body>
+</html>

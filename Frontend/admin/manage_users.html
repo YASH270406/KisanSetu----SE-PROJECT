@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Manage Users</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        .admin-content { padding: 20px; }
+        .user-list { margin-top: 20px; }
+        .user-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .user-meta h4 { margin: 0; font-size: 1rem; }
+        .user-meta p { margin: 0; font-size: 0.8rem; color: #666; }
+        .badge-role { padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .role-farmer { background: #e8f5e9; color: #2e7d32; }
+        .role-buyer { background: #e3f2fd; color: #1565c0; }
+        .role-equipment_owner { background: #fff3e0; color: #ef6c00; }
+        .role-admin { background: #fce4ec; color: #c2185b; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <header class="dashboard-header" style="background: linear-gradient(135deg, #37474f, #263238); color: white; padding: 25px 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                <div>
+                    <h1 style="font-size: 1.5rem;">User Management</h1>
+                    <p style="font-size: 0.85rem; opacity: 0.9;">Verify Profiles & Assign Roles</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <div class="stats-widget" style="margin-bottom: 20px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 12px; padding: 15px;">
+                <p id="system-stats">Analyzing system users...</p>
+            </div>
+
+            <div class="user-list" id="user-list-container">
+                <!-- Data injected by JS -->
+                <p style="text-align: center; color: #999;">Loading profiles...</p>
+            </div>
+
+            <p style="text-align: center; color: #666; font-size: 0.85rem; margin-top: 30px;">
+                <i class="fa-solid fa-shield-halved"></i> Live DB Monitoring Active
+            </p>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { supabase } from '../supabase-config.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchUsers();
+        });
+
+        async function fetchUsers() {
+            try {
+                const { data, error, count } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact' })
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const stats = document.getElementById('system-stats');
+                stats.innerHTML = `System currently managing <strong>${count}</strong> active profiles.`;
+
+                const container = document.getElementById('user-list-container');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; padding: 20px;">No users found.</p>';
+                    return;
+                }
+
+                data.forEach(user => {
+                    const date = new Date(user.created_at).toLocaleDateString();
+                    const item = document.createElement('div');
+                    item.className = 'user-item';
+                    item.innerHTML = `
+                        <div class="user-meta">
+                            <h4>${user.full_name}</h4>
+                            <p>Phone: ${user.phone_number || 'N/A'} • Joined: ${date}</p>
+                        </div>
+                        <span class="badge-role role-${user.role}">${user.role}</span>
+                    `;
+
+                    container.appendChild(item);
+                });
+
+            } catch (err) {
+                console.error("Fetch users error:", err);
+                document.getElementById('user-list-container').innerHTML = '<p style="color: red; text-align: center;">Failed to load user data.</p>';
+            }
+        }
+    </script>
+</body>
+</html>

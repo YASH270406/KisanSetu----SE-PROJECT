@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
 </head>
 
 <body>
@@ -17,16 +18,15 @@
         <header class="dashboard-header">
             <div class="user-info">
                 <img src="../images/logo.jpeg" alt="Admin Profile" class="profile-pic"
-                    onerror="this.src='https://via.placeholder.com/50?text=Admin'">
+                    onerror="this.src='https://placehold.co/50?text=Admin'">
                 <div>
                     <h2 class="greeting">Super User</h2>
                     <p class="location"><i class="fa-solid fa-shield-halved"></i> Global Administrator</p>
                 </div>
             </div>
-            <div class="sync-status online" id="sync-indicator">
-                <span class="pulse-dot"></span> System Online
-            </div>
+            <!-- Auth Helper will inject Logout Button here -->
         </header>
+
 
         <div class="stats-widget">
             <div class="stats-info">
@@ -84,13 +84,11 @@
             </div>
         </div>
 
-        <button class="voice-fab" id="logout-btn" onclick="window.location.href='../index.html'">
-            <i class="fa-solid fa-power-off" style="font-size: 24px; color: #fff;"></i>
-        </button>
+        </div>
 
     </div>
 
-    <script src="admin_dashboard.js"></script>
+    <script type="module" src="admin_dashboard.js"></script>
 </body>
 
 </html>

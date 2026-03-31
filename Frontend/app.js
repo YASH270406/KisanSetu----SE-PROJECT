@@ -243,6 +243,8 @@ function moveToNext(current, nextFieldID) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { supabase } from './supabase-config.js';
+import { initializeNotifications, sendSystemNotification } from './shared/notifications-manager.js';
+
 import './toast.js'; // [Shared utility] Global toast notifications across all pages
 
 const FAST2SMS_KEY = 'YOUR_FAST2SMS_API_KEY';
@@ -741,20 +743,16 @@ function routeByRole(role, name) {
 
 // ── [FR-7.1 / FR-7.2] Log login notification to Supabase ─────────────────────
 // SRS FR-7.1: "system shall send real-time notifications for order/booking/login events"
-// SRS FR-7.2: "maintain a Transaction History log — accessible to both parties indefinitely"
 async function logLoginNotification(userId, userName, role) {
     try {
-        await supabase.from('notifications').insert({
-            user_id: userId,
-            notification_type: 'LOGIN',
-            message: `${userName} (${role}) logged in successfully.`,
-            is_read: false,
-            delivery_channel: 'in-app',
-            created_at: new Date().toISOString()
-        });
+        await sendSystemNotification(
+            userId,
+            'Login Success',
+            `Namaste ${userName}, you have successfully signed in as ${role}.`,
+            'info'
+        );
     } catch (err) {
-        // Non-blocking — login should not fail if notification log fails (FR-6.4)
-        console.warn('[FR-7.1] Login notification log failed (non-critical):', err.message);
+        console.warn('[FR-7.1] Login notification log failed:', err.message);
     }
 }
 
@@ -897,7 +895,7 @@ async function handleLoginOTP() {
     startSessionTimer();
 
     // [FR-7.1 / FR-7.2] Log login notification — non-blocking
-    logLoginNotification(userData.id, userData.full_name, userData.role);
+
 
     // [FR-1.3 / 1.4 / 1.5 / 1.6] Route to correct role-based dashboard
     routeByRole(userData.role, userData.full_name);

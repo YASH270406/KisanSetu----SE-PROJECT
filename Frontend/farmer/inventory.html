@@ -5,14 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KisanSetu - Smart Storage</title>
     <link rel="stylesheet" href="inventory.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
+
 <body>
     <div class="app-container">
         <div class="dashboard-header">
-            <div class="user-info">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
                 <span class="greeting">🌾 Smart Storage & Inventory</span>
             </div>
+            <button class="btn-primary" onclick="window.downloadStockReport()" style="margin-top: 0; padding: 10px 15px; font-size: 0.8rem; background: #1565c0;">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+            </button>
         </div>
+
 
         <div class="content-wrapper">
             <div class="metrics-grid">
@@ -59,7 +68,7 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 15px;">
-                        <label>Quantity</label>
+                        <label>Quantity & Unit</label>
                         <div class="input-wrapper" style="display: flex; gap: 10px;">
                             <input type="number" id="itemQty" placeholder="e.g., 50" required style="width: 70%;">
                             <select id="itemUnit" style="width: 30%;">
@@ -69,6 +78,12 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>Storage Location (FR-5.1)</label>
+                        <input type="text" id="itemLocation" placeholder="e.g., Warehouse A, Cold Storage" required>
+                    </div>
+
 
                     <div style="display: flex; gap: 10px;">
                         <button type="submit" class="btn-primary" style="flex: 1;">Save Stock</button>

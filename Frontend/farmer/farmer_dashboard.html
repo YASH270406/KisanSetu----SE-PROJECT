@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="farmer_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
 </head>
 
 <body>
@@ -17,15 +18,13 @@
         <header class="dashboard-header">
             <div class="user-info">
                 <img src="../images/farmer_profile.jpeg" alt="Profile" class="profile-pic"
-                    onerror="this.src='https://via.placeholder.com/50?text=User'">
+                    onerror="this.src='https://placehold.co/50?text=User'">
                 <div>
-                    <h2 class="greeting">Namaste Kisan!</h2>
-                    <p class="location"><i class="fa-solid fa-location-dot"></i> Ambedkar Nagar, Uttar Pradesh</p>
+                    <h2 class="greeting">Namaste!</h2>
+                    <p class="location"><i class="fa-solid fa-location-dot"></i> Amberkdkar Nagar, UP</p>
                 </div>
             </div>
-            <div class="sync-status online" id="sync-indicator">
-                <span class="pulse-dot"></span> Online
-            </div>
+            <!-- Auth Helper will inject Logout Button here -->
         </header>
 
         <div id="offline-sync-banner" class="alert-item warning offline-banner" style="display: none;">
@@ -39,13 +38,8 @@
             </button>
         </div>
 
-        <div class="weather-widget">
-            <div class="weather-info">
-                <h3>32°C <img src="../images/sun_icon.jpeg" alt="Sunny" class="weather-icon"
-                        onerror="this.src='https://via.placeholder.com/30?text=Sun'"></h3>
-                <p>Sunny • Good day for harvesting</p>
-            </div>
-        </div>
+
+
         <div class="action-grid">
             <a href="sell_produce.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
@@ -63,7 +57,9 @@
                 </div>
             </a>
 
+
             <a href="inventory.html" style="text-decoration: none; display: contents;">
+
                 <div class="action-card">
                     <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=300&q=80"
                         alt="Inventory" class="action-img">
@@ -106,13 +102,7 @@
 
         <div class="recent-alerts">
             <h3 class="section-title">Recent Updates</h3>
-            <div class="alert-item success">
-                <i class="fa-solid fa-check-circle"></i>
-                <div class="alert-text">
-                    <h4>Payment Received</h4>
-                    <p>₹12,500 credited for Wheat batch #402</p>
-                </div>
-            </div>
+
             <div class="alert-item warning">
                 <i class="fa-solid fa-triangle-exclamation"></i>
                 <div class="alert-text">

@@ -1,199 +1,112 @@
+// Frontend/buyer/livemandi.js
+import { supabase } from '../supabase-config.js';
+
 let priceChart;
+let MANDI_DATA = [];
 
-// Mock Historical Data Generator
-function generateMockData(basePrice, volatility) {
-    let data = [];
-    let labels = [];
-    let current = basePrice;
+const API_KEY = '579b464db66ec23bdd000001a5cf39d16e784cc8443134f3844fa973';
+const API_URL = 'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070';
+
+// Real Mandi API Fetch
+async function fetchLiveMandi() {
+    try {
+        const response = await fetch(`${API_URL}?api-key=${API_KEY}&format=json&limit=1000`);
+        const result = await response.json();
+        if (result.records) {
+            MANDI_DATA = result.records;
+            populateSelect(MANDI_DATA);
+            updateView('Wheat');
+        }
+    } catch (err) {
+        console.error("Mandi API Error:", err);
+    }
+}
+
+function populateSelect(records) {
+    const select = document.getElementById('cropSelect');
+    const commodities = [...new Set(records.map(r => r.commodity))].sort();
     
-    for (let i = 30; i >= 0; i--) {
-        let date = new Date();
-        date.setDate(date.getDate() - i);
-        labels.push(date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }));
-        
-        // Random walk for price
-        let change = (Math.random() - 0.5) * volatility;
-        current = current + change;
-        data.push(Math.round(current));
-    }
-    return { labels, data };
+    select.innerHTML = '';
+    commodities.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+    });
 }
 
-const cropDataMap = {
-    "Wheat": { price: 2400, vol: 50 },
-    "Tomato": { price: 1800, vol: 150 },
-    "Onion": { price: 3000, vol: 200 },
-    "Rice": { price: 2100, vol: 60 },
-    "Potato": { price: 800, vol: 40 },
-    "Cauliflower": { price: 1500, vol: 100 },
-    "Brinjal": { price: 2200, vol: 90 },
-    "Bitter gourd": { price: 4500, vol: 300 },
-    "Green Chilli": { price: 5500, vol: 400 },
-    "Garlic": { price: 8500, vol: 500 },
-    "Apple": { price: 12000, vol: 600 },
-    "Cotton": { price: 6500, vol: 200 }
-};
+function updateView(commodity) {
+    const marketRecords = MANDI_DATA.filter(r => r.commodity === commodity);
+    if (marketRecords.length === 0) return;
 
-// Generate full datasets
-for (let crop in cropDataMap) {
-    if (!cropDataMap[crop].labels) {
-        cropDataMap[crop] = generateMockData(cropDataMap[crop].price, cropDataMap[crop].vol);
+    // Sort by modal price to show range
+    const prices = marketRecords.map(r => parseInt(r.modal_price)).sort((a,b) => a-b);
+    const avg = Math.round(prices.reduce((a,b) => a+b, 0) / prices.length);
+    const current = prices[prices.length - 1]; // Use highest as 'current top' for buyer info
+
+    document.getElementById('currentPrice').innerText = `₹${current.toLocaleString('en-IN')}`;
+    document.getElementById('avgPrice').innerText = `₹${avg.toLocaleString('en-IN')}`;
+
+    // Update Trend
+    const trendEl = document.getElementById('trendIndicator');
+    const diff = current - avg;
+    const percent = ((diff/avg)*100).toFixed(1);
+    
+    if (diff >= 0) {
+        trendEl.className = 'trend-badge trend-up';
+        trendEl.innerHTML = `<i class="fa-solid fa-arrow-up"></i> ${percent}% above avg`;
+    } else {
+        trendEl.className = 'trend-badge trend-down';
+        trendEl.innerHTML = `<i class="fa-solid fa-arrow-down"></i> ${Math.abs(percent)}% below avg`;
     }
+
+    renderChart(commodity, marketRecords);
 }
 
-const imageMap = {
-    'wheat': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=300&q=80',
-    'tomato': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=300&q=80',
-    'potato': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=300&q=80',
-    'onion': 'https://images.unsplash.com/photo-1620574387735-3624d75b2dbc?auto=format&fit=crop&w=300&q=80',
-    'rice': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80',
-    'garlic': 'https://images.unsplash.com/photo-1588162231267-bc18b0e71954?auto=format&fit=crop&w=300&q=80',
-    'apple': 'https://images.unsplash.com/photo-1560806887-1e4cd0b6fac6?auto=format&fit=crop&w=300&q=80',
-    'cotton': 'https://images.unsplash.com/photo-1584824486516-0555a07fc511?auto=format&fit=crop&w=300&q=80',
-    'cauliflower': 'https://images.unsplash.com/photo-1568584716946-ebcd2f33de14?auto=format&fit=crop&w=300&q=80',
-    'bitter gourd': 'https://images.unsplash.com/photo-1628169222340-9b5cc1a63c63?auto=format&fit=crop&w=300&q=80',
-    'brinjal': 'https://images.unsplash.com/photo-1601366164215-dc5dc6438a20?auto=format&fit=crop&w=300&q=80',
-    'green chilli': 'https://images.unsplash.com/photo-1585093751287-c1dcb7b11cf7?auto=format&fit=crop&w=300&q=80'
-};
-
-function initChart(crop) {
+function renderChart(commodity, records) {
     const canvas = document.getElementById('mandiChart');
     const ctx = canvas.getContext('2d');
-    const chartData = cropDataMap[crop];
 
     if (priceChart) priceChart.destroy();
 
-    // Create a smooth vertical gradient for the line fill
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(46, 125, 50, 0.4)'); // Primary Green
-    gradient.addColorStop(1, 'rgba(46, 125, 50, 0.0)');
+    // Grouping by state for the chart (x-axis)
+    const stateGroups = {};
+    records.forEach(r => {
+        if (!stateGroups[r.state]) stateGroups[r.state] = [];
+        stateGroups[r.state].push(parseInt(r.modal_price));
+    });
 
-    // Ensure global font is Poppins
-    Chart.defaults.font.family = "'Poppins', sans-serif";
-    Chart.defaults.color = "#37474f";
+    const labels = Object.keys(stateGroups);
+    const data = labels.map(s => Math.round(stateGroups[s].reduce((a,b) => a+b, 0) / stateGroups[s].length));
 
     priceChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: chartData.labels,
+            labels: labels,
             datasets: [{
-                label: `Price / Qtl`,
-                data: chartData.data,
+                label: 'Avg Market Price (₹/Qtl)',
+                data: data,
+                backgroundColor: 'rgba(46, 125, 50, 0.6)',
                 borderColor: '#2e7d32',
-                backgroundColor: gradient,
-                borderWidth: 3,
-                pointRadius: 0,
-                pointHoverRadius: 6,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#2e7d32',
-                pointBorderWidth: 2,
-                fill: true,
-                tension: 0.4 // Smooth cubic bezier curves
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
-            plugins: { 
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(55, 71, 79, 0.9)',
-                    titleFont: { family: 'Poppins', size: 12, weight: 'normal' },
-                    bodyFont: { family: 'Poppins', size: 14, weight: 'bold' },
-                    padding: 12,
-                    cornerRadius: 8,
-                    displayColors: false,
-                    callbacks: {
-                        label: function(context) {
-                            return '₹ ' + context.parsed.y.toLocaleString('en-IN');
-                        }
-                    }
-                }
-            },
             scales: {
-                y: { 
-                    beginAtZero: false, 
-                    grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-                    ticks: { font: { family: 'Poppins', size: 11 }, callback: function(value) { return '₹' + value; } }
-                },
-                x: { 
-                    grid: { display: false, drawBorder: false }, 
-                    ticks: { font: { family: 'Poppins', size: 11 }, maxTicksLimit: 6 } 
-                }
+                y: { beginAtZero: false }
             }
         }
     });
 
-    updateMetrics(chartData.data);
-}
-
-function updateMetrics(dataArray) {
-    const current = dataArray[dataArray.length - 1];
-    const sum = dataArray.reduce((a, b) => a + b, 0);
-    const avg = Math.round(sum / dataArray.length);
-    
-    const diff = current - avg;
-    const percentChange = ((diff / avg) * 100).toFixed(1);
-
-    document.getElementById('currentPrice').innerText = `₹${current.toLocaleString('en-IN')}`;
-    document.getElementById('avgPrice').innerText = `₹${avg.toLocaleString('en-IN')}`;
-
-    const trendEl = document.getElementById('trendIndicator');
-    const alertEl = document.getElementById('priceAlert');
-    const imgEl = document.getElementById('cropImage');
-
-    if (percentChange < 0) {
-        trendEl.className = 'trend-badge trend-down';
-        trendEl.innerHTML = `<i class="fa-solid fa-arrow-down"></i> ${Math.abs(percentChange)}% vs Avg`;
-        
-        if (Math.abs(percentChange) >= 10) {
-            alertEl.style.display = 'flex'; // Use flex for alert formatting
-        } else {
-            alertEl.style.display = 'none';
-        }
-    } else {
-        trendEl.className = 'trend-badge trend-up';
-        trendEl.innerHTML = `<i class="fa-solid fa-arrow-up"></i> ${percentChange}% vs Avg`;
-        alertEl.style.display = 'none';
-    }
-}
-
-function updateImage(crop) {
-    const imgEl = document.getElementById('cropImage');
-    const lowerCrop = crop.toLowerCase();
-    
-    // Fallback logic
-    let src = `https://placehold.co/150x150/e8f5e9/2e7d32?text=${crop.charAt(0)}`;
-    
-    if (imageMap[lowerCrop]) {
-        src = imageMap[lowerCrop];
-    }
-    
-    imgEl.src = src;
+    // Update Image (fallback to placeholder)
+    document.getElementById('cropImage').src = `https://placehold.co/150?text=${commodity}`;
 }
 
 document.getElementById('cropSelect').addEventListener('change', (e) => {
-    initChart(e.target.value);
-    updateImage(e.target.value);
+    updateView(e.target.value);
 });
 
-// Initialize on load
-function setup() {
-    const select = document.getElementById('cropSelect');
-    select.innerHTML = '';
-    Object.keys(cropDataMap).forEach(crop => {
-        let opt = document.createElement('option');
-        opt.value = crop;
-        opt.textContent = crop;
-        select.appendChild(opt);
-    });
-
-    initChart('Wheat');
-    updateImage('Wheat');
-}
-
-setup();
+// Start
+fetchLiveMandi();

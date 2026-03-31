@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="buyer_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
 </head>
 
 <body>
@@ -18,14 +19,13 @@
             <div class="user-info">
                 <img src="../images/buyer_profile.jpg" alt="Profile" class="profile-pic">
                 <div>
-                    <h2 class="greeting">Welcome, SevaMart</h2>
-                    <p class="location"><i class="fa-solid fa-location-dot"></i> Akbarpur Mandi, Uttar Pradesh</p>
+                    <h2 class="greeting">Welcome!</h2>
+                    <p class="location"><i class="fa-solid fa-location-dot"></i> Akbarpur Mandi, UP</p>
                 </div>
             </div>
-            <div class="sync-status online" id="sync-indicator" onclick="toggleSyncStatus()">
-                <span class="pulse-dot"></span> Online
-            </div>
+            <!-- Auth Helper will inject Logout Button here -->
         </header>
+
 
         <div class="market-widget">
             <div class="market-info">
@@ -61,20 +61,7 @@
 
         <div class="recent-alerts">
             <h3 class="section-title">Recent Activity</h3>
-            <div class="alert-item success">
-                <i class="fa-solid fa-handshake"></i>
-                <div class="alert-text">
-                    <h4>Bid Accepted!</h4>
-                    <p>Farmer Yash accepted your offer of ₹2400/q for Wheat.</p>
-                </div>
-            </div>
-            <div class="alert-item transit">
-                <i class="fa-solid fa-truck-fast"></i>
-                <div class="alert-text">
-                    <h4>Order Dispatched</h4>
-                    <p>Order #882 (Tomatoes) is on the way. Expected today.</p>
-                </div>
-            </div>
+
         </div>
 
         <button class="voice-fab" id="search-btn" onclick="activateSearch()">

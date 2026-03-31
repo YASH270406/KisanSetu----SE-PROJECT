@@ -1,10 +1,18 @@
 import { supabase } from '../supabase-config.js';
+import { initializeDashboard } from '../shared/auth-helper.js';
+import { initializeNotifications } from '../shared/notifications-manager.js';
+
 
 // Run checks as soon as the dashboard loads
 document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Initialize Auth and Profile (Custom Helper)
+    await initializeDashboard('Farmer');
+    await initializeNotifications();
+
+
+    // 2. Offline Sync checks
     updateNetworkIndicator();
     checkOfflineQueue();
-    loadUserProfile();
 });
 
 // Listeners for actual browser network changes
@@ -25,27 +33,7 @@ async function getAuthHeaders() {
     };
 }
 
-async function loadUserProfile() {
-    try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            const { data: profile } = await supabase
-                .from('users')
-                .select('full_name, role')
-                .eq('id', user.id)
-                .single();
-            
-            if (profile) {
-                const greeting = document.querySelector('.greeting');
-                if (greeting) greeting.innerText = `Namaste, ${profile.full_name.split(' ')[0]}!`;
-            }
-        }
-    } catch (err) {
-        console.error("Profile load error:", err);
-    }
-}
-
-// Visually update the top right Online/Offline indicator
+// Visually update the top right Online/Offline indicator (if present in HTML)
 function updateNetworkIndicator() {
     const indicator = document.getElementById('sync-indicator');
     if (!indicator) return;
@@ -110,9 +98,8 @@ function activateVoice() {
     
     setTimeout(() => {
         btn.classList.remove('listening');
-        const command = prompt("Simulating Voice Command.\nTry: 'Sell 50 quintals of wheat at 2500 rupees'");
+        const command = prompt("Voice Simulation:\nTry: 'Sell 50 quintals of wheat'");
         if(command) {
-            alert(`Voice processed: "${command}"\nRedirecting to Smart Listing...`);
             window.location.href = 'sell_produce.html';
         }
     }, 500);
