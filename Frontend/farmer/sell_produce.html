@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KisanSetu | Sell Produce</title>
+    <meta name="description" content="List your harvest on KisanSetu marketplace. Set batch sizes, quantities and get the best rates from verified buyers.">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -38,6 +39,17 @@
             border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); position: relative; z-index: 10;
         }
 
+        .section-divider {
+            display: flex; align-items: center; gap: 12px; margin: 28px 0 20px 0;
+        }
+        .section-divider span {
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--primary-green); white-space: nowrap;
+        }
+        .section-divider::before, .section-divider::after {
+            content: ''; flex: 1; height: 1px; background: #e0e0e0;
+        }
+
         .form-row { display: flex; gap: 20px; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
         .form-group.full { min-width: 100%; }
@@ -52,14 +64,35 @@
         }
         input:focus, select:focus { border-color: var(--primary-green); background: var(--white); box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1); }
         
-        /* Input with prefix (Rupee) */
         .input-with-icon { position: relative; display: flex; align-items: center; }
         .currency-symbol { position: absolute; left: 16px; font-weight: 600; color: var(--charcoal); font-size: 1rem; }
         .input-with-icon input { padding-left: 36px; width: 100%; }
 
         .helper-text { font-size: 0.75rem; color: #666; margin-top: -4px; font-style: italic; }
 
-        /* File Upload specialized stylings */
+        /* Batch Preview Card */
+        .batch-preview {
+            display: none;
+            background: linear-gradient(135deg, #e8f5e9, #f1f8f1);
+            border: 1px solid #c8e6c9;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 10px;
+        }
+        .batch-preview.visible { display: block; animation: fadeInDown 0.3s ease; }
+        .batch-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .batch-stat {
+            background: white; border-radius: 8px; padding: 10px; text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .batch-stat-val { font-size: 1.1rem; font-weight: 700; color: var(--primary-green); line-height: 1.2; }
+        .batch-stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
         .file-upload-box {
             border: 2px dashed #90caf9; background: #f3f8fe; padding: 40px 20px; border-radius: 12px;
             text-align: center; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -76,12 +109,14 @@
         }
         .submit-btn:hover { background: #1b5e20; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4); }
 
-        /* Responsive breakpoints */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
         @media (max-width: 600px) {
             .form-container { margin: -30px 15px 30px 15px; padding: 25px 20px; }
             .hero-header h1 { font-size: 1.6rem; }
             .hero-header p { padding-left: 30px; font-size: 0.85rem; }
             .form-row { flex-direction: column; gap: 0; }
+            .batch-preview-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -89,15 +124,18 @@
 
     <header class="hero-header">
         <div class="header-top">
-            <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <h1>Create Listing</h1>
+            <a href="farmer_dashboard.html" class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1 id="page-heading">Create Listing</h1>
         </div>
-        <p>List your harvest for verified buyers across the country. Get the best rates directly from your farm.</p>
+        <p>List your harvest for verified buyers. Set batches so buyers can purchase in flexible quantities.</p>
     </header>
 
     <div class="form-container">
         <form id="produce-form">
-            
+
+            <!-- Section: Crop Details -->
+            <div class="section-divider"><span><i class="fa-solid fa-seedling"></i> Crop Details</span></div>
+
             <div class="form-row">
                 <div class="form-group full">
                     <label for="cropName"><i class="fa-solid fa-wheat-awn"></i> Crop Name *</label>
@@ -112,6 +150,9 @@
                         <option value="Corn">Corn</option>
                         <option value="Cauliflower">Cauliflower</option>
                         <option value="Cotton">Cotton</option>
+                        <option value="Sugarcane">Sugarcane</option>
+                        <option value="Mustard">Mustard</option>
+                        <option value="Groundnut">Groundnut</option>
                     </select>
                 </div>
             </div>
@@ -121,14 +162,17 @@
                 <input type="text" id="variety" placeholder="e.g., Sharbati, Basmati, Local" required>
             </div>
 
+            <!-- Section: Quantity & Batches -->
+            <div class="section-divider"><span><i class="fa-solid fa-layer-group"></i> Quantity & Batches</span></div>
+
             <div class="form-row">
                 <div class="form-group">
-                    <label for="quantity"><i class="fa-solid fa-scale-balanced"></i> Quantity *</label>
-                    <input type="number" id="quantity" placeholder="e.g., 50" required>
+                    <label for="quantity"><i class="fa-solid fa-scale-balanced"></i> Total Quantity *</label>
+                    <input type="number" id="quantity" placeholder="e.g., 5000" min="1" step="0.5" required oninput="window.updateBatchPreview()">
                 </div>
                 <div class="form-group">
                     <label for="unit"><i class="fa-solid fa-weight-hanging"></i> Unit *</label>
-                    <select id="unit" required>
+                    <select id="unit" required onchange="window.updateBatchPreview()">
                         <option value="Quintal">Quintal</option>
                         <option value="Kg">Kg</option>
                         <option value="Ton">Ton</option>
@@ -137,12 +181,45 @@
             </div>
 
             <div class="form-group full">
-                <label for="price"><i class="fa-solid fa-hand-holding-dollar"></i> Expected Base Price (per unit) *</label>
+                <label for="total_batches">
+                    <i class="fa-solid fa-boxes-stacked"></i> Number of Batches *
+                    <span style="font-size:0.72rem; font-weight:400; color:#999; margin-left:4px;">(Buyers pick 1 or more batches)</span>
+                </label>
+                <input type="number" id="total_batches" placeholder="e.g., 10" min="1" step="1" required oninput="window.updateBatchPreview()">
+                <small class="helper-text">Split your total produce into equal batches. A buyer can purchase 1 to all batches.</small>
+
+                <!-- Live Batch Preview -->
+                <div class="batch-preview" id="batch-preview">
+                    <div style="font-size:0.8rem; font-weight:600; color: #2e7d32; margin-bottom:8px;">
+                        <i class="fa-solid fa-calculator"></i> Batch Breakdown Preview
+                    </div>
+                    <div class="batch-preview-grid">
+                        <div class="batch-stat">
+                            <div class="batch-stat-val" id="preview-total">—</div>
+                            <div class="batch-stat-label">Total Qty</div>
+                        </div>
+                        <div class="batch-stat">
+                            <div class="batch-stat-val" id="preview-batches">—</div>
+                            <div class="batch-stat-label">Batches</div>
+                        </div>
+                        <div class="batch-stat">
+                            <div class="batch-stat-val" id="preview-each">—</div>
+                            <div class="batch-stat-label">Per Batch</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Pricing -->
+            <div class="section-divider"><span><i class="fa-solid fa-rupee-sign"></i> Pricing & Date</span></div>
+
+            <div class="form-group full">
+                <label for="price"><i class="fa-solid fa-hand-holding-dollar"></i> Asking Price (per unit) *</label>
                 <div class="input-with-icon">
                     <span class="currency-symbol">₹</span>
                     <input type="number" id="price" placeholder="e.g., 2500" required>
                 </div>
-                <small class="helper-text">Check Mandi Prices to set a competitive rate.</small>
+                <small class="helper-text">Check Mandi Prices to set a competitive rate for your batch.</small>
             </div>
 
             <div class="form-group full">
@@ -150,8 +227,11 @@
                 <input type="date" id="harvestDate" required>
             </div>
 
-            <div class="form-group full" style="margin-top: 10px;">
-                <label for="cropImage"><i class="fa-solid fa-camera"></i> Upload Crop Photos (Max 3)</label>
+            <!-- Section: Photos -->
+            <div class="section-divider"><span><i class="fa-solid fa-camera"></i> Photos</span></div>
+
+            <div class="form-group full">
+                <label for="cropImage">Upload Crop Photos (Max 3)</label>
                 <div class="file-upload-box" onclick="document.getElementById('cropImage').click()">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <p>Tap to upload images</p>
@@ -160,7 +240,7 @@
                 <input type="file" id="cropImage" accept="image/*" multiple style="display: none;">
             </div>
 
-            <button type="submit" class="submit-btn">
+            <button type="submit" class="submit-btn" id="submit-btn">
                 Publish Listing <i class="fa-regular fa-paper-plane"></i>
             </button>
         </form>

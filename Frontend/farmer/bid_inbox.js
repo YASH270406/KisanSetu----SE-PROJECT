@@ -62,7 +62,7 @@ async function loadBids() {
             .from('bids')
             .select(`
                 *,
-                produce:produce_id (crop_name, quantity, unit, price),
+                produce:produce_id (crop_name, quantity, unit, price, batch_size, total_batches),
                 buyer:buyer_id (full_name)
             `)
             .in('produce_id', produceIds)
@@ -212,6 +212,13 @@ function buildFarmerCard(bid) {
                     <span class="trail-value">₹${askedPrice}<small>/${unit}</small></span>
                 </div>
             </div>
+            ${bid.batch_count && bid.batch_count > 1 ? `
+            <div class="trail-row" style="margin-top:8px;">
+                <div class="trail-item">
+                    <span class="trail-label"><i class="fa-solid fa-boxes-stacked"></i> Batch Order</span>
+                    <span class="trail-value">${bid.batch_count} batch${bid.batch_count > 1 ? 'es' : ''} &bull; ${(bid.batch_count * (bid.produce?.batch_size || 0)).toFixed(1)} ${unit} total</span>
+                </div>
+            </div>` : ''}
             <div class="trail-divider">
                 <span class="trail-divider-line"></span>
                 <span class="trail-divider-icon"><i class="fa-solid fa-arrow-down"></i></span>
@@ -341,6 +348,25 @@ window.updateBidStatus = async (bidId, status) => {
             .from('bids').update({ status }).eq('id', bidId);
 
         if (error) throw error;
+
+        // When accepted, reduce produce quantity by (batch_count × batch_size)
+        if (status === 'Accepted' && bid) {
+            const batchCount = bid.batch_count || 1;
+            const batchSize  = bid.produce?.batch_size || bid.produce?.quantity || 0;
+            const reduceBy   = batchCount * batchSize;
+
+            if (reduceBy > 0) {
+                const newQty    = Math.max(0, (bid.produce?.quantity || 0) - reduceBy);
+                const newStatus = newQty <= 0 ? 'Sold Out' : 'Available';
+
+                await supabase
+                    .from('produce')
+                    .update({ quantity: newQty, status: newStatus })
+                    .eq('id', bid.produce_id);
+
+                console.log(`Produce quantity reduced by ${reduceBy}. New qty: ${newQty} (${newStatus})`);
+            }
+        }
 
         const farmerName = sessionStorage.getItem('kisansetu_user_name') || 'The farmer';
         await sendSystemNotification(
