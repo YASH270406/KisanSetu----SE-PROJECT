@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Rent Equipment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="farmer_rent_equipment.css">
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ══ HEADER ══ -->
+    <header class="dashboard-header">
+        <div class="user-info">
+            <div class="profile-avatar">
+                <img src="../images/buyer_profile.jpg" alt="Profile" class="profile-pic"
+                     onerror="this.src='https://via.placeholder.com/50?text=RK'">
+                <span class="farmer-badge"><i class="fa-solid fa-leaf"></i></span>
+            </div>
+            <div>
+                <h2 class="greeting">Namaste, Ramesh</h2>
+                <p class="location"><i class="fa-solid fa-location-dot"></i> Rohtak, Haryana</p>
+            </div>
+        </div>
+        <div class="sync-status online" id="sync-indicator" onclick="toggleSyncStatus()">
+            <span class="pulse-dot"></span> <span id="sync-label">Online</span>
+        </div>
+    </header>
+
+    <!-- ══ QUICK STATS ══ -->
+    <div class="stats-strip">
+        <div class="stat-item">
+            <span class="stat-num" id="s-available">6</span>
+            <span class="stat-lbl">Available</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-num" id="s-bookings">2</span>
+            <span class="stat-lbl">My Bookings</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-num">₹120</span>
+            <span class="stat-lbl">Avg/hr</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-num">8km</span>
+            <span class="stat-lbl">Nearest</span>
+        </div>
+    </div>
+
+    <!-- ══ TAB NAV ══ -->
+
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('browse', this)">
+            <img src="../images/manage_fleet.jpg" width="100 px" alt="Booking Requests" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Requests'">
+            <i class="fa-solid fa-tractor"></i> Browse
+        </button>
+        <button class="tab-btn" onclick="switchTab('listequip', this)">
+            <img src="../images/listBooking.png" width="55 px" alt="Booking Requests" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Requests'">
+            <i class="fa-solid fa-circle-plus"></i>List Equipment
+        </button>
+        <button class="tab-btn" onclick="switchTab('mybookings', this)">
+            <img src="../images/booking_request.jpg" width="100 px" alt="Booking Requests" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Requests'">
+            <i class="fa-solid fa-list-check"></i> My Bookings
+            <span class="tab-badge" id="pending-badge">2</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('calendar', this)">
+            <img src="../images/rental_cal.jpg" width="100 px" alt="Rental Calendar" class="action-img" onerror="this.src='https://via.placeholder.com/80?text=Calendar'">
+            <i class="fa-regular fa-calendar"></i> Calendar
+        </button>
+    </div>
+
+
+    <!-- ══════════════════════════════════
+         TAB 1 — BROWSE
+    ══════════════════════════════════ -->
+    <div class="tab-content active" id="tab-browse">
+
+        <div class="search-bar-wrap">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search tractor, harvester…" oninput="filterEquipment()">
+            </div>
+        </div>
+
+        <div class="filter-chips">
+            <button class="chip active" onclick="filterByType('all', this)">All</button>
+            <button class="chip" onclick="filterByType('Tractor', this)">🚜 Tractor</button>
+            <button class="chip" onclick="filterByType('Harvester', this)">🌾 Harvester</button>
+            <button class="chip" onclick="filterByType('Tiller', this)">⚙️ Tiller</button>
+            <button class="chip" onclick="filterByType('Drone', this)">🛸 Drone</button>
+            <button class="chip" onclick="filterByType('Seed Drill', this)">🌱 Seed Drill</button>
+        </div>
+
+        <div class="equipment-list" id="equipmentList"></div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         TAB 2 — LIST EQUIPMENT  (NEW)
+    ══════════════════════════════════ -->
+    <div class="tab-content" id="tab-listequip">
+        <div class="list-equip-wrap">
+
+            <div class="list-equip-hero">
+                <div class="list-hero-icon">🚜</div>
+                <h3>List Your Equipment</h3>
+                <p>Own a tractor, harvester or any farm tool? Rent it out and earn when it's idle.</p>
+            </div>
+
+            <!-- Equipment Details -->
+            <div class="form-card">
+                <h3 class="form-section-title"><i class="fa-solid fa-tractor"></i> Equipment Details</h3>
+
+                <div class="form-group">
+                    <label>Equipment Name <span class="req">*</span></label>
+                    <input type="text" id="listName" placeholder="e.g. Mahindra 575 DI Tractor">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Equipment Type <span class="req">*</span></label>
+                        <select id="listType">
+                            <option value="">Select type…</option>
+                            <option>Tractor</option>
+                            <option>Harvester</option>
+                            <option>Tiller</option>
+                            <option>Drone</option>
+                            <option>Seed Drill</option>
+                            <option>Sprayer</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Model / Brand</label>
+                        <input type="text" id="listModel" placeholder="e.g. 575 DI XP Plus">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Horsepower (HP)</label>
+                        <input type="number" id="listHP" placeholder="e.g. 45" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Usage Hours</label>
+                        <input type="number" id="listHours" placeholder="e.g. 1200" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="form-card">
+                <h3 class="form-section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Pricing & Availability</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hourly Rate (₹) <span class="req">*</span></label>
+                        <input type="number" id="listRate" placeholder="e.g. 150" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Daily Rate (₹)</label>
+                        <input type="number" id="listDailyRate" placeholder="e.g. 1000" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Rental Basis <span class="req">*</span></label>
+                    <div class="rental-basis-selector">
+                        <button class="rbasis-btn active" onclick="setRentalBasis('hourly', this)">Hourly</button>
+                        <button class="rbasis-btn" onclick="setRentalBasis('daily', this)">Daily</button>
+                        <button class="rbasis-btn" onclick="setRentalBasis('both', this)">Both</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Available From</label>
+                    <input type="date" id="listAvailFrom">
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-card">
+                <h3 class="form-section-title"><i class="fa-solid fa-location-dot"></i> Location & Contact</h3>
+
+                <div class="form-group">
+                    <label>Village / Town <span class="req">*</span></label>
+                    <input type="text" id="listVillage" placeholder="e.g. Rohtak">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>District <span class="req">*</span></label>
+                        <input type="text" id="listDistrict" placeholder="e.g. Rohtak">
+                    </div>
+                    <div class="form-group">
+                        <label>State <span class="req">*</span></label>
+                        <select id="listState">
+                            <option value="">Select…</option>
+                            <option>Haryana</option>
+                            <option>Punjab</option>
+                            <option>Uttar Pradesh</option>
+                            <option>Madhya Pradesh</option>
+                            <option>Rajasthan</option>
+                            <option>Bihar</option>
+                            <option>Maharashtra</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Contact Number <span class="req">*</span></label>
+                    <input type="tel" id="listPhone" placeholder="10-digit mobile number" maxlength="10">
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea id="listNotes" rows="3" placeholder="Describe condition, restrictions, if operator is available, etc."></textarea>
+                </div>
+            </div>
+
+            <!-- Photo Upload -->
+            <div class="form-card">
+                <h3 class="form-section-title"><i class="fa-solid fa-image"></i> Add Photo (Optional)</h3>
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('photoInput').click()">
+                    <i class="fa-solid fa-camera upload-icon"></i>
+                    <p class="upload-text">Tap to upload equipment photo</p>
+                    <p class="upload-sub">JPG, PNG · Max 5 MB</p>
+                    <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(event)">
+                </div>
+                <div id="photoPreview" class="photo-preview" style="display:none">
+                    <img id="previewImg" src="" alt="Preview">
+                    <button class="remove-photo-btn" onclick="removePhoto()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="submitListing()">
+                <i class="fa-solid fa-paper-plane"></i> Submit Listing
+            </button>
+            <p class="disclaimer">Your listing will be reviewed and published within 24 hours.</p>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         TAB 3 — MY BOOKINGS
+    ══════════════════════════════════ -->
+    <div class="tab-content" id="tab-mybookings">
+        <div class="mybookings-wrap">
+            <div class="bookings-filter-row">
+                <button class="bk-filter active" onclick="filterBookings('all', this)">All</button>
+                <button class="bk-filter" onclick="filterBookings('Pending', this)">Pending</button>
+                <button class="bk-filter" onclick="filterBookings('Confirmed', this)">Confirmed</button>
+                <button class="bk-filter" onclick="filterBookings('Completed', this)">Completed</button>
+                <button class="bk-filter" onclick="filterBookings('Cancelled', this)">Cancelled</button>
+            </div>
+            <div id="bookingsList"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         TAB 4 — CALENDAR
+    ══════════════════════════════════ -->
+    <div class="tab-content" id="tab-calendar">
+        <div class="calendar-wrap">
+            <div class="cal-eq-selector">
+                <label>View availability for:</label>
+                <select id="calEqSelect" onchange="renderCalendar()">
+                    <option value="">All Equipment</option>
+                </select>
+            </div>
+            <div class="calendar-nav">
+                <button onclick="prevMonth()"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="calMonthLabel" class="cal-month-label"></span>
+                <button onclick="nextMonth()"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="cal-legend">
+                <span><span class="leg-dot booked"></span> Booked</span>
+                <span><span class="leg-dot available"></span> Available</span>
+                <span><span class="leg-dot today-dot"></span> Today</span>
+                <span><span class="leg-dot mybooking-dot"></span> My Booking</span>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /app-container -->
+
+
+<!-- ══════════════════════════════════════════════
+     BOOKING DIALOG  — opens on "Book" click
+══════════════════════════════════════════════ -->
+<div class="dialog-overlay" id="bookingDialogOverlay" onclick="closeBookingDialog(event)">
+    <div class="booking-dialog" id="bookingDialog">
+
+        <div class="dialog-header">
+            <div class="dialog-eq-info">
+                <span class="dialog-eq-emoji" id="dlgEqEmoji">🚜</span>
+                <div>
+                    <h3 id="dlgEqName">—</h3>
+                    <p id="dlgEqMeta" class="dialog-eq-meta">—</p>
+                </div>
+            </div>
+            <div class="dialog-header-right">
+                <span class="dialog-rate" id="dlgEqRate">₹—/hr</span>
+                <button class="dialog-close-btn" onclick="closeBookingDialog(null)">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="dialog-body">
+
+            <div class="dialog-section">
+                <h4 class="dialog-section-title">
+                    <i class="fa-regular fa-calendar-days"></i> Rental Dates
+                </h4>
+
+                <div class="dlg-form-row">
+                    <div class="dlg-form-group">
+                        <label>START DATE</label>
+                        <input type="date" id="bookStart" onchange="calculateCost()">
+                    </div>
+                    <div class="dlg-form-group">
+                        <label>END DATE</label>
+                        <input type="date" id="bookEnd" onchange="calculateCost()">
+                    </div>
+                </div>
+
+                <div class="dlg-form-group" style="margin-top:14px">
+                    <label>HOURS PER DAY</label>
+                    <div class="hours-selector">
+                        <button class="hrs-btn" onclick="setHours(4, this)">4 hrs</button>
+                        <button class="hrs-btn active" onclick="setHours(8, this)">8 hrs</button>
+                        <button class="hrs-btn" onclick="setHours(12, this)">12 hrs</button>
+                    </div>
+                </div>
+
+                <div class="dlg-form-group" style="margin-top:14px">
+                    <label>PURPOSE (OPTIONAL)</label>
+                    <select id="bookPurpose">
+                        <option value="">Select crop activity…</option>
+                        <option>Ploughing / Tilling</option>
+                        <option>Sowing / Seed Drilling</option>
+                        <option>Harvesting</option>
+                        <option>Spraying / Pest Control</option>
+                        <option>Transport</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dialog-section cost-section">
+                <h4 class="dialog-section-title">
+                    <i class="fa-solid fa-indian-rupee-sign"></i> Cost Summary
+                </h4>
+                <div class="cost-line">
+                    <span>Duration</span>
+                    <span class="cost-val" id="calcDuration">—</span>
+                </div>
+                <div class="cost-line">
+                    <span>Rate</span>
+                    <span class="cost-val" id="calcRate">—</span>
+                </div>
+                <div class="cost-line">
+                    <span>Hours × Days</span>
+                    <span class="cost-val" id="calcHrsDay">—</span>
+                </div>
+                <div class="cost-divider"></div>
+                <div class="cost-line total">
+                    <span>Total Estimate</span>
+                    <span class="cost-val" id="calcTotal">—</span>
+                </div>
+                <p class="cost-note">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Final cost confirmed by owner within 24 hrs
+                </p>
+            </div>
+
+        </div><!-- /dialog-body -->
+
+        <div class="dialog-footer">
+            <button class="btn-ghost" onclick="closeBookingDialog(null)">Cancel</button>
+            <button class="btn-primary" id="btnSubmitBook" onclick="submitBooking()" disabled>
+                <i class="fa-solid fa-paper-plane"></i> Send Booking Request
+            </button>
+        </div>
+        <p class="disclaimer" style="padding:0 20px 16px; text-align:center">
+            Your booking will be saved as <strong>Pending</strong> until the owner approves.
+        </p>
+
+    </div>
+</div>
+
+
+<!-- ══ EQUIPMENT DETAIL BOTTOM SHEET ══ -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
+    <div class="modal-sheet" id="modalSheet">
+        <div class="modal-handle"></div>
+        <div class="modal-eq-header">
+            <div class="modal-eq-icon" id="modalIcon">🚜</div>
+            <div>
+                <h2 id="modalName"></h2>
+                <p id="modalOwner" class="modal-meta"></p>
+            </div>
+            <span class="modal-status-badge" id="modalStatus"></span>
+        </div>
+        <div class="modal-specs-grid" id="modalSpecs"></div>
+        <div class="modal-rate-row">
+            <div>
+                <p class="modal-rate-lbl">Hourly Rate</p>
+                <p class="modal-rate-val" id="modalRate"></p>
+            </div>
+            <div>
+                <p class="modal-rate-lbl">Location</p>
+                <p class="modal-rate-val" id="modalLoc" style="font-size:0.95rem"></p>
+            </div>
+        </div>
+        <button class="btn-primary" id="modalBookBtn" onclick="bookFromModal()">
+            <i class="fa-solid fa-calendar-plus"></i> Book This Equipment
+        </button>
+    </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast">
+    <span class="toast-icon" id="toastIcon">✅</span>
+    <div>
+        <strong id="toastTitle">Done!</strong>
+        <p id="toastMsg"></p>
+    </div>
+</div>
+
+<script src="farmer_rent_equipment.js"></script>
+</body>
+</html>
