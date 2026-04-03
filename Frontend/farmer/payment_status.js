@@ -7,26 +7,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadPayments() {
     const CACHE_KEY = 'ks_cache_payments';
-    let isOffline = false;
+    console.log("Loading payments for logged-in user...");
 
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
+            console.error("No user found, redirecting...");
             window.location.href = '../index.html';
             return;
         }
 
-        // Fetch orders where this farmer is the seller
+        // Fetch ledger entries where this farmer is the receiver
+        // We select crop_name directly from ledger first (since we save it there now)
         const { data, error } = await supabase
-            .from('orders')
-            .select(`
-                *,
-                produce:produce_id (crop_name)
-            `)
-            .eq('farmer_id', user.id)
+            .from('transaction_ledger')
+            .select('*')
+            .eq('to_user_id', user.id)
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            console.error("Supabase ledger fetch error:", error);
+            throw error;
+        }
+
+        console.log("Ledger data fetched:", data);
 
         // Save to cache on success
         localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -48,11 +52,11 @@ async function loadPayments() {
 }
 
 
-function renderPayments(orders, isOffline = false) {
+function renderPayments(transactions, isOffline = false) {
     const container = document.getElementById('payments-container');
+    if (!container) return;
     container.innerHTML = '';
 
-    // Add Offline Indicator if needed
     if (isOffline) {
         const warning = document.createElement('div');
         warning.className = 'offline-badge sync-pulse';
@@ -63,8 +67,8 @@ function renderPayments(orders, isOffline = false) {
         container.appendChild(warning);
     }
 
-    if (orders.length === 0) {
-
+    if (!transactions || transactions.length === 0) {
+        console.log("No transactions to display.");
         container.innerHTML = `
             <div style="text-align:center; padding: 50px 20px;">
                 <i class="fa-solid fa-file-invoice-dollar" style="font-size: 4rem; color: #ccc; margin-bottom: 20px;"></i>
@@ -75,29 +79,41 @@ function renderPayments(orders, isOffline = false) {
         return;
     }
 
-    orders.forEach(order => {
-        const isSettled = order.status === 'Settled';
+    transactions.forEach(txn => {
+        const status = txn.status || 'Pending';
+        const isSettled = status === 'Settled';
+        const isTransit = status === 'InTransit';
+        const isEscrow  = status === 'Escrow_Held';
+        
         const cardClass = isSettled ? 'status-settled' : 'status-processing';
-        const escrowText = isSettled ? '<i class="fa-solid fa-check-circle"></i> Funds Settled' : '<i class="fa-solid fa-clock"></i> Escrow Processing';
-        const formattedDate = new Date(order.created_at).toLocaleString();
+        
+        let escrowText;
+        if (isSettled) escrowText = '<i class="fa-solid fa-check-circle"></i> Funds Settled';
+        else if (isTransit) escrowText = '<i class="fa-solid fa-truck-moving"></i> In Transit (Escrow)';
+        else if (isEscrow)  escrowText = '<i class="fa-solid fa-lock"></i> Payment Held in Escrow';
+        else escrowText = `<i class="fa-solid fa-clock"></i> ${status.replace('_', ' ')}`;
+        
+        const amount = parseFloat(txn.amount || 0);
+        const crop = txn.crop_name || 'Agri-Product';
+        const formattedDate = new Date(txn.created_at).toLocaleString();
 
         const card = document.createElement('div');
-        card.className = `payment-card glass-card \${cardClass}`;
-        card.style.borderLeft = isSettled ? '5px solid #2e7d32' : '5px solid #fbc02d';
+        card.className = `payment-card ${cardClass}`;
+        card.style.borderLeft = isSettled ? '5px solid #2e7d32' : (isTransit || isEscrow) ? '5px solid #1565c0' : '5px solid #fbc02d';
         card.style.marginBottom = '20px';
         card.innerHTML = `
             <div class="flex-between">
                 <div>
-                    <strong>\${order.produce?.crop_name || 'Produce'} Sale</strong>
-                    <div style="font-size: 0.8rem; color: #666;">Order: \${order.id.substring(0,8)}...</div>
+                    <strong>${crop} Sale</strong>
+                    <div style="font-size: 0.8rem; color: #666;">Ref: ${(txn.id || '').substring(0,8)}...</div>
                 </div>
-                <div class="amount" style="color: #2e7d32; font-weight: bold; font-size: 1.2rem;">₹\${order.total_amount.toLocaleString('en-IN')}</div>
+                <div class="amount" style="color: #2e7d32; font-weight: bold; font-size: 1.2rem;">₹${amount.toLocaleString('en-IN')}</div>
             </div>
             <div class="flex-between" style="margin-top: 10px;">
-                <span class="escrow-badge" style="background: #f5f5f5; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">\${escrowText}</span>
-                <span style="font-size: 0.75rem; color: #888;">\${formattedDate}</span>
+                <span class="escrow-badge" style="background: #f5f5f5; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">${escrowText}</span>
+                <span style="font-size: 0.75rem; color: #888;">${formattedDate}</span>
             </div>
-            <button class="btn-download" onclick="window.downloadInvoice('\${order.id}')" style="width: 100%; margin-top: 15px; padding: 10px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; border-radius: 8px; font-weight: bold; cursor: pointer;">
+            <button class="btn-download" onclick="window.downloadInvoice('${txn.id}')" style="width: 100%; margin-top: 15px; padding: 10px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; border-radius: 8px; font-weight: bold; cursor: pointer;">
                 <i class="fa-solid fa-file-invoice"></i> Download Invoice
             </button>
         `;

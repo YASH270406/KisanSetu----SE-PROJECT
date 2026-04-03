@@ -168,11 +168,11 @@ window.handleNotificationClick = async (id, title, type) => {
     if (isFarmer) {
         if (t.includes('offer') || t.includes('bid')) {
             window.location.href = 'bid.html';
-        } else if (t.includes('payment')) {
+        } else if (t.includes('payment') || t.includes('order') || t.includes('paid')) {
             window.location.href = 'payment_status.html';
         }
     } else if (isBuyer) {
-        if (t.includes('offer') || t.includes('counter') || t.includes('accept')) {
+        if (t.includes('offer') || t.includes('counter') || t.includes('accept') || t.includes('paid')) {
             window.location.href = 'bids_offers.html';
         }
     }

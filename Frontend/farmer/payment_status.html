@@ -107,9 +107,14 @@
 
 
     <div class="container" id="payments-container">
+        <!-- Loading state -->
+        <div style="text-align:center; padding: 50px 20px;" id="loading-view">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-green);"></i>
+            <p style="margin-top:15px;">Fetching your payment records...</p>
+        </div>
     </div>
     <script src="../shared/toast.js"></script>
-    <script src="payment_status.js"></script>
+    <script type="module" src="payment_status.js"></script>
 </body>
 
 </html>

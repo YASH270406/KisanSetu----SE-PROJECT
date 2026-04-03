@@ -172,7 +172,13 @@ function buildProduceCard(item) {
             <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:#888; margin-bottom:5px;">
                 <span><i class="fa-solid fa-boxes-stacked"></i> ${availBatches}/${totalBatches} batches &bull; ${batchSize} ${item.unit}/batch</span>
                 <span>${batchPct}% left</span>
-           <!-- Actions -->
+            </div>
+            <div style="height:5px; background:#e0e0e0; border-radius:4px;">
+                <div style="height:100%; width:${batchPct}%; background:linear-gradient(90deg,#4caf50,#2e7d32); border-radius:4px; transition:width 0.3s;"></div>
+            </div>
+        </div>` : ''}
+
+        <!-- Actions -->
         <div class="card-actions" style="margin-top:15px;">
 
             <!-- Buy Now: shows batch counter on click -->
@@ -239,6 +245,7 @@ function buildProduceCard(item) {
                 <i class="fa-solid fa-handshake"></i> Make Offer
             </button>` : ''}
         </div>
+
 
         <!-- Offer Form (hidden by default) -->
         ${!isSoldOut ? `
@@ -309,9 +316,16 @@ window.addBatchesToCart = (itemId, batchSize, unit) => {
     const item = LIVE_LISTINGS.find(l => l.id === itemId);
     if (!item) return;
     const count = batchSelections[itemId] || 1;
-    const totalQty = count * batchSize;
-    // Add to cart with qty = total quantity (in item's unit)
-    addToCart({ ...item, qty: totalQty, batch_count: count });
+    const totalQty = count * (batchSize || item.quantity || 1);
+    
+    // Add to cart with full metadata
+    addToCart({ 
+        ...item, 
+        qty: totalQty, 
+        batch_count: count,
+        farmer_id: item.farmer_id 
+    });
+    
     window.hideBatchCounter(itemId);
     setTimeout(toggleCart, 300);
 };
@@ -347,7 +361,14 @@ function filterListings() {
 async function buyNow(listingId) {
     const item = LIVE_LISTINGS.find(l => l.id === listingId);
     if (!item || item.quantity <= 0) return;
-    addToCart(item);
+    
+    addToCart({
+        ...item,
+        qty: item.batch_size || item.quantity || 1,
+        batch_count: 1,
+        farmer_id: item.farmer_id
+    });
+    
     setTimeout(toggleCart, 500);
 }
 window.buyNow = buyNow;

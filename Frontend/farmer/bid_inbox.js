@@ -39,6 +39,8 @@ export function setViewMode(mode) {
 }
 window.setViewMode = setViewMode;
 
+let transactions = []; // Global cache for transactions related to these bids
+
 async function loadBids() {
     const CACHE_KEY = 'ks_cache_bids';
     let isOffline = false;
@@ -58,19 +60,29 @@ async function loadBids() {
 
         const produceIds = myProduce.map(p => p.id);
 
+        // 1. Fetch Bids
         const { data, error } = await supabase
             .from('bids')
             .select(`
                 *,
-                produce:produce_id (crop_name, quantity, unit, price, batch_size, total_batches),
+                produce:produce_id (id, crop_name, quantity, unit, price, batch_size, total_batches),
                 buyer:buyer_id (full_name)
             `)
             .in('produce_id', produceIds)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-
         bids = data;
+
+        // 2. Fetch Transactions (to see if buyer has paid)
+        const { data: txnData } = await supabase
+            .from('transaction_ledger')
+            .select('id, bid_id, status, produce_id')
+            .in('produce_id', produceIds)
+            .eq('reference_type', 'Produce_Sale');
+        
+        transactions = txnData || [];
+
         localStorage.setItem(CACHE_KEY, JSON.stringify({ data: bids, timestamp: Date.now() }));
 
     } catch (err) {
@@ -257,11 +269,38 @@ function buildFarmerCard(bid) {
                     <i class="fa-solid fa-hourglass-half"></i>
                     Counter sent at ₹${currentOffer} — Waiting for buyer's response...
                 </div>
-            ` : bid.status === 'Accepted' ? `
-                <div class="terminal-state terminal-success">
-                    <i class="fa-solid fa-circle-check"></i> Deal Accepted — Awaiting Buyer Payment
-                </div>
-            ` : `
+            ` : bid.status === 'Accepted' ? (() => {
+                const txn = transactions.find(t => t.bid_id === bid.id || (t.produce_id === bid.produce_id && t.status !== 'Refunded'));
+                
+                if (txn && txn.status === 'Escrow_Held') {
+                    return `
+                        <div class="terminal-state terminal-success" style="background:#e3f2fd; color:#1565c0; border:1px solid #bbdefb; margin-bottom:10px;">
+                            <i class="fa-solid fa-indian-rupee-sign"></i> Payment Received! Funds held in escrow.
+                        </div>
+                        <button class="btn-accept" style="background:#1565c0;" onclick="window.markDispatched('${bid.id}', '${txn.id}')">
+                            <i class="fa-solid fa-truck-fast"></i> Mark as Dispatched
+                        </button>
+                    `;
+                } else if (txn && txn.status === 'InTransit') {
+                    return `
+                        <div class="terminal-state terminal-success" style="background:#f1f8e9; color:#388e3c; border:1px solid #dcedc8;">
+                            <i class="fa-solid fa-truck-moving"></i> Order Dispatched — In Transit
+                        </div>
+                    `;
+                } else if (txn && txn.status === 'Settled') {
+                    return `
+                        <div class="terminal-state terminal-success">
+                            <i class="fa-solid fa-circle-check"></i> Deal Completed & Paid
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="terminal-state terminal-success">
+                            <i class="fa-solid fa-circle-check"></i> Deal Accepted — Awaiting Buyer Payment
+                        </div>
+                    `;
+                }
+            })() : `
                 <div class="terminal-state terminal-rejected">
                     <i class="fa-solid fa-circle-xmark"></i> Deal Closed
                 </div>
@@ -349,25 +388,6 @@ window.updateBidStatus = async (bidId, status) => {
 
         if (error) throw error;
 
-        // When accepted, reduce produce quantity by (batch_count × batch_size)
-        if (status === 'Accepted' && bid) {
-            const batchCount = bid.batch_count || 1;
-            const batchSize  = bid.produce?.batch_size || bid.produce?.quantity || 0;
-            const reduceBy   = batchCount * batchSize;
-
-            if (reduceBy > 0) {
-                const newQty    = Math.max(0, (bid.produce?.quantity || 0) - reduceBy);
-                const newStatus = newQty <= 0 ? 'Sold Out' : 'Available';
-
-                await supabase
-                    .from('produce')
-                    .update({ quantity: newQty, status: newStatus })
-                    .eq('id', bid.produce_id);
-
-                console.log(`Produce quantity reduced by ${reduceBy}. New qty: ${newQty} (${newStatus})`);
-            }
-        }
-
         const farmerName = sessionStorage.getItem('kisansetu_user_name') || 'The farmer';
         await sendSystemNotification(
             bid.buyer_id,
@@ -379,6 +399,32 @@ window.updateBidStatus = async (bidId, status) => {
         await loadBids();
     } catch (err) {
         alert('Action failed: ' + err.message);
+    }
+};
+
+window.markDispatched = async (bidId, txnId) => {
+    const bid = bids.find(b => b.id === bidId);
+    if (!confirm('Mark this order as dispatched? The buyer will be notified.')) return;
+
+    try {
+        const { error } = await supabase
+            .from('transaction_ledger')
+            .update({ status: 'InTransit', dispatched_at: new Date().toISOString() })
+            .eq('id', txnId);
+        
+        if (error) throw error;
+
+        // Notify Buyer
+        await sendSystemNotification(
+            bid.buyer_id,
+            '🚢 Order Dispatched!',
+            `Your order for ${bid.produce?.crop_name} has been dispatched by the farmer and is on its way.`,
+            'info'
+        );
+
+        await loadBids();
+    } catch (err) {
+        alert('Failed to update status: ' + err.message);
     }
 };
 

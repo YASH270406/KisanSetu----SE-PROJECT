@@ -12,8 +12,7 @@ let activeTypeFilter = 'all';
 let currentModalEqId = null;
 let calYear, calMonth;
 
-// API Base URL (Relative for deployment)
-const API_BASE = '/api/equipment';
+// Direct Supabase — no backend API needed
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Auth and Profile (NFR-5.3)
@@ -54,41 +53,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateStats();
 });
 
-async function getAuthHeaders() {
-    const { data: { session } } = await supabase.auth.getSession();
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session?.access_token || ''}`
-    };
-}
-
 async function fetchEquipment() {
     try {
-        const response = await fetch(`${API_BASE}/list`);
-        const result = await response.json();
-        if (result.success) {
-            EQUIPMENT = result.data;
-            EQUIPMENT.forEach(eq => eq.bookedDates = []); 
-            applyFilters();
-        }
+        const { data, error } = await supabase
+            .from('equipment')
+            .select('*, owner:owner_id (full_name)')
+            .eq('status', 'Available')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        EQUIPMENT = data || [];
+        EQUIPMENT.forEach(eq => eq.bookedDates = []);
+        applyFilters();
+        updateStats();
     } catch (err) {
-        console.error("Failed to load equipment:", err);
+        console.error('Failed to load equipment:', err);
         showToast('error', 'Network Error', 'Could not load equipment list.');
     }
 }
 
 async function fetchBookings() {
     try {
-        const headers = await getAuthHeaders();
-        const response = await fetch(`${API_BASE}/my-bookings`, { headers });
-        const result = await response.json();
-        if (result.success) {
-            bookings = result.data;
-            renderBookings('all');
-            updateStats();
-        }
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('*, equipment:equipment_id (name, type, hourly_rate, location)')
+            .eq('farmer_id', user.id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        bookings = data || [];
+        renderBookings('all');
+        updateStats();
     } catch (err) {
-        console.error("Failed to load bookings:", err);
+        console.error('Failed to load bookings:', err);
     }
 }
 
@@ -228,49 +230,59 @@ function calculateCost() {
 window.calculateCost = calculateCost;
 
 async function submitBooking() {
-    if (!selectedEq) return;
+    if (!selectedEq) {
+        showToast('error', 'No Equipment', 'Please select an equipment first.');
+        return;
+    }
 
     const btn = document.getElementById('btnSubmitBook');
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
     btn.disabled = true;
 
-    const start   = document.getElementById('bookStart').value;
-    const end     = document.getElementById('bookEnd').value;
-    const days    = Math.ceil((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24)) + 1;
+    const start = document.getElementById('bookStart').value;
+    const end   = document.getElementById('bookEnd').value;
 
-    const bookingPayload = {
-        equipmentId: selectedEq.id,
-        startDate:   start,
-        endDate:     end,
-        totalCost:   days * selectedHours * selectedEq.hourly_rate
-    };
+    if (!start || !end) {
+        showToast('error', 'Missing Dates', 'Please select start and end dates.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+
+    const days      = Math.ceil((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24)) + 1;
+    const totalCost = days * selectedHours * selectedEq.hourly_rate;
 
     try {
-        const headers = await getAuthHeaders();
-        const res = await fetch(`${API_BASE}/book`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(bookingPayload)
-        });
-        
-        const data = await res.json();
-        
-        if (data.success) {
-            showToast('success', 'Booking Sent!', 'Awaiting owner approval.');
-            await fetchBookings(); 
-            
-            setTimeout(() => {
-                switchTab('mybookings', document.querySelectorAll('.tab-btn')[2]);
-                btn.innerHTML = originalText;
-            }, 1200);
-        } else {
-            showToast('error', 'Booking Failed', data.message || 'Error occurred');
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Please login to book equipment.');
+
+        const { error } = await supabase
+            .from('bookings')
+            .insert({
+                equipment_id: selectedEq.id,
+                farmer_id:    user.id,
+                start_date:   start,
+                end_date:     end,
+                hours_per_day: selectedHours,
+                total_cost:   totalCost,
+                status:       'Pending'
+            });
+
+        if (error) throw error;
+
+        showToast('success', 'Booking Sent!', 'Awaiting owner approval.');
+        await fetchBookings();
+
+        setTimeout(() => {
+            switchTab('mybookings', document.querySelectorAll('.tab-btn')[2]);
             btn.innerHTML = originalText;
             btn.disabled = false;
-        }
+        }, 1200);
+
     } catch (err) {
-        showToast('error', 'Failed', 'Server error. Try again.');
+        console.error('Booking error:', err);
+        showToast('error', 'Booking Failed', err.message || 'Please try again.');
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
