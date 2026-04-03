@@ -2,7 +2,7 @@
 // GLOBAL CONFIGURATION
 // =========================================
 // PUT YOUR REAL GEMINI API KEY HERE FROM AI STUDIO
-const GEMINI_API_KEY = "YAIzaSyDaAXG7PtQz9BSsxYDRE8ymjbbWH0aW2uc"; 
+const GEMINI_API_KEY = "AIzaSyDaAXG7PtQz9BSsxYDRE8ymjbbWH0aW2uc"; 
 
 // Data mapping for State Government Portals
 // Data mapping for State Government Portals
@@ -49,41 +49,63 @@ const STATE_PORTAL_DB = {
 // =========================================
 // This reusable function handles the heavy lifting for AI calls
 async function callGemini(promptText) {
-    // Note: Models are sometimes updated, flash-2.0 or 1.5-flash are usually best.
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    // Paste it exactly like this, keeping the single quotes around it:
+    const API_KEY = 'AIzaSyDaAXG7PtQz9BSsxYDRE8ymjbbWH0aW2uc'; 
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+    // 1. SAFETY CHECK: Force the prompt to be a string and remove extra spaces
+    const safePrompt = String(promptText).trim();
     
-    try {
-        const response = await fetch(apiUrl, {
+    if (!safePrompt || safePrompt === "[object HTMLInputElement]") {
+        console.error("Oops! We tried to send an empty string or an HTML element instead of text.");
+        throw new Error("Invalid prompt format.");
+    }
+
+    const payload = {
+        contents: [{
+            parts: [{
+                text: safePrompt
+            }]
+        }]
+    };
+
+    // 2. SPY LOG: This will show us EXACTLY what is being sent to Google
+    console.log("Sending payload to Gemini:", JSON.stringify(payload, null, 2));
+
+   try {
+        const response = await fetch(API_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }]
-            })
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error("Connection failed or incorrect API Key.");
+        if (!response.ok) {
+            const errorDetails = await response.text();
+            console.error("Google's exact error message:", errorDetails);
+            throw new Error(`API Error: ${response.status}`);
+        }
 
         const data = await response.json();
         
-        // Extract raw text from Gemini's nested payload
-        let rawText = data.candidates[0].content.parts[0].text;
+        // NEW SPY: Let's look at the exact package Google sent back!
+        console.log("SUCCESS! Received data from Google:", data);
         
-        // 1. Convert plain text double-line breaks to HTML line breaks
-        // 2. Wrap bold text asterisks (**text**) into <strong>text</strong> tags
-        // This makes the AI's plain text response look formatted in HTML.
-        let formattedText = rawText
-            .replace(/\n\n/g, '<br><br>')
-            .replace(/\n/g, '<br>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Safer extraction using optional chaining (?.)
+        const generatedText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        return { success: true, text: formattedText };
-
+        if (generatedText) {
+            return generatedText;
+        } else {
+            console.error("Failed to extract text. Check the object structure above.");
+            return "Error: Krishi-AI replied, but the text format was unexpected.";
+        }
+        
     } catch (error) {
         console.error("Gemini Error:", error);
-        return { success: false, text: "⚠️ Unable to connect to Krishi-AI at this moment. Please check your internet connection or try again later." };
+        throw new Error("Connection failed. Please check your network or API structure.");
     }
 }
-
 
 // =========================================
 // 1. SOIL ADVISOR MODULE

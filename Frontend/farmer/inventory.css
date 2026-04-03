@@ -1,5 +1,5 @@
 /* =========================================
-   GLOBAL VARIABLES & BASE (Same as Soil page)
+   GLOBAL VARIABLES & BASE
    ========================================= */
 :root {
     --primary-green: #2e7d32;   
@@ -10,6 +10,7 @@
     --white: #ffffff;
     --danger-red: #d32f2f;
     --warning-orange: #f57c00;
+    --border-color: #e0e0e0;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; }
@@ -21,6 +22,7 @@ body { background-color: #e0e0e0; display: flex; justify-content: center; min-he
     background-color: var(--off-white); position: relative;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
+
 @media (min-width: 768px) {
     .app-container { max-width: 1000px; height: 95vh; margin-top: 2.5vh; border-radius: 20px; overflow-y: auto; }
 }
@@ -30,30 +32,27 @@ body { background-color: #e0e0e0; display: flex; justify-content: center; min-he
 .content-wrapper { padding: 20px; }
 
 /* =========================================
-   METRICS DASHBOARD
+   METRICS GRID
    ========================================= */
-.metrics-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;
-}
-
-.metric-card {
-    padding: 15px; border-radius: 12px; color: var(--white);
-    display: flex; flex-direction: column; justify-content: center;
-}
-
-.metric-green { background: linear-gradient(135deg, #43a047, #2e7d32); box-shadow: 0 4px 10px rgba(46,125,50,0.2); }
-.metric-red { background: linear-gradient(135deg, #ef5350, #c62828); box-shadow: 0 4px 10px rgba(198,40,40,0.2); }
-
-.metric-title { font-size: 0.8rem; opacity: 0.9; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;}
-.metric-card h2 { font-size: 1.5rem; margin-bottom: 5px; }
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+.metric-card { padding: 15px; border-radius: 12px; color: var(--white); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.metric-green { background: linear-gradient(135deg, #43a047, #2e7d32); }
+.metric-red { background: linear-gradient(135deg, #e53935, #c62828); }
+.metric-title { font-size: 0.85rem; opacity: 0.9; margin-bottom: 5px; font-weight: 600; }
+.metric-card h2 { font-size: 1.5rem; margin-bottom: 2px; }
 .metric-subtitle { font-size: 0.7rem; opacity: 0.8; }
 
 /* =========================================
-   TABS & CARDS
+   CARDS & FORMS
    ========================================= */
-.tab-container {
-    display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px;
-}
+.card { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+.form-group label { display: block; font-size: 0.9rem; color: var(--charcoal); margin-bottom: 5px; font-weight: 600; }
+select, input[type="number"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; }
+
+/* =========================================
+   TABS
+   ========================================= */
+.tab-container { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px; }
 .tab-btn {
     flex: 1; padding: 12px; background: none; border: none; 
     font-size: 1rem; font-weight: 600; color: #999; cursor: pointer;
@@ -61,38 +60,30 @@ body { background-color: #e0e0e0; display: flex; justify-content: center; min-he
 }
 .tab-btn.active { color: var(--primary-green); border-bottom-color: var(--primary-green); }
 
-.card { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-
-/* Shelf Life Progress Bar */
-.progress-container { width: 100%; background-color: #eee; border-radius: 8px; height: 8px; margin: 10px 0; overflow: hidden; }
-.progress-bar { height: 100%; border-radius: 8px; transition: width 0.5s ease; }
-.bg-safe { background-color: var(--primary-green); }
-.bg-warning { background-color: var(--warning-orange); }
-.bg-critical { background-color: var(--danger-red); }
-
-/* Buttons & Inputs */
-.btn-primary { background-color: var(--primary-green); color: var(--white); border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; }
-.btn-secondary { background-color: var(--charcoal); }
-.btn-small { padding: 8px; font-size: 0.85rem; }
-.btn-outline { background: transparent; border: 1px solid var(--primary-green); color: var(--primary-green); }
-
-input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; }
-.form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 600; color: var(--charcoal); }
 /* =========================================
-   6. TRENDS & QUALITY BADGES (NEW)
+   BUTTONS
    ========================================= */
-.trend-up { color: #43a047; font-size: 0.85rem; margin-left: 5px; font-weight: bold; }
-.trend-down { color: #e53935; font-size: 0.85rem; margin-left: 5px; font-weight: bold; }
-.trend-neutral { color: #757575; font-size: 0.85rem; margin-left: 5px; }
+.btn-primary { background-color: var(--primary-green); color: var(--white); border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 0.95rem; text-align: center; }
+.btn-secondary { background-color: var(--charcoal); }
+.btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--charcoal); }
+.btn-small { padding: 8px; font-size: 0.85rem; }
 
-.grade-badge {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    margin-left: 10px;
-    display: inline-block;
-}
-.grade-A { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-.grade-B { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
-.grade-C { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+/* =========================================
+   BADGES & PROGRESS BARS
+   ========================================= */
+.grade-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; margin-left: 8px; }
+.grade-A { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.grade-B { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+.grade-C { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+.progress-container { width: 100%; height: 8px; background-color: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 5px; }
+.progress-bar { height: 100%; transition: width 0.3s ease; }
+.bg-safe { background-color: #4CAF50; }
+.bg-warning { background-color: #FFC107; }
+.bg-critical { background-color: #F44336; }
+
+.trend-up { color: #4CAF50; font-weight: bold; font-size: 0.8rem; margin-left: 5px; }
+.trend-down { color: #F44336; font-weight: bold; font-size: 0.8rem; margin-left: 5px; }
+.trend-neutral { color: #9E9E9E; font-weight: bold; font-size: 0.8rem; margin-left: 5px; }
+
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); } 100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); } }
