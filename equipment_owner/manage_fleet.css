@@ -364,7 +364,7 @@ body {
     background: var(--danger-light);
     color: var(--danger);
     border: none; border-radius: 9px;
-    width: 32px; height: 32px;
+    width: 70px; height: 32px;
     font-size: 0.8rem;
     cursor: pointer; transition: 0.2s;
     display: flex; align-items: center; justify-content: center;
