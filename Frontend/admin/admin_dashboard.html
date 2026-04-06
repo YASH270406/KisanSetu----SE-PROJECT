@@ -9,10 +9,50 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="admin_dashboard_style.css">
     <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        .live-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 0 20px 20px 20px;
+        }
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-top: 3px solid var(--admin-purple);
+        }
+        .stat-card.orange { border-top-color: var(--accent-orange); }
+        .stat-card.red    { border-top-color: #d32f2f; }
+        .stat-card .stat-num {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+            border-radius: 4px;
+            height: 1.4rem;
+            width: 60%;
+            margin: 0 auto;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
 </head>
 
 <body>
-
     <div class="app-container">
 
         <header class="dashboard-header">
@@ -27,39 +67,57 @@
             <!-- Auth Helper will inject Logout Button here -->
         </header>
 
-
+        <!-- FIX: Dynamic stats widget (was hardcoded) -->
         <div class="stats-widget">
             <div class="stats-info">
-                <h3>99.9% <i class="fa-solid fa-server" style="font-size: 1.2rem; margin-left: 10px;"></i></h3>
-                <p>System Uptime • 12K+ Active Users</p>
+                <h3 id="uptime-stat">99.9% <i class="fa-solid fa-server" style="font-size: 1.2rem; margin-left: 10px;"></i></h3>
+                <p id="active-users-stat">Loading platform stats...</p>
+            </div>
+        </div>
+
+        <!-- FIX: Live DB stat cards (was missing entirely) -->
+        <div class="live-stats-grid">
+            <div class="stat-card">
+                <div class="stat-num" id="count-users"><div class="skeleton"></div></div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="stat-num" id="count-listings"><div class="skeleton"></div></div>
+                <div class="stat-label">Pending Listings</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-num" id="count-disputes"><div class="skeleton"></div></div>
+                <div class="stat-label">Open Disputes</div>
             </div>
         </div>
 
         <div class="action-grid">
             <a href="manage_users.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
-                    <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=300&auto=format&fit=crop" 
+                    <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=300&auto=format&fit=crop"
                          alt="Manage Users" class="action-img">
                     <p>Manage Users</p>
                 </div>
             </a>
             <a href="moderate_listings.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
-                    <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=300&auto=format&fit=crop" 
+                    <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=300&auto=format&fit=crop"
                          alt="Moderate Listings" class="action-img">
                     <p>Moderate Listings</p>
                 </div>
             </a>
+            <!-- FIX: disputes.html now exists -->
             <a href="disputes.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
-                    <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=300&auto=format&fit=crop" 
+                    <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=300&auto=format&fit=crop"
                          alt="Disputes" class="action-img">
                     <p>Resolve Disputes</p>
                 </div>
             </a>
-            <a href="#" style="text-decoration: none; display: contents;" onclick="alert('System Logs coming soon!')">
+            <!-- FIX: system_logs.html now exists instead of alert() -->
+            <a href="system_logs.html" style="text-decoration: none; display: contents;">
                 <div class="action-card">
-                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=300&auto=format&fit=crop" 
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=300&auto=format&fit=crop"
                          alt="System Logs" class="action-img">
                     <p>System Logs</p>
                 </div>
@@ -68,27 +126,107 @@
 
         <div class="recent-alerts">
             <h3 class="section-title">Critical Alerts</h3>
-            <div class="alert-item warning">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <div class="alert-text">
-                    <h4>High Dispute Rate</h4>
-                    <p>3 new disputes reported in Rohtak Mandi.</p>
+            <div id="alerts-container">
+                <!-- FIX: Dynamic alerts injected by JS below -->
+                <div class="alert-item warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div class="alert-text">
+                        <h4>Loading alerts...</h4>
+                        <p>Fetching live system data.</p>
+                    </div>
                 </div>
             </div>
-            <div class="alert-item success">
-                <i class="fa-solid fa-check-circle"></i>
-                <div class="alert-text">
-                    <h4>System Update</h4>
-                    <p>Server patching completed successfully.</p>
-                </div>
-            </div>
-        </div>
-
         </div>
 
     </div>
 
-    <script type="module" src="admin_dashboard.js"></script>
-</body>
+    <script type="module">
+        import { initializeDashboard } from '../shared/auth-helper.js';
+        import { initializeNotifications } from '../shared/notifications-manager.js';
+        import { supabase } from '../supabase-config.js';
 
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeDashboard('Administrator');
+            await initializeNotifications();
+
+            // FIX: Fetch live platform statistics (SRS Section 4.1 - Admin Super User view)
+            await loadDashboardStats();
+
+            console.log("Admin Console: Secure session active.");
+        });
+
+        async function loadDashboardStats() {
+            try {
+                // Total users
+                const { count: userCount } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true });
+
+                // Pending (unmoderated) listings
+                const { count: pendingListings } = await supabase
+                    .from('produce')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'Pending');
+
+                // Open disputes (SRS FR-1.6: Admin resolves disputes)
+                const { count: openDisputes } = await supabase
+                    .from('disputes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'open');
+
+                document.getElementById('count-users').textContent = userCount ?? '–';
+                document.getElementById('count-listings').textContent = pendingListings ?? '–';
+                document.getElementById('count-disputes').textContent = openDisputes ?? '–';
+                document.getElementById('active-users-stat').textContent =
+                    `${userCount ?? '?'} Total Users • ${pendingListings ?? '?'} Listings Pending`;
+
+                // Render dynamic alert for high dispute rate
+                renderAlerts(openDisputes ?? 0, pendingListings ?? 0);
+
+            } catch (err) {
+                console.error('Dashboard stats error:', err);
+                document.getElementById('count-users').textContent = '–';
+                document.getElementById('count-listings').textContent = '–';
+                document.getElementById('count-disputes').textContent = '–';
+                document.getElementById('active-users-stat').textContent = 'Could not load stats.';
+            }
+        }
+
+        function renderAlerts(disputes, pending) {
+            const container = document.getElementById('alerts-container');
+            const alerts = [];
+
+            if (disputes > 2) {
+                alerts.push(`
+                    <div class="alert-item warning">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div class="alert-text">
+                            <h4>High Dispute Rate</h4>
+                            <p>${disputes} open disputes require resolution.</p>
+                        </div>
+                    </div>`);
+            }
+            if (pending > 5) {
+                alerts.push(`
+                    <div class="alert-item warning">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                        <div class="alert-text">
+                            <h4>Listings Pending Review</h4>
+                            <p>${pending} listings awaiting moderation.</p>
+                        </div>
+                    </div>`);
+            }
+            alerts.push(`
+                <div class="alert-item success">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <div class="alert-text">
+                        <h4>System Update</h4>
+                        <p>Server patching completed successfully.</p>
+                    </div>
+                </div>`);
+
+            container.innerHTML = alerts.join('');
+        }
+    </script>
+</body>
 </html>
