@@ -10,18 +10,154 @@
     <link rel="stylesheet" href="../shared/common.css">
     <style>
         .admin-content { padding: 20px; }
-        .moderate-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .item-info { flex: 1; }
-        .item-info h4 { margin: 0; font-size: 1rem; }
-        .item-info p { margin: 0; font-size: 0.8rem; color: #666; }
-        .action-btns { display: flex; gap: 8px; }
-        .action-btns button { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s; }
-        .action-btns button:hover { transform: scale(1.1); }
+
+        /* Status tab bar - FIX: was missing entirely */
+        .status-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 16px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .status-tab {
+            flex: 1;
+            padding: 9px 4px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            color: #666;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .status-tab .tab-count {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: inherit;
+        }
+        .status-tab.active.all     { background: #4a148c; color: white; }
+        .status-tab.active.pending { background: #ef6c00; color: white; }
+        .status-tab.active.verified{ background: #2e7d32; color: white; }
+        .status-tab.active.rejected{ background: #d32f2f; color: white; }
+
+        /* Listing cards */
+        .moderate-item {
+            background: white;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eaeaea;
+            border-left: 4px solid #e0e0e0;
+        }
+        .moderate-item.Pending  { border-left-color: #ef6c00; }
+        .moderate-item.Verified { border-left-color: #2e7d32; }
+        .moderate-item.Rejected { border-left-color: #d32f2f; }
+
+        .item-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .crop-icon {
+            width: 44px; height: 44px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            color: #2e7d32;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .item-info { flex: 1; min-width: 0; }
+        .item-info h4 { margin: 0; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-info p  { margin: 0; font-size: 0.78rem; color: #666; }
+
+        /* Status badge */
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-Pending  { background: #fff3e0; color: #ef6c00; }
+        .badge-Verified { background: #e8f5e9; color: #2e7d32; }
+        .badge-Rejected { background: #ffebee; color: #d32f2f; }
+
+        /* Action buttons row - FIX: was just alert() stubs before */
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .mod-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: opacity 0.15s;
+        }
+        .mod-btn:hover { opacity: 0.8; }
+        .mod-btn:disabled { opacity: 0.4; cursor: default; }
+        .btn-approve { background: #e8f5e9; color: #2e7d32; }
+        .btn-reject  { background: #ffebee; color: #d32f2f; }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 0.85rem;
+        }
+        .stats-summary {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
     </style>
 </head>
 <body>
     <div class="app-container">
-        
+
         <header class="dashboard-header" style="background: linear-gradient(135deg, #2e7d32, #1b5e20); color: white; padding: 25px 20px;">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
@@ -33,19 +169,47 @@
         </header>
 
         <div class="admin-content">
+
+            <!-- Stats row -->
+            <div class="stats-summary" id="listing-stats">Loading listing data...</div>
+
+            <!-- FIX: Status tab filter (was missing - only showed all listings before) -->
+            <div class="status-tabs">
+                <button class="status-tab active all" onclick="setStatusFilter('all', this)">
+                    <span class="tab-count" id="count-all">–</span>All
+                </button>
+                <button class="status-tab pending" onclick="setStatusFilter('Pending', this)">
+                    <span class="tab-count" id="count-pending">–</span>Pending
+                </button>
+                <button class="status-tab verified" onclick="setStatusFilter('Verified', this)">
+                    <span class="tab-count" id="count-verified">–</span>Verified
+                </button>
+                <button class="status-tab rejected" onclick="setStatusFilter('Rejected', this)">
+                    <span class="tab-count" id="count-rejected">–</span>Rejected
+                </button>
+            </div>
+
             <div id="listings-list">
                 <p style="text-align: center; color: #999;">Loading listings...</p>
             </div>
 
-            <p style="text-align: center; color: #666; font-size: 0.85rem; margin-top: 30px;">
-                <i class="fa-solid fa-circle-info"></i> All listings are currently being tracked for safety.
+            <p style="text-align: center; color: #666; font-size: 0.85rem; margin-top: 20px;">
+                <i class="fa-solid fa-circle-info"></i> All moderation actions are logged to the audit trail.
             </p>
         </div>
 
     </div>
 
+    <div class="toast" id="toast"></div>
+
     <script type="module">
         import { supabase } from '../supabase-config.js';
+
+        let allListings = [];
+        let activeFilter = 'all';
+
+        window.setStatusFilter = setStatusFilter;
+        window.moderateListing = moderateListing;
 
         document.addEventListener('DOMContentLoaded', async () => {
             await fetchListings();
@@ -60,39 +224,150 @@
 
                 if (error) throw error;
 
-                const container = document.getElementById('listings-list');
-                container.innerHTML = '';
+                allListings = data || [];
 
-                if (data.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; padding: 20px;">No produce listings found.</p>';
-                    return;
-                }
+                // FIX: Count by status for tab badges (SRS FR-3.2 - listing states)
+                updateTabCounts();
+                updateSummaryStats();
+                renderListings(allListings);
 
-                data.forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'moderate-item';
-                    row.innerHTML = `
-                        <div class="crop-icon" style="background:#e8f5e9; padding: 10px; border-radius: 8px; color: #2e7d32; font-weight: bold;">${item.crop_name.charAt(0)}</div>
-                        <div class="item-info">
-                            <h4>${item.crop_name} - ${item.quantity} ${item.unit}</h4>
-                            <p>Posted by: ${item.farmer?.full_name || 'N/A'} • ₹${item.price}/${item.unit}</p>
-                        </div>
-                        <div class="action-btns">
-                            <button style="background: #e8f5e9; color: #2e7d32;" onclick="window.moderateDeal('${item.id}', 'Verified')"><i class="fa-solid fa-check"></i></button>
-                            <button style="background: #ffebee; color: #d32f2f;" onclick="window.moderateDeal('${item.id}', 'Rejected')"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                    `;
-
-                    container.appendChild(row);
-                });
             } catch (err) {
                 console.error("Fetch listings error:", err);
+                document.getElementById('listings-list').innerHTML =
+                    '<p style="color:red; text-align:center;">Failed to load listings.</p>';
             }
         }
 
-        window.moderateDeal = async (listingId, status) => {
-            // Future development: Add approval logic
-            alert('Listing marked as ' + status + ' (Logic implementation in Phase 5 part B)');
+        function updateTabCounts() {
+            const counts = { all: allListings.length, Pending: 0, Verified: 0, Rejected: 0 };
+            allListings.forEach(l => { if (counts[l.status] !== undefined) counts[l.status]++; });
+            document.getElementById('count-all').textContent      = counts.all;
+            document.getElementById('count-pending').textContent  = counts.Pending;
+            document.getElementById('count-verified').textContent = counts.Verified;
+            document.getElementById('count-rejected').textContent = counts.Rejected;
+        }
+
+        function updateSummaryStats() {
+            const pending = allListings.filter(l => l.status === 'Pending').length;
+            document.getElementById('listing-stats').innerHTML =
+                `<strong>${allListings.length}</strong> total listings — ` +
+                `<span style="color:#ef6c00"><strong>${pending}</strong> awaiting review</span>`;
+        }
+
+        function renderListings(listings) {
+            const container = document.getElementById('listings-list');
+            if (!listings.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-seedling" style="font-size:2rem; margin-bottom:10px;"></i><br>No listings found.</div>';
+                return;
+            }
+
+            container.innerHTML = listings.map(item => {
+                const status = item.status || 'Pending';
+                const farmerName = item.farmer?.full_name || 'N/A';
+                const date = new Date(item.created_at).toLocaleDateString('en-IN');
+                const isPending   = status === 'Pending';
+                const isVerified  = status === 'Verified';
+                const isRejected  = status === 'Rejected';
+
+                return `
+                <div class="moderate-item ${status}" id="listing-${item.id}">
+                    <div class="item-top">
+                        <div class="crop-icon">${(item.crop_name || '?').charAt(0).toUpperCase()}</div>
+                        <div class="item-info">
+                            <h4>${escapeHtml(item.crop_name)} — ${item.quantity} ${item.unit}</h4>
+                            <p>By: ${escapeHtml(farmerName)} &nbsp;•&nbsp; ₹${item.price}/${item.unit} &nbsp;•&nbsp; ${date}</p>
+                        </div>
+                        <span class="status-badge badge-${status}">${status}</span>
+                    </div>
+
+                    <!-- FIX: Real DB moderation buttons (SRS FR-3.2, FR-1.6 - was alert() stubs before) -->
+                    <div class="item-actions">
+                        <button class="mod-btn btn-approve" id="approve-${item.id}"
+                            onclick="moderateListing('${item.id}', 'Verified')"
+                            ${isVerified ? 'disabled' : ''}>
+                            <i class="fa-solid fa-check"></i> ${isVerified ? 'Approved' : 'Approve'}
+                        </button>
+                        <button class="mod-btn btn-reject" id="reject-${item.id}"
+                            onclick="moderateListing('${item.id}', 'Rejected')"
+                            ${isRejected ? 'disabled' : ''}>
+                            <i class="fa-solid fa-xmark"></i> ${isRejected ? 'Rejected' : 'Reject'}
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // FIX: Real moderation logic with DB write + audit log
+        // (SRS FR-1.6 - moderate listings; Section 6.4.2.4 - Immutable Audit Trail)
+        async function moderateListing(listingId, newStatus) {
+            const approveBtn = document.getElementById(`approve-${listingId}`);
+            const rejectBtn  = document.getElementById(`reject-${listingId}`);
+            if (approveBtn) approveBtn.disabled = true;
+            if (rejectBtn)  rejectBtn.disabled  = true;
+
+            try {
+                const { error } = await supabase
+                    .from('produce')
+                    .update({ status: newStatus })
+                    .eq('id', listingId);
+
+                if (error) throw error;
+
+                // Write to audit trail (SRS Section 6.4.2.4 - Immutable Audit Trail)
+                await supabase.from('audit_logs').insert({
+                    action: newStatus === 'Verified' ? 'APPROVE_LISTING' : 'REJECT_LISTING',
+                    target_id: listingId,
+                    target_type: 'listing',
+                    details: `Listing marked as ${newStatus} by administrator`
+                });
+
+                // Update in memory
+                const idx = allListings.findIndex(l => l.id === listingId);
+                if (idx !== -1) allListings[idx].status = newStatus;
+
+                updateTabCounts();
+                updateSummaryStats();
+
+                // Re-render current filter
+                const filtered = activeFilter === 'all'
+                    ? allListings
+                    : allListings.filter(l => l.status === activeFilter);
+                renderListings(filtered);
+
+                showToast(`Listing ${newStatus.toLowerCase()} successfully.`);
+
+            } catch (err) {
+                console.error('Moderation error:', err);
+                if (approveBtn) approveBtn.disabled = false;
+                if (rejectBtn)  rejectBtn.disabled  = false;
+                showToast('Action failed. Please try again.');
+            }
+        }
+
+        function setStatusFilter(status, el) {
+            document.querySelectorAll('.status-tab').forEach(t => {
+                t.classList.remove('active', 'all', 'pending', 'verified', 'rejected');
+            });
+            el.classList.add('active', status.toLowerCase());
+            activeFilter = status;
+
+            const filtered = status === 'all'
+                ? allListings
+                : allListings.filter(l => l.status === status);
+            renderListings(filtered);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
         }
     </script>
 </body>
