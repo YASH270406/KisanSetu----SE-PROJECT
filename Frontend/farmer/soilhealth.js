@@ -2,7 +2,7 @@
 // GLOBAL CONFIGURATION
 // =========================================
 // PUT YOUR REAL GEMINI API KEY HERE FROM AI STUDIO
-const GEMINI_API_KEY = "AIzaSyDaAXG7PtQz9BSsxYDRE8ymjbbWH0aW2uc"; 
+
 
 // Data mapping for State Government Portals
 // Data mapping for State Government Portals
@@ -49,9 +49,11 @@ const STATE_PORTAL_DB = {
 // =========================================
 // This reusable function handles the heavy lifting for AI calls
 async function callGemini(promptText) {
-    // Paste it exactly like this, keeping the single quotes around it:
-    const API_KEY = 'AIzaSyDaAXG7PtQz9BSsxYDRE8ymjbbWH0aW2uc'; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+    // Grabs the key from config.js automatically!
+    const API_KEY = GEMINI_API_KEY; 
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+    
+    // ... rest of the code stays exactly the same
     // 1. SAFETY CHECK: Force the prompt to be a string and remove extra spaces
     const safePrompt = String(promptText).trim();
     
@@ -145,7 +147,7 @@ document.getElementById('soilForm').addEventListener('submit', async function(e)
     // Render results
     document.getElementById('soilLoadingState').style.display = 'none';
     document.getElementById('soilResultsCard').style.display = 'block';
-    document.getElementById('geminiSoilOutput').innerHTML = aiResponse.text;
+   document.getElementById('geminiSoilOutput').innerHTML = aiResponse;
 });
 
 function resetSoilForm() {
@@ -211,5 +213,4 @@ document.getElementById('explainerForm').addEventListener('submit', async functi
 
     loadingState.style.display = 'none';
     resultsBox.style.display = 'block';
-    resultsBox.innerHTML = `<strong>Krishi-AI Explanation of ${schemeName}:</strong><br><br>${aiResponse.text}`;
-});
+resultsBox.innerHTML = `<strong>Krishi-AI Explanation of ${schemeName}:</strong><br><br>${aiResponse}`;});
