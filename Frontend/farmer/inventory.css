@@ -27,8 +27,13 @@ body { background-color: #e0e0e0; display: flex; justify-content: center; min-he
     .app-container { max-width: 1000px; height: 95vh; margin-top: 2.5vh; border-radius: 20px; overflow-y: auto; }
 }
 
-.dashboard-header { background-color: var(--primary-green); color: var(--white); padding: 20px; border-radius: 0 0 20px 20px; }
-.greeting { font-size: 1.2rem; font-weight: 600; }
+.dashboard-header { 
+    background-color: var(--primary-green); 
+    color: var(--white); 
+    padding: 15px 20px; 
+    border-radius: 0 0 20px 20px; 
+}
+.greeting { font-size: 1.1rem; font-weight: 600; }
 .content-wrapper { padding: 20px; }
 
 /* =========================================

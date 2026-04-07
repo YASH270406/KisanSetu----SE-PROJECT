@@ -1,3 +1,6 @@
+import { initializeDashboard } from '../shared/auth-helper.js';
+import { GEMINI_API_KEY } from './config.js';
+
 // =========================================
 // GLOBAL CONFIGURATION
 // =========================================
@@ -112,6 +115,11 @@ async function callGemini(promptText) {
 // =========================================
 // 1. SOIL ADVISOR MODULE
 // =========================================
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Initialise Dashboard (Profile Image, Greeting, Logout)
+    await initializeDashboard('Farmer');
+});
+
 document.getElementById('soilForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     

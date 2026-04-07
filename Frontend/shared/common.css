@@ -9,6 +9,18 @@
     --glass-border: rgba(255, 255, 255, 0.2);
 }
 
+/* Universal Navbar/Header Layout */
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.user-info {
+    flex: 1;
+}
+
 /* Universal Logout Button Style */
 .logout-btn {
     background: var(--glass-bg);

@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KisanSetu - Smart Storage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
     <link rel="stylesheet" href="inventory.css">
 </head>
 <body>
     <div class="app-container">
         <div class="dashboard-header">
-            <div class="user-info">
-                <span class="greeting">🌾 Smart Storage & Inventory</span>
+            <div class="header-top" style="display: flex; align-items: center; gap: 15px;">
+                <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                <div class="user-info">
+                    <span class="greeting">🌾 Smart Storage & Inventory</span>
+                </div>
             </div>
         </div>
 
@@ -121,6 +125,6 @@
         </div>
     </div>
 
-    <script src="inventory.js"></script>
+    <script type="module" src="inventory.js"></script>
 </body>
 </html>

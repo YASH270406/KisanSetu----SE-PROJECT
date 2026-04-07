@@ -1,11 +1,13 @@
 // Frontend/farmer/sell_produce.js
 import { supabase, uploadFile } from '../supabase-config.js';
+import { initializeDashboard } from '../shared/auth-helper.js';
 import { sendSystemNotification, initializeNotifications } from '../shared/notifications-manager.js';
 
 let selectedFiles = [];
 let editId = null; // Set if we're editing an existing listing
 
 document.addEventListener('DOMContentLoaded', async function () {
+    await initializeDashboard('Farmer');
     await initializeNotifications();
 
     // Check if we're in Edit mode (URL: sell_produce.html?edit=PRODUCE_ID)

@@ -1,11 +1,14 @@
 // Frontend/farmer/bid_inbox.js
 import { supabase } from '../supabase-config.js';
+import { initializeDashboard } from '../shared/auth-helper.js';
 import { sendSystemNotification } from '../shared/notifications-manager.js';
 
 let bids = [];
 let currentView = 'active';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Standard dashboard init (profile image, greeting, logout)
+    await initializeDashboard('Farmer');
     await loadBids();
     setupRealtime();
 });

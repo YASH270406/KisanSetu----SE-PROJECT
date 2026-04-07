@@ -48,13 +48,6 @@
             margin-bottom: 15px;
         }
 
-        .back-btn {
-            color: var(--white);
-            text-decoration: none;
-            font-size: 1.2rem;
-            transition: transform 0.2s;
-        }
-
         .back-btn:hover {
             transform: translateX(-3px);
         }
@@ -309,6 +302,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../states_data.js"></script>
+    <script type="module">
+        import { initializeDashboard } from '../shared/auth-helper.js';
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeDashboard('Farmer');
+        });
+    </script>
     <script src="mandi_prices.js"></script>
 </body>
 

@@ -1,3 +1,8 @@
+// 0. SUPABASE CONFIGURATION
+// ==========================================
+import { supabase } from '../supabase-config.js';
+import { initializeDashboard } from '../shared/auth-helper.js';
+
 // ==========================================
 // 1. DATA CONFIGURATION & CACHE
 // ==========================================
@@ -30,29 +35,85 @@ const INPUT_OPTIONS = ["Urea (45kg Bag)", "DAP (50kg Bag)", "Pesticide (1L)"];
 let inventory = [];
 let marketListings = [];
 
-function loadData() {
-    const savedInventory = localStorage.getItem('kisan_inventory');
+async function loadData() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        console.warn("User not logged in. Falling back to local storage.");
+        const savedInventory = localStorage.getItem('kisan_inventory');
+        if (savedInventory) {
+            inventory = JSON.parse(savedInventory);
+            inventory.forEach(item => item.dateAdded = new Date(item.dateAdded));
+        }
+        return;
+    }
+
+    try {
+        // Fetch from Supabase
+        const { data: cloudInventory, error } = await supabase
+            .from('farmer_inventory')
+            .select('*')
+            .eq('farmer_id', user.id);
+
+        if (error) throw error;
+
+        // MIGRATION LOGIC: Check if local storage has data not in cloud
+        const savedInventoryStr = localStorage.getItem('kisan_inventory');
+        let localInventory = savedInventoryStr ? JSON.parse(savedInventoryStr) : [];
+        
+        if (localInventory.length > 0 && cloudInventory.length === 0) {
+            console.log("Migrating local data to cloud...");
+            const migrationData = localInventory.map(item => ({
+                farmer_id: user.id,
+                category: item.category,
+                item_name: item.name,
+                item_grade: item.grade,
+                quantity: item.qty,
+                unit: item.unit,
+                date_added: item.dateAdded
+            }));
+            
+            const { error: syncErr } = await supabase.from('farmer_inventory').insert(migrationData);
+            if (!syncErr) {
+                localStorage.removeItem('kisan_inventory'); // Clear local after successful sync
+                // Re-fetch to get IDs
+                const { data: refreshed } = await supabase.from('farmer_inventory').select('*').eq('farmer_id', user.id);
+                inventory = mapCloudToLocal(refreshed);
+            }
+        } else {
+            inventory = mapCloudToLocal(cloudInventory);
+        }
+    } catch (err) {
+        console.error("Failed to fetch cloud inventory:", err);
+        // Fallback to local
+        const savedInventory = localStorage.getItem('kisan_inventory');
+        if (savedInventory) {
+            inventory = JSON.parse(savedInventory);
+            inventory.forEach(item => item.dateAdded = new Date(item.dateAdded));
+        }
+    }
+
+    // Listings (Marketplace) - these usually come from 'produce' table, 
+    // but for now keeping them as is in local storage if used here.
     const savedListings = localStorage.getItem('kisan_listings');
-
-    if (savedInventory && savedInventory !== "[]") {
-        inventory = JSON.parse(savedInventory);
-        inventory.forEach(item => item.dateAdded = new Date(item.dateAdded));
-    } else {
-        inventory = [
-            { id: 1, category: 'produce', name: 'Wheat', grade: 'A', qty: 50, unit: 'Quintals', dateAdded: new Date(Date.now() - 10 * 86400000) },
-            { id: 2, category: 'produce', name: 'Tomato', grade: 'C', qty: 15, unit: 'Quintals', dateAdded: new Date(Date.now() - 12 * 86400000) }
-        ];
-        saveData();
-    }
-
-    if (savedListings) {
-        marketListings = JSON.parse(savedListings);
-    }
+    if (savedListings) marketListings = JSON.parse(savedListings);
 }
 
-function saveData() {
+function mapCloudToLocal(cloudItems) {
+    return cloudItems.map(item => ({
+        id: item.id,
+        category: item.category,
+        name: item.item_name,
+        grade: item.item_grade,
+        qty: item.quantity,
+        unit: item.unit,
+        dateAdded: new Date(item.date_added)
+    }));
+}
+
+async function saveData(newItem = null) {
+    // We update Supabase on "Save Stock" event directly.
+    // This local saveData is kept to maintain a local cache for offline views.
     localStorage.setItem('kisan_inventory', JSON.stringify(inventory));
-    localStorage.setItem('kisan_listings', JSON.stringify(marketListings)); 
 }
 
 // ==========================================
@@ -91,7 +152,13 @@ async function fetchLiveMandiPrices() {
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    loadData(); 
+    // 1. Initialize Dashboard (Profile name, Image, Location, Logout)
+    await initializeDashboard('Farmer');
+    
+    // 2. Load Local/Cloud Data
+    await loadData(); 
+    
+    // 3. Update Market Prices & UI
     await fetchLiveMandiPrices(); 
     updateFormFields(); 
     renderDashboard();
@@ -243,25 +310,72 @@ function updateFormFields() {
     }
 }
 
-document.getElementById('inventoryForm').addEventListener('submit', function(e) {
+document.getElementById('inventoryForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const category = document.getElementById('itemCategory').value;
-    const newItem = {
-        id: Date.now(),
-        category: category,
-        name: document.getElementById('itemName').value,
-        grade: category === 'produce' ? document.getElementById('itemGrade').value : null,
-        qty: parseFloat(document.getElementById('itemQty').value),
-        unit: document.getElementById('itemUnit').value,
-        dateAdded: new Date()
-    };
+    const btn = this.querySelector('button[type="submit"]');
+    const originalText = btn.innerText;
+    btn.innerText = 'Saving...';
+    btn.disabled = true;
 
-    inventory.push(newItem);
-    saveData(); 
-    toggleAddForm();
-    this.reset();
-    updateFormFields();
-    renderDashboard();
+    const category = document.getElementById('itemCategory').value;
+    const name = document.getElementById('itemName').value;
+    const grade = category === 'produce' ? document.getElementById('itemGrade').value : null;
+    const qty = parseFloat(document.getElementById('itemQty').value);
+    const unit = document.getElementById('itemUnit').value;
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { data, error } = await supabase
+                .from('farmer_inventory')
+                .insert([{
+                    farmer_id: user.id,
+                    category: category,
+                    item_name: name,
+                    item_grade: grade,
+                    quantity: qty,
+                    unit: unit
+                }])
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            inventory.push({
+                id: data.id,
+                category: data.category,
+                name: data.item_name,
+                grade: data.item_grade,
+                qty: data.quantity,
+                unit: data.unit,
+                dateAdded: new Date(data.date_added)
+            });
+        } else {
+            // Fallback for guest mode (local only)
+            const newItem = {
+                id: Date.now(),
+                category: category,
+                name: name,
+                grade: grade,
+                qty: qty,
+                unit: unit,
+                dateAdded: new Date()
+            };
+            inventory.push(newItem);
+        }
+
+        saveData();
+        toggleAddForm();
+        this.reset();
+        updateFormFields();
+        renderDashboard();
+    } catch (err) {
+        console.error("Error saving to cloud:", err);
+        alert("Failed to save to cloud. Storing locally.");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
 });
 
 // ==========================================
@@ -294,48 +408,74 @@ function closeListingModal() {
     document.getElementById('listingForm').reset();
 }
 
-document.getElementById('listingForm').addEventListener('submit', function(e) {
+document.getElementById('listingForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
-    const itemId = Number(document.getElementById('listItemId').value);
+    const btn = this.querySelector('button[type="submit"]');
+    const originalText = btn.innerText;
+    btn.innerText = 'Listing...';
+    btn.disabled = true;
+
+    const itemId = document.getElementById('listItemId').value;
     const qtyToList = parseFloat(document.getElementById('listQty').value);
     const askingPrice = parseFloat(document.getElementById('listPrice').value);
 
-    const itemIndex = inventory.findIndex(i => i.id === itemId);
+    // Use current ID logic (Supabase uses UUID/UUID string, local uses Number)
+    const itemIndex = inventory.findIndex(i => String(i.id) === String(itemId));
     
     if (itemIndex > -1) {
-        if (qtyToList > 0 && qtyToList <= inventory[itemIndex].qty) {
-            
-            // 1. Create the Listing Record
-            const newListing = {
-                id: 'LIST-' + Date.now(),
-                cropName: inventory[itemIndex].name,
-                grade: inventory[itemIndex].grade,
-                qtyListed: qtyToList,
-                unit: inventory[itemIndex].unit,
-                pricePerUnit: askingPrice,
-                status: 'Active',
-                dateListed: new Date()
-            };
-            marketListings.push(newListing); // Save to the listings array
+        const item = inventory[itemIndex];
+        if (qtyToList > 0 && qtyToList <= item.qty) {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                // 1. Create the Listing Record in 'produce' table (Marketplace)
+                if (user) {
+                    await supabase.from('produce').insert([{
+                        farmer_id: user.id,
+                        crop_name: item.name,
+                        variety: item.grade ? `Grade ${item.grade}` : '',
+                        quantity_kg: item.unit === 'Kg' ? qtyToList : (item.unit === 'Quintals' ? qtyToList * 100 : qtyToList), // Approximate
+                        expected_price: askingPrice,
+                        status: 'Available'
+                    }]);
 
-            // 2. Subtract from Inventory
-            inventory[itemIndex].qty -= qtyToList;
-            if (inventory[itemIndex].qty === 0) {
-                inventory.splice(itemIndex, 1); // Remove if stock is 0
+                    // 2. Subtract from Cloud Inventory
+                    const newQty = item.qty - qtyToList;
+                    if (newQty > 0) {
+                        await supabase.from('farmer_inventory').update({ quantity: newQty }).eq('id', item.id);
+                    } else {
+                        await supabase.from('farmer_inventory').delete().eq('id', item.id);
+                    }
+                }
+
+                // 3. Update Local State
+                item.qty -= qtyToList;
+                if (item.qty <= 0) {
+                    inventory.splice(itemIndex, 1);
+                }
+
+                saveData();
+                closeListingModal();
+                renderDashboard();
+                alert(`Success! ${qtyToList} ${item.unit} listed on Marketplace.`);
+            } catch (err) {
+                console.error("Listing error:", err);
+                alert("Failed to list item. Please check your connection.");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
-
-            // 3. Save EVERYTHING to browser memory
-            saveData();
-
-            // 4. Update UI
-            closeListingModal();
-            renderDashboard();
-            
-            alert(`Success! ${qtyToList} Quintals listed. Your inventory has been updated.`);
-
         } else {
-            alert("Error: You cannot list more than you currently have in stock.");
+            alert("Error: Invalid quantity.");
+            btn.disabled = false;
+            btn.innerText = originalText;
         }
     }
 });
+
+// EXPOSE TO WINDOW FOR HTML ONCLICK COMPATIBILITY
+window.toggleAddForm = toggleAddForm;
+window.updateFormFields = updateFormFields;
+window.switchTab = switchTab;
+window.openListingModal = openListingModal;
+window.closeListingModal = closeListingModal;
