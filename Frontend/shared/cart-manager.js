@@ -43,6 +43,24 @@ export function addToCart(item) {
     updateCartIndicator();
 }
 
+/**
+ * Explicitly sets the quantity for an item (Overwrite mode)
+ * Matches FR-3.3 for precise batch selection
+ */
+export function updateCartQty(itemId, newQty, newBatchCount) {
+    const cart = getCart();
+    const idx = cart.findIndex(i => i.id === itemId);
+    
+    if (idx > -1) {
+        cart[idx].qty = newQty;
+        if (newBatchCount !== undefined) {
+            cart[idx].batch_count = newBatchCount;
+        }
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        updateCartIndicator();
+    }
+}
+
 export function removeFromCart(itemId) {
     let cart = getCart();
     cart = cart.filter(i => i.id !== itemId);
@@ -57,7 +75,8 @@ export function clearCart() {
 
 export function updateCartIndicator() {
     const cart = getCart();
-    const count = cart.reduce((sum, item) => sum + item.qty, 0);
+    // Use batch_count instead of qty-value for the badge (FR-3.3 consistency)
+    const count = cart.reduce((sum, item) => sum + (item.batch_count || 1), 0);
     
     // Update any UI count badges
     const badge = document.getElementById('cart-count');

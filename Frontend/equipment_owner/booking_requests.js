@@ -3,17 +3,19 @@ import { supabase } from '../supabase-config.js';
 import { initializeDashboard } from '../shared/auth-helper.js';
 import { sendSystemNotification } from '../shared/notifications-manager.js';
 
-let pendingRequests = [];
+let currentMode = 'Pending';
+let allRequests = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Initialize Auth
     await initializeDashboard('Equipment Owner');
 
     // 2. Load Requests
-    await loadRequests();
+    await loadRequests('Pending');
 });
 
-async function loadRequests() {
+async function loadRequests(mode = 'Pending') {
+    currentMode = mode;
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -31,22 +33,28 @@ async function loadRequests() {
             return;
         }
 
-        // Step 2: Fetch 'Pending' bookings for these assets
-        const { data, error } = await supabase
+        // Step 2: Fetch bookings for these assets
+        let query = supabase
             .from('bookings')
             .select(`
                 *,
                 equipment:equipment_id (name, hourly_rate),
                 farmer:farmer_id (full_name)
             `)
-            .in('equipment_id', equipIds)
-            .eq('status', 'Pending')
-            .order('created_at', { ascending: false });
+            .in('equipment_id', equipIds);
+
+        if (mode === 'Pending') {
+            query = query.eq('status', 'Pending');
+        } else {
+            query = query.neq('status', 'Pending');
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        pendingRequests = data;
-        renderRequests(pendingRequests);
+        allRequests = data;
+        renderRequests(allRequests);
     } catch (err) {
         console.error("Error loading requests:", err);
     }
@@ -72,7 +80,7 @@ function renderRequests(requests) {
         // Urgency check (FR-4.4 - 24hr window)
         const createdOn = new Date(req.created_at);
         const hoursSinceCreated = (new Date() - createdOn) / (1000 * 60 * 60);
-        const isUrgent = hoursSinceCreated >= 18; // Close to 24hr
+        const isUrgent = currentMode === 'Pending' && hoursSinceCreated >= 18; 
 
         const card = document.createElement('div');
         card.className = 'request-card';
@@ -81,11 +89,12 @@ function renderRequests(requests) {
                 <div class="farmer-info">
                     <div class="farmer-avatar">${req.farmer?.full_name?.charAt(0) || 'F'}</div>
                     <div>
-                        <h4 style="margin:0;">${req.farmer?.full_name}</h4>
+                        <h4 style="margin:0;">${req.farmer?.full_name || 'Anonymous Farmer'}</h4>
                         <p style="font-size:0.75rem; color:#888; margin:0;">Request #${req.id.substring(0,8)}</p>
                     </div>
                 </div>
                 ${isUrgent ? '<span class="urgency-badge">Urgent: < 6h left</span>' : ''}
+                ${currentMode === 'History' ? `<span class="status-badge status-${req.status}">${req.status}</span>` : ''}
             </div>
 
             <div class="req-details">
@@ -111,21 +120,32 @@ function renderRequests(requests) {
                 </div>
             </div>
 
-            <div class="action-row">
-                <button class="btn-approve" onclick="window.updateStatus('${req.id}', 'Approved')">Approve Request</button>
-                <button class="btn-reject" onclick="window.updateStatus('${req.id}', 'Rejected')">Reject</button>
-            </div>
+            ${currentMode === 'Pending' ? `
+                <div class="action-row" style="display:flex; gap:10px;">
+                    <button class="btn-approve" onclick="window.updateStatus('${req.id}', 'Approved')">Approve</button>
+                    <button class="btn-reject" onclick="window.updateStatus('${req.id}', 'Rejected')">Reject</button>
+                </div>
+            ` : ''}
         `;
         grid.appendChild(card);
     });
 }
-// ... (inside updateStatus function)
+
+function switchTab(mode) {
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    if (mode === 'Pending') {
+        document.getElementById('tab-new').classList.add('active');
+    } else {
+        document.getElementById('tab-history').classList.add('active');
+    }
+    loadRequests(mode);
+}
+window.switchTab = switchTab;
+
 async function updateStatus(id, status) {
     if (!confirm(`Are you sure you want to ${status.toLowerCase()} this booking?`)) return;
 
     try {
-        // Fetch booking details for notification (FR-7.1)
-        // Including Farmer's name so owner can see it in their notification
         const { data: booking } = await supabase
             .from('bookings')
             .select('farmer_id, profiles!farmer_id(full_name), equipment:equipment_id(name)')
@@ -143,25 +163,23 @@ async function updateStatus(id, status) {
             const farmerName = booking.profiles?.full_name || 'Farmer';
             const { data: { user } } = await supabase.auth.getUser();
 
-            // 1. Notification FOR THE FARMER (Original)
-            const farmerTitle = status === 'Approved' ? '✅ Booking Approved!' : '❌ Booking Rejected';
+            const farmerTitle = status === 'Approved' ? '✅ Booking Confirmed!' : '❌ Request Declined';
             const farmerMsg = status === 'Approved' 
-                ? `Owner has approved your booking for ${booking.equipment.name}.`
-                : `Owner has declined your request for ${booking.equipment.name}.`;
+                ? `Great news! The ${booking.equipment.name} is available and your booking is confirmed for the selected dates.`
+                : `The owner has declined your request for ${booking.equipment.name}.`;
             
             await sendSystemNotification(booking.farmer_id, farmerTitle, farmerMsg, status === 'Approved' ? 'success' : 'error');
 
-            // 2. Notification FOR THE OWNER (Improved Sync)
-            const ownerTitle = status === 'Approved' ? '🛠️ Booking Confirmed!' : '🚫 Booking Declined';
+            const ownerTitle = status === 'Approved' ? '🛠️ Schedule Updated' : '🚫 Request Rejected';
             const ownerMsg = status === 'Approved'
                 ? `You have approved ${farmerName}'s booking for ${booking.equipment.name}.`
-                : `You have declined ${farmerName}'s request for ${booking.equipment.name}.`;
+                : `You rejected the request from ${farmerName} for ${booking.equipment.name}.`;
 
             await sendSystemNotification(user.id, ownerTitle, ownerMsg, 'info');
         }
 
         alert(`Booking ${status} Successfully!`);
-        await loadRequests();
+        await loadRequests('Pending');
     } catch (err) {
         alert("Operation Failed: " + err.message);
     }

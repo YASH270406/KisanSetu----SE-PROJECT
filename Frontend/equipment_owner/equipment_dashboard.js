@@ -8,8 +8,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeNotifications();
 
     if (user) {
-        // 2. Load Recent Activity
+        // 2. Load Recent Activity & Financials
         await loadRecentAlerts(user.id);
+        await initDashboardFinancials(user.id);
         
         // 3. Listen for REALTIME alerts
         supabase
@@ -67,6 +68,39 @@ function toggleSyncStatus() {
     alert("System Status: Synchronized with Supabase Cloud.");
 }
 window.toggleSyncStatus = toggleSyncStatus;
+
+async function initDashboardFinancials(userId) {
+    try {
+        const { data: myEquip } = await supabase.from('equipment').select('id').eq('owner_id', userId);
+        const equipIds = myEquip?.map(e => e.id) || [];
+        if (equipIds.length === 0) return;
+
+        const { data: bookings, error } = await supabase
+            .from('bookings')
+            .select('total_cost, status, start_date, end_date')
+            .in('equipment_id', equipIds)
+            .in('status', ['Approved', 'Completed']);
+
+        if (error) throw error;
+
+        const total = bookings.reduce((sum, b) => sum + Number(b.total_cost), 0);
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthly = bookings
+            .filter(b => new Date(b.start_date) >= monthStart)
+            .reduce((sum, b) => sum + Number(b.total_cost), 0);
+
+        const activeCount = bookings.filter(b => {
+             const start = new Date(b.start_date);
+             const end = new Date(b.end_date);
+             return now >= start && now <= end;
+        }).length;
+
+        document.getElementById('dash-total-earnings').innerText = total.toLocaleString('en-IN');
+        document.getElementById('dash-monthly-earnings').innerText = `₹${monthly.toLocaleString('en-IN')}`;
+        document.getElementById('dash-active-rentals').innerText = activeCount;
+    } catch (err) { console.error("Stats Error:", err); }
+}
 
 // Handle the Add Equipment FAB
 function addNewEquipment() {

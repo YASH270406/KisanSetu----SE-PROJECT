@@ -59,6 +59,26 @@
             </a>
         </div>
 
+        <!-- NEW: Shopping Cart Widget -->
+        <div class="recent-alerts" id="cart-summary-section" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 class="section-title" style="margin-bottom:0;">🛒 Your Shopping Cart</h3>
+                <button onclick="window.clearUserCart()" style="background:none; border:none; color:var(--danger-red); font-size:0.75rem; font-weight:600; cursor:pointer;">
+                    Clear Cart
+                </button>
+            </div>
+            <div id="dashboard-cart-items">
+                <!-- Items injected here -->
+            </div>
+            <div style="margin-top:20px; padding:20px; background:rgba(255,255,255,0.5); border-radius:16px; border:1px dashed var(--primary-green); text-align:center;">
+                <div style="font-size:0.85rem; color:#666; margin-bottom:5px;">Estimated Total</div>
+                <div style="font-size:1.5rem; font-weight:700; color:var(--primary-green); margin-bottom:15px;" id="dashboard-cart-total">₹0</div>
+                <button onclick="window.location.href='checkout.html'" class="primary-btn" style="width:100%; padding:14px; border-radius:12px;">
+                    Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
         <div class="recent-alerts">
             <h3 class="section-title">Recent Activity</h3>
 

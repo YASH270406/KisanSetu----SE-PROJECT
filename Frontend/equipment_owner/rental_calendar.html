@@ -21,31 +21,71 @@
             </div>
         </header>
 
-        <div id="calendar-container" class="calendar-container" style="padding: 20px;">
-            <div id="calendar-view" style="display: none;">
-                <h2 class="section-title">Schedule</h2>
-                <div id="calendar-list" class="calendar-list">
-                    <!-- Calendar entries injected here -->
-                </div>
+        <div id="calendar-container" class="calendar-container" style="padding: 16px;">
+            
+            <div class="calendar-nav" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <button onclick="window.prevMonth()" id="prevBtn" style="background: white; border: 1.5px solid #e0e0e0; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; color:#1565c0;"><i class="fa-solid fa-chevron-left"></i></button>
+                <h2 id="monthLabel" style="font-size: 1.1rem; color: #37474f; margin: 0;"></h2>
+                <button onclick="window.nextMonth()" id="nextBtn" style="background: white; border: 1.5px solid #e0e0e0; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; color:#1565c0;"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+
+            <div id="calendar-grid" class="calendar-grid">
+                <!-- Day headers and numbers will be injected here -->
+            </div>
+
+            <div id="day-detail-panel" style="margin-top: 25px; display: none;">
+                <h3 id="detail-date-label" style="font-size: 0.9rem; color: #1565c0; margin-bottom: 12px; border-left: 4px solid #1565c0; padding-left: 10px;">Click a day for details</h3>
+                <div id="day-bookings-list"></div>
             </div>
 
             <div id="empty-state" style="text-align: center; padding: 50px 20px;">
                 <i class="fa-solid fa-calendar-days" style="font-size: 4rem; color: #1565c0; opacity: 0.2; margin-bottom: 20px;"></i>
                 <h3>No Approved Rentals</h3>
-                <p style="color: #666;">Once you approve booking requests, they will appear in your schedule.</p>
+                <p style="color: #666;">Once you approve requests, they appear here.</p>
             </div>
         </div>
 
         <style>
-            .calendar-list { display: flex; flex-direction: column; gap: 15px; }
-            .event-card { 
-                background: white; border-radius: 12px; padding: 15px; 
-                border-left: 5px solid #1e88e5; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-                display: flex; justify-content: space-between; align-items: center;
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 6px;
+                background: white;
+                padding: 12px;
+                border-radius: 20px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.05);
             }
-            .event-info h4 { margin: 0; font-size: 1rem; color: #37474f; }
-            .event-info p { margin: 2px 0 0 0; font-size: 0.8rem; color: #666; }
-            .event-date { text-align: right; font-size: 0.85rem; font-weight: 600; color: #1565c0; }
+            .cal-hdr {
+                text-align: center; font-size: 0.65rem; font-weight: 700; color: #9e9e9e;
+                text-transform: uppercase; padding-bottom: 8px;
+            }
+            .cal-cell {
+                aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column;
+                align-items: center; justify-content: center; font-size: 0.85rem;
+                font-weight: 500; color: #37474f; transition: 0.2s; cursor: pointer;
+                border: 1px solid transparent; position: relative;
+            }
+            .cal-cell:hover { background: #f1f8ff; border-color: #bbdefb; }
+            .cal-cell.today { background: #1565c0; color: white; font-weight: 700; }
+            .cal-cell.other-month { opacity: 0.2; }
+            
+            .dot-container {
+                display: flex; gap: 2px; position: absolute; bottom: 6px;
+            }
+            .machine-dot {
+                width: 5px; height: 5px; border-radius: 50%; background: #1565c0;
+            }
+            .today .machine-dot { background: white; }
+
+            .day-card {
+                background: white; border-radius: 14px; padding: 15px; margin-bottom: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1.5px solid #f0f0f0;
+                display: flex; align-items: center; gap: 12px;
+            }
+            .day-card .machine-icon { font-size: 1.5rem; opacity: 0.8; }
+            .day-card .info { flex: 1; }
+            .day-card .info h4 { margin: 0; font-size: 0.95rem; color: #37474f; }
+            .day-card .info p { margin: 2px 0 0 0; font-size: 0.75rem; color: #757575; }
         </style>
 
         <script type="module" src="rental_calendar.js"></script>

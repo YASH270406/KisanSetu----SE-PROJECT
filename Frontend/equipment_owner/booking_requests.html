@@ -23,9 +23,16 @@
         .req-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .urgency-badge { font-size: 0.7rem; font-weight: 700; color: #d32f2f; background: #ffebee; padding: 2px 8px; border-radius: 4px; }
         
-        .action-row { display: flex; gap: 10px; }
-        .btn-approve { flex: 2; padding: 10px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-reject { flex: 1; padding: 10px; background: #fff; color: #d32f2f; border: 1px solid #ffcdd2; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+        /* Tabs */
+        .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .tab-item { padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: #666; transition: 0.2s; }
+        .tab-item.active { background: #ef6c00; color: white; }
+        .status-badge { font-size: 0.65rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-left: auto; }
+        .status-Approved { background: #e8f5e9; color: #2e7d32; }
+        .status-Rejected { background: #ffebee; color: #c62828; }
+        .status-Completed { background: #eceff1; color: #455a64; }
 
     </style>
 </head>
@@ -40,9 +47,12 @@
                     <p style="font-size: 0.85rem; opacity: 0.9;">Accept or Manage Rental Orders</p>
                 </div>
             </div>
-        </header>
-
         <div class="fleet-container">
+            <div class="tab-bar">
+                <div class="tab-item active" id="tab-new" onclick="window.switchTab('Pending')">New Requests</div>
+                <div class="tab-item" id="tab-history" onclick="window.switchTab('History')">History</div>
+            </div>
+
             <div id="request-grid" class="request-grid">
                 <!-- Requests injected here -->
             </div>

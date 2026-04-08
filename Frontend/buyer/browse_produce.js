@@ -1,5 +1,5 @@
 import { supabase } from '../supabase-config.js';
-import { addToCart, getCart, removeFromCart, updateCartIndicator } from '../shared/cart-manager.js';
+import { addToCart, getCart, removeFromCart, updateCartIndicator, updateCartQty } from '../shared/cart-manager.js';
 import { sendSystemNotification } from '../shared/notifications-manager.js';
 
 let LIVE_LISTINGS = [];
@@ -284,10 +284,17 @@ function buildProduceCard(item) {
 /* ── Batch Counter Window Functions ───────────────────────── */
 
 window.showBatchCounter = (itemId, maxBatches, batchSize, pricePerUnit, unit) => {
-    batchSelections[itemId] = 1; // reset to 1
+    // Check if already in cart to 'start where buyer left'
+    const cart = getCart();
+    const existing = cart.find(i => i.id === itemId);
+    const initialCount = existing ? (existing.batch_count || 1) : 1;
+
+    batchSelections[itemId] = initialCount;
+    document.getElementById(`bc-count-${itemId}`).textContent = initialCount;
+    
     document.getElementById(`buy-section-${itemId}`).style.display = 'none';
     document.getElementById(`batch-counter-${itemId}`).style.display = 'block';
-    updateCounterDisplay(itemId, 1, batchSize, pricePerUnit, unit);
+    updateCounterDisplay(itemId, initialCount, batchSize, pricePerUnit, unit);
 };
 
 window.hideBatchCounter = (itemId) => {
@@ -318,13 +325,21 @@ window.addBatchesToCart = (itemId, batchSize, unit) => {
     const count = batchSelections[itemId] || 1;
     const totalQty = count * (batchSize || item.quantity || 1);
     
-    // Add to cart with full metadata
-    addToCart({ 
-        ...item, 
-        qty: totalQty, 
-        batch_count: count,
-        farmer_id: item.farmer_id 
-    });
+    const cart = getCart();
+    const inCart = cart.some(i => i.id === itemId);
+
+    if (inCart) {
+        // Use the new updateCartQty to precisely sync (Overwrite mode)
+        updateCartQty(itemId, totalQty, count);
+    } else {
+        // Standard add for new items
+        addToCart({ 
+            ...item, 
+            qty: totalQty, 
+            batch_count: count,
+            farmer_id: item.farmer_id 
+        });
+    }
     
     window.hideBatchCounter(itemId);
     setTimeout(toggleCart, 300);

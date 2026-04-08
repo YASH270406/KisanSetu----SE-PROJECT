@@ -1,5 +1,6 @@
 import { supabase } from '../../supabase-config.js';
 import { initializeDashboard } from '../../shared/auth-helper.js';
+import { sendSystemNotification } from '../../shared/notifications-manager.js';
 
 'use strict';
 
@@ -67,6 +68,10 @@ async function fetchEquipment() {
         EQUIPMENT.forEach(eq => eq.bookedDates = []);
         applyFilters();
         updateStats();
+
+        // Sync Calendar
+        populateCalSelect();
+        renderCalendar();
     } catch (err) {
         console.error('Failed to load equipment:', err);
         showToast('error', 'Network Error', 'Could not load equipment list.');
@@ -271,6 +276,18 @@ async function submitBooking() {
 
         if (error) throw error;
 
+        // 3. Notify Owner (FR-7.1 / Business Alert)
+        const farmerName = user.user_metadata?.full_name || 'A Farmer';
+        const ownerId = selectedEq.owner_id;
+        if (ownerId) {
+            await sendSystemNotification(
+                ownerId,
+                '🆕 New Booking Request!',
+                `${farmerName} wants to rent your ${selectedEq.name} starting ${start}.`,
+                'info'
+            );
+        }
+
         showToast('success', 'Booking Sent!', 'Awaiting owner approval.');
         await fetchBookings();
 
@@ -358,6 +375,149 @@ function closeModal(e) {
     }
 }
 window.closeModal = closeModal;
+
+/* ══════════════════════════════════════════
+   AVAILABILITY CALENDAR (TAB 4)
+══════════════════════════════════════════ */
+function populateCalSelect() {
+    const select = document.getElementById('calEqSelect');
+    if (!select) return;
+    
+    // Clear and add "All Equipment"
+    select.innerHTML = '<option value="">All My Bookings</option>';
+    
+    const uniqueEq = [];
+    EQUIPMENT.forEach(e => {
+        if (!uniqueEq.find(u => u.id === e.id)) uniqueEq.push(e);
+    });
+
+    uniqueEq.forEach(eq => {
+        const opt = document.createElement('option');
+        opt.value = eq.id;
+        opt.textContent = eq.name;
+        select.appendChild(opt);
+    });
+}
+window.populateCalSelect = populateCalSelect;
+
+async function fetchAllApprovedBookings(eqId) {
+    if (!eqId) return [];
+    const { data, error } = await supabase
+        .from('bookings')
+        .select('start_date, end_date, farmer_id, status')
+        .eq('equipment_id', eqId)
+        .eq('status', 'Approved');
+    
+    if (error) {
+        console.error("Error fetching global bookings:", error);
+        return [];
+    }
+    return data || [];
+}
+
+async function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    const label = document.getElementById('calMonthLabel');
+    const eqId = document.getElementById('calEqSelect')?.value;
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    label.textContent = `${monthNames[calMonth]} ${calYear}`;
+
+    // 1. Add day headers
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    days.forEach(d => {
+        const h = document.createElement('div');
+        h.className = 'cal-day-hdr';
+        h.textContent = d;
+        grid.appendChild(h);
+    });
+
+    // 2. Fetch data context
+    const globalBookings = eqId ? await fetchAllApprovedBookings(eqId) : [];
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // 3. Generate Calendar Grid
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const today = new Date();
+
+    // Empty cells for padding
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-day empty';
+        grid.appendChild(empty);
+    }
+
+    // Days in month
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(calYear, calMonth, d);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayEl = document.createElement('div');
+        dayEl.className = 'cal-day';
+        dayEl.textContent = d;
+
+        // Today Check
+        if (date.toDateString() === today.toDateString()) {
+            dayEl.classList.add('today-day');
+        }
+
+        // Booking Logic
+        let isMyBooking = false;
+        let isBookedByOther = false;
+
+        // Check against user's local bookings (all statuses)
+        bookings.forEach(b => {
+             if (dateStr >= b.start_date.split('T')[0] && dateStr <= b.end_date.split('T')[0]) {
+                 if (b.status === 'Approved' || b.status === 'Confirmed' || b.status === 'Pending') {
+                     isMyBooking = true;
+                 }
+             }
+        });
+
+        // Check against global approved bookings for this specific machine
+        if (eqId) {
+            globalBookings.forEach(gb => {
+                if (dateStr >= gb.start_date.split('T')[0] && dateStr <= gb.end_date.split('T')[0]) {
+                    if (user && gb.farmer_id === user.id) {
+                        isMyBooking = true;
+                    } else {
+                        isBookedByOther = true;
+                    }
+                }
+            });
+        }
+
+        if (isMyBooking) dayEl.classList.add('my-book');
+        else if (isBookedByOther) dayEl.classList.add('booked');
+        else if (date >= today) dayEl.classList.add('free');
+        else if (date < today) dayEl.classList.add('past');
+
+        grid.appendChild(dayEl);
+    }
+}
+window.renderCalendar = renderCalendar;
+
+function prevMonth() {
+    calMonth--;
+    if (calMonth < 0) {
+        calMonth = 11;
+        calYear--;
+    }
+    renderCalendar();
+}
+window.prevMonth = prevMonth;
+
+function nextMonth() {
+    calMonth++;
+    if (calMonth > 11) {
+        calMonth = 0;
+        calYear++;
+    }
+    renderCalendar();
+}
+window.nextMonth = nextMonth;
 
 function showToast(type, title, msg) {
     const toast = document.getElementById('toast');

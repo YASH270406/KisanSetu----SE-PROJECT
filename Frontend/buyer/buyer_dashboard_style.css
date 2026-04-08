@@ -287,6 +287,37 @@ body {
 .alert-text h4 { font-size: 1rem; color: var(--charcoal); font-weight: 600; margin-bottom: 2px;}
 .alert-text p { font-size: 0.8rem; color: var(--soil-brown); margin: 0; }
 
+/* Dashboard Cart Widget Enhancements */
+#cart-summary-section {
+    margin-top: 0;
+    padding-top: 0;
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, var(--primary-green) 0%, #1b5e20 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(46, 125, 50, 0.4);
+}
+
+.primary-btn:active {
+    transform: translateY(0);
+}
+
 /* Floating Search Button */
 .voice-fab {
     position: fixed; 
