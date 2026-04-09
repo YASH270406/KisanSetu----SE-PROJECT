@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Calendar & Earnings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for earnings bar chart -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="rental_calendar_earnings.css">
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ══ HEADER ══ -->
+    <header class="page-header">
+        <button class="back-btn" onclick="history.back()">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="header-center">
+            <h1 class="page-title" id="pageTitle">Rental Calendar</h1>
+            <p class="page-sub">Balram Singh · Rohtak, HR</p>
+        </div>
+        <div class="sync-status online" id="syncIndicator" onclick="toggleSync()">
+            <span class="pulse-dot"></span>
+        </div>
+    </header>
+
+    <!-- ══ PAGE TAB SWITCHER ══ -->
+    <div class="page-tabs">
+        <button class="page-tab active" id="tabCalBtn" onclick="switchPage('calendar')">
+            <i class="fa-regular fa-calendar-days"></i> Rental Calendar
+        </button>
+        <button class="page-tab" id="tabEarnBtn" onclick="switchPage('earnings')">
+            <i class="fa-solid fa-chart-bar"></i> Earnings Report
+        </button>
+    </div>
+
+
+    <!-- ════════════════════════════════════════
+         PAGE 1 — RENTAL CALENDAR  (FR-4.2)
+    ════════════════════════════════════════ -->
+    <div class="page-section active" id="pageCal">
+
+        <!-- Asset selector -->
+        <div class="asset-selector-wrap">
+            <label class="selector-label">Viewing availability for</label>
+            <div class="asset-selector" id="assetSelector">
+                <!-- injected by JS -->
+            </div>
+        </div>
+
+        <!-- Month navigator -->
+        <div class="month-nav">
+            <button class="nav-arrow" onclick="prevMonth()">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div class="month-info">
+                <span class="month-name" id="calMonthName"></span>
+                <span class="month-year" id="calYear"></span>
+            </div>
+            <button class="nav-arrow" onclick="nextMonth()">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Calendar grid -->
+        <div class="calendar-wrap">
+            <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <!-- Legend -->
+        <div class="cal-legend">
+            <span class="leg-item"><span class="leg-dot booked"></span>Booked</span>
+            <span class="leg-item"><span class="leg-dot available"></span>Available</span>
+            <span class="leg-item"><span class="leg-dot blocked"></span>Blocked</span>
+            <span class="leg-item"><span class="leg-dot maint"></span>Maintenance</span>
+            <span class="leg-item"><span class="leg-dot today-d"></span>Today</span>
+        </div>
+
+        <!-- Block dates panel -->
+        <div class="block-panel">
+            <h3 class="block-title">
+                <i class="fa-solid fa-lock"></i> Block Dates Manually
+            </h3>
+            <p class="block-sub">Prevent bookings on specific dates (holidays, servicing, etc.)</p>
+            <div class="block-form">
+                <div class="block-fields">
+                    <div class="bf-group">
+                        <label>From</label>
+                        <input type="date" id="blockFrom">
+                    </div>
+                    <div class="bf-group">
+                        <label>To</label>
+                        <input type="date" id="blockTo">
+                    </div>
+                </div>
+                <div class="bf-group full">
+                    <label>Reason (optional)</label>
+                    <input type="text" id="blockReason" placeholder="e.g. Annual servicing, Personal use…">
+                </div>
+                <button class="btn-block" onclick="blockDates()">
+                    <i class="fa-solid fa-lock"></i> Block Selected Dates
+                </button>
+            </div>
+
+            <!-- Blocked dates list -->
+            <div id="blockedList" class="blocked-list"></div>
+        </div>
+
+    </div><!-- /pageCal -->
+
+
+    <!-- ════════════════════════════════════════
+         PAGE 2 — EARNINGS REPORT  (FR-1.5, FR-7.2)
+    ════════════════════════════════════════ -->
+    <div class="page-section" id="pageEarn">
+
+        <!-- Month selector -->
+        <div class="earn-month-row">
+            <button class="nav-arrow sm" onclick="prevEarnMonth()">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span class="earn-month-label" id="earnMonthLabel"></span>
+            <button class="nav-arrow sm" onclick="nextEarnMonth()">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Monthly summary hero card -->
+        <div class="earn-hero">
+            <div class="earn-hero-main">
+                <p class="earn-hero-lbl">Total Earnings</p>
+                <h2 class="earn-hero-amt" id="earnTotal">₹0</h2>
+                <p class="earn-hero-sub" id="earnSubLine">— rentals this month</p>
+            </div>
+            <div class="earn-hero-stats">
+                <div class="earn-mini-stat">
+                    <span class="ems-num" id="earnRentals">0</span>
+                    <span class="ems-lbl">Rentals</span>
+                </div>
+                <div class="ems-div"></div>
+                <div class="earn-mini-stat">
+                    <span class="ems-num" id="earnDays">0</span>
+                    <span class="ems-lbl">Days Rented</span>
+                </div>
+                <div class="ems-div"></div>
+                <div class="earn-mini-stat top-asset-stat">
+                    <span class="ems-num" id="earnTopAsset">—</span>
+                    <span class="ems-lbl">Top Asset</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Chart — Monthly income (Chart.js) -->
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <h3 class="chart-title">Monthly Income</h3>
+                <span class="chart-sub">Last 6 months</span>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="earningsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top assets breakdown -->
+        <div class="breakdown-card">
+            <h3 class="breakdown-title">
+                <i class="fa-solid fa-tractor"></i> Earnings by Asset
+            </h3>
+            <div id="assetBreakdown"></div>
+        </div>
+
+        <!-- Transaction history log -->
+        <div class="txn-card">
+            <div class="txn-header">
+                <h3 class="txn-title">
+                    <i class="fa-solid fa-receipt"></i> Transaction History
+                </h3>
+                <span class="txn-count" id="txnCount">0 records</span>
+            </div>
+            <div id="txnList"></div>
+        </div>
+
+    </div><!-- /pageEarn -->
+
+</div><!-- /app-container -->
+
+
+<!-- ════════════════════════════════════════
+     BOOKING DETAIL POPUP (tap on booked day)
+════════════════════════════════════════ -->
+<div class="popup-overlay" id="popupOverlay" onclick="closePopup(event)">
+    <div class="booking-popup" id="bookingPopup">
+        <div class="popup-handle"></div>
+        <div class="popup-header">
+            <h3 id="popupTitle">Booking Detail</h3>
+            <button class="popup-close" onclick="closePopupDirect()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="popup-body" id="popupBody"></div>
+    </div>
+</div>
+
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast">
+    <span class="toast-icon" id="toastIcon">✅</span>
+    <div>
+        <strong id="toastTitle"></strong>
+        <p id="toastMsg"></p>
+    </div>
+</div>
+
+<script src="rental_calendar_earnings.js"></script>
+</body>
+</html>

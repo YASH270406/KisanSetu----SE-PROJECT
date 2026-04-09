@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Booking Requests</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="booking_requests.css">
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ══ HEADER ══ -->
+    <header class="page-header">
+        <button class="back-btn" onclick="history.back()">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="header-center">
+            <h1 class="page-title">Booking Requests</h1>
+            <p class="page-sub" id="headerSub">Loading…</p>
+        </div>
+        <div class="sync-status online" id="syncIndicator" onclick="toggleSync()">
+            <span class="pulse-dot"></span>
+        </div>
+    </header>
+
+    <!-- ══ SUMMARY STRIP ══ -->
+    <div class="summary-strip">
+        <div class="sstat">
+            <span class="sstat-num yellow" id="statPending">0</span>
+            <span class="sstat-lbl">Pending</span>
+        </div>
+        <div class="sstat-div"></div>
+        <div class="sstat">
+            <span class="sstat-num green" id="statConfirmed">0</span>
+            <span class="sstat-lbl">Confirmed</span>
+        </div>
+        <div class="sstat-div"></div>
+        <div class="sstat">
+            <span class="sstat-num red" id="statCancelled">0</span>
+            <span class="sstat-lbl">Cancelled</span>
+        </div>
+        <div class="sstat-div"></div>
+        <div class="sstat">
+            <span class="sstat-num blue" id="statEarnings">₹0</span>
+            <span class="sstat-lbl">Confirmed ₹</span>
+        </div>
+    </div>
+
+    <!-- ══ FR-4.4 NOTICE ══ -->
+    <div class="notice-bar">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Requests must be approved or rejected within <strong>24 hours</strong> (FR-4.4)</span>
+    </div>
+
+    <!-- ══ FILTER TABS ══ -->
+    <div class="filter-row">
+        <button class="filter-pill active" onclick="filterRequests('all', this)">
+            All <span class="pill-count" id="countAll">0</span>
+        </button>
+        <button class="filter-pill" onclick="filterRequests('Pending', this)">
+            <span class="dot yellow"></span> Pending
+            <span class="pill-count" id="countPending">0</span>
+        </button>
+        <button class="filter-pill" onclick="filterRequests('Confirmed', this)">
+            <span class="dot green"></span> Confirmed
+        </button>
+        <button class="filter-pill" onclick="filterRequests('Cancelled', this)">
+            <span class="dot red"></span> Cancelled
+        </button>
+    </div>
+
+    <!-- ══ REQUESTS LIST ══ -->
+    <div class="requests-list" id="requestsList"></div>
+
+    <!-- ══ EMPTY STATE ══ -->
+    <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-icon">📭</div>
+        <h3>No Requests Here</h3>
+        <p>Booking requests from farmers will appear here.</p>
+    </div>
+
+</div><!-- /app-container -->
+
+
+<!-- ════════════════════════════════════════
+     REQUEST DETAIL BOTTOM SHEET
+════════════════════════════════════════ -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+    <div class="detail-sheet" id="detailSheet">
+
+        <div class="sheet-handle"></div>
+
+        <!-- Sheet header -->
+        <div class="sheet-header">
+            <h2 id="sheetTitle">Booking Request</h2>
+            <button class="sheet-close" onclick="closeSheetDirect()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="sheet-body">
+
+            <!-- Equipment banner -->
+            <div class="sheet-eq-banner">
+                <span class="sheet-eq-emoji" id="sheetEqEmoji">🚜</span>
+                <div class="sheet-eq-info">
+                    <p class="sheet-eq-name" id="sheetEqName">—</p>
+                    <p class="sheet-eq-meta" id="sheetEqMeta">—</p>
+                </div>
+                <span class="sheet-status-badge" id="sheetStatus">—</span>
+            </div>
+
+            <!-- Farmer info -->
+            <div class="info-card">
+                <h4 class="info-card-title"><i class="fa-solid fa-user"></i> Farmer Details</h4>
+                <div class="info-row"><span class="info-lbl">Name</span><span class="info-val" id="sheetFarmerName">—</span></div>
+                <div class="info-row"><span class="info-lbl">Phone</span><span class="info-val" id="sheetFarmerPhone">—</span></div>
+                <div class="info-row"><span class="info-lbl">Village</span><span class="info-val" id="sheetFarmerVillage">—</span></div>
+                <div class="info-row"><span class="info-lbl">Purpose</span><span class="info-val" id="sheetPurpose">—</span></div>
+            </div>
+
+            <!-- Booking details -->
+            <div class="info-card">
+                <h4 class="info-card-title"><i class="fa-regular fa-calendar-days"></i> Booking Details</h4>
+                <div class="info-row"><span class="info-lbl">From</span><span class="info-val" id="sheetFrom">—</span></div>
+                <div class="info-row"><span class="info-lbl">To</span><span class="info-val" id="sheetTo">—</span></div>
+                <div class="info-row"><span class="info-lbl">Duration</span><span class="info-val" id="sheetDuration">—</span></div>
+                <div class="info-row"><span class="info-lbl">Hours/Day</span><span class="info-val" id="sheetHours">—</span></div>
+                <div class="info-row"><span class="info-lbl">Booking ID</span><span class="info-val mono" id="sheetBookingId">—</span></div>
+            </div>
+
+            <!-- Cost -->
+            <div class="cost-card">
+                <div class="cost-row">
+                    <span>Rate</span>
+                    <span id="sheetRate">—</span>
+                </div>
+                <div class="cost-row">
+                    <span>Hours × Days</span>
+                    <span id="sheetCalc">—</span>
+                </div>
+                <div class="cost-divider"></div>
+                <div class="cost-row total">
+                    <span>Total Amount</span>
+                    <span id="sheetTotal">—</span>
+                </div>
+            </div>
+
+            <!-- 24-hr countdown -->
+            <div class="countdown-bar" id="sheetCountdown">
+                <i class="fa-regular fa-clock"></i>
+                <span id="sheetCountdownText">—</span>
+            </div>
+
+            <!-- Action buttons (only shown for Pending) -->
+            <div class="sheet-actions" id="sheetActions">
+                <button class="btn-reject" id="btnReject" onclick="rejectFromSheet()">
+                    <i class="fa-solid fa-xmark"></i> Reject
+                </button>
+                <button class="btn-approve" id="btnApprove" onclick="approveFromSheet()">
+                    <i class="fa-solid fa-check"></i> Approve
+                </button>
+            </div>
+
+            <!-- Already actioned notice -->
+            <div class="actioned-notice" id="actionedNotice" style="display:none">
+                <i class="fa-solid fa-circle-check" id="actionedIcon"></i>
+                <span id="actionedText">—</span>
+            </div>
+
+        </div><!-- /sheet-body -->
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     CONFIRM ACTION DIALOG
+════════════════════════════════════════ -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon" id="confirmIcon">✅</div>
+        <h3 id="confirmTitle">Confirm Action</h3>
+        <p id="confirmMsg">Are you sure?</p>
+        <div class="confirm-btns">
+            <button class="btn-ghost" onclick="closeConfirm()">Cancel</button>
+            <button class="confirm-action-btn" id="confirmActionBtn" onclick="executeAction()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══ NOTIFICATION TOAST (FR-7.1) ══ -->
+<div class="toast" id="toast">
+    <span class="toast-icon" id="toastIcon">✅</span>
+    <div>
+        <strong id="toastTitle"></strong>
+        <p id="toastMsg"></p>
+    </div>
+</div>
+
+<script src="booking_requests.js"></script>
+</body>
+</html>
