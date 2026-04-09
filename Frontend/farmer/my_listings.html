@@ -356,46 +356,50 @@
         }
     </style>
 </head>
+
 <body>
 
-    <!-- Hero Header (same structure as Bid Inbox) -->
     <header class="hero-header">
-        <div class="header-top">
-            <a href="farmer_dashboard.html" class="back-btn" id="back-to-dashboard">
-                <i class="fa-solid fa-arrow-left"></i>
-            </a>
-            <h1>
-                <span style="width:22px; height:22px; background:white; border-radius:50%; display:inline-block; flex-shrink:0;"></span>
-                My Listings
-                <span class="header-badge" id="listing-count" style="display:none;">0</span>
-            </h1>
+        <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="farmer_dashboard.html" class="back-btn" id="back-to-dashboard">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <h1 style="margin: 0; font-size: 1.8rem; display: flex; align-items: center; gap: 10px;">
+                    <span style="width:16px; height:16px; background:white; border-radius:50%; display:inline-block; flex-shrink:0;"></span>
+                    My Listings
+                    <span class="header-badge" id="listing-count" style="display:none;">0</span>
+                </h1>
+            </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: white; color: #2e7d32; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s; flex-shrink: 0;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+            </button>
+            
         </div>
-        <p>View and manage your harvest listings. Edit or delete until a buyer places a bid.</p>
+        <p style="margin-top: 10px;">View and manage your harvest listings. Edit or delete until a buyer places a bid.</p>
     </header>
 
-    <!-- Container floats up over header (same as inbox-container) -->
     <div class="listings-container">
 
-        <!-- Top action bar -->
         <div class="listings-topbar">
             <div class="topbar-title">
                 Your Harvest Listings
                 <span id="listing-sub"></span>
             </div>
-            <a href="sell_produce.html" class="new-listing-btn" id="new-listing-btn">
+            <a href="sell_produce.html" class="new-listing-btn" id="voice-new-listing-btn">
                 <i class="fa-solid fa-plus"></i> New Listing
             </a>
         </div>
 
-        <!-- Cards injected by JS -->
         <div id="listings-container"></div>
 
-        <!-- Empty state -->
         <div class="empty-inbox" id="empty-msg" style="display:none;">
             <i class="fa-solid fa-wheat-awn"></i>
             <h3>No listings yet</h3>
             <small>Your published harvest listings will appear here.</small>
-            <a href="sell_produce.html" class="new-listing-btn" style="display:inline-flex; margin:0 auto;">
+            <a href="sell_produce.html" class="new-listing-btn" id="voice-new-listing-btn-empty" style="display:inline-flex; margin:0 auto;">
                 <i class="fa-solid fa-plus"></i> List Your First Harvest
             </a>
         </div>
@@ -403,5 +407,6 @@
     </div>
 
     <script type="module" src="my_listings.js"></script>
+    <script src="../shared/global.js"></script>
 </body>
 </html>

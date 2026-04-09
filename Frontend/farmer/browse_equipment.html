@@ -34,22 +34,28 @@
 <body>
 
     <header class="hero-header">
-        <div style="display: flex; align-items: center; gap: 15px; max-width: 1200px; margin: 0 auto;">
-            <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <div>
-                <h1 style="font-size: 1.8rem;">Rent Farm Machinery</h1>
-                <p style="font-size: 0.9rem; opacity: 0.9;">Secure high-quality equipment for your farm needs on an hourly basis.</p>
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; max-width: 1200px; margin: 0 auto; width: 100%;">
+            
+            <div style="display: flex; gap: 15px;">
+                <a href="farmer_dashboard.html" class="back-btn" style="color: white; text-decoration: none; margin-top: 5px;"><i class="fa-solid fa-arrow-left"></i></a>
+                <div>
+                    <h1 style="font-size: 1.8rem; margin-bottom: 5px;">Rent Farm Machinery</h1>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Secure high-quality equipment for your farm needs on an hourly basis.</p>
+                </div>
             </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: white; color: #ef6c00; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s; flex-shrink: 0; margin-top: 2px;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+            </button>
+
         </div>
     </header>
 
     <div class="market-container">
         <div id="equipment-grid" class="market-grid">
-            <!-- Machine cards injected here -->
-        </div>
+            </div>
     </div>
 
-    <!-- Booking Modal (FR-4.3, FR-4.5) -->
     <div id="booking-modal" class="modal">
         <div class="modal-content">
             <h3 id="modal-title" style="color: #ef6c00;">Book Equipment</h3>
@@ -85,5 +91,6 @@
     </div>
 
     <script type="module" src="browse_equipment.js"></script>
+    <script src="../shared/global.js"></script>
 </body>
 </html>

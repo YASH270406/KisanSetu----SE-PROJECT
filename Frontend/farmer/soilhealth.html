@@ -4,80 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KisanSetu - Soil Health & Schemes Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="soilhealth.css">
     <link rel="stylesheet" href="../shared/common.css">
-    <style>
-    .voice-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 20px;
-        gap: 8px;
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 999999;
-    }
-
-    .voice-btn {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #2e7d32, #66bb6a);
-        border: none;
-        color: white;
-        font-size: 1.4rem;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4);
-        transition: transform 0.2s, box-shadow 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .voice-btn:active {
-        transform: scale(0.92);
-        box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
-    }
-
-    .voice-btn.listening {
-        animation: micPulse 1s infinite;
-        background: linear-gradient(135deg, #d32f2f, #ef5350);
-    }
-
-    @keyframes micPulse {
-        0%   { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.5); }
-        70%  { box-shadow: 0 0 0 12px rgba(211, 47, 47, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
-    }
-
-    .voice-hint {
-        font-size: 0.78rem;
-        color: #78909c;
-        font-family: 'Poppins', sans-serif;
-        text-align: center;
-        margin: 0;
-    }
-</style>
-
-<div class="voice-section">
-    <button class="voice-btn" id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak">
-        <i class="fa-solid fa-microphone"></i>
-    </button>
-    <p class="voice-hint">🎙️ बोलकर नेविगेट करें &nbsp;|&nbsp; Speak to navigate</p>
-</div>
-
 </head>
 
 <body>
     <div class="app-container">
+        
         <div class="dashboard-header">
-            <div class="header-top">
-                <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-                <div class="user-info">
-                    <span class="greeting">🌱 Soil Health Report & Schemes Hub</span>
+            <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                    <div class="user-info">
+                        <span class="greeting" style="font-weight: 600; font-size: 1.1rem;">🌱 Soil Health Report & Schemes Hub</span>
+                    </div>
                 </div>
+
+                <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                    <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+                </button>
+
             </div>
         </div>
 
@@ -125,7 +73,7 @@
                             <span class="input-unit">pH</span>
                         </div>
                     </div>
-                    <button type="submit" class="btn-primary">✨ Ask AI</button>
+                    <button type="submit" class="btn-primary" id="voice-ask-ai-btn">✨ Ask AI</button>
                 </form>
             </div>
 
@@ -166,43 +114,43 @@
                     <div class="form-group" style="margin-top: 15px;">
                         <label>Select Your State</label>
                        <select id="stateSelect">
-    <option value="">-- Choose State / UT --</option>
-    <option value="AN">Andaman and Nicobar Islands</option>
-    <option value="AP">Andhra Pradesh</option>
-    <option value="AR">Arunachal Pradesh</option>
-    <option value="AS">Assam</option>
-    <option value="BR">Bihar</option>
-    <option value="CH">Chandigarh</option>
-    <option value="CG">Chhattisgarh</option>
-    <option value="DN">Dadra and Nagar Haveli & Daman and Diu</option>
-    <option value="DL">Delhi</option>
-    <option value="GA">Goa</option>
-    <option value="GJ">Gujarat</option>
-    <option value="HR">Haryana</option>
-    <option value="HP">Himachal Pradesh</option>
-    <option value="JK">Jammu & Kashmir</option>
-    <option value="JH">Jharkhand</option>
-    <option value="KA">Karnataka</option>
-    <option value="KL">Kerala</option>
-    <option value="LD">Lakshadweep</option>
-    <option value="MP">Madhya Pradesh</option>
-    <option value="MH">Maharashtra</option>
-    <option value="MN">Manipur</option>
-    <option value="ML">Meghalaya</option>
-    <option value="MZ">Mizoram</option>
-    <option value="NL">Nagaland</option>
-    <option value="OR">Odisha</option>
-    <option value="PY">Puducherry</option>
-    <option value="PB">Punjab</option>
-    <option value="RJ">Rajasthan</option>
-    <option value="SK">Sikkim</option>
-    <option value="TN">Tamil Nadu</option>
-    <option value="TG">Telangana</option>
-    <option value="TR">Tripura</option>
-    <option value="UP">Uttar Pradesh</option>
-    <option value="UK">Uttarakhand</option>
-    <option value="WB">West Bengal</option>
-</select>
+                            <option value="">-- Choose State / UT --</option>
+                            <option value="AN">Andaman and Nicobar Islands</option>
+                            <option value="AP">Andhra Pradesh</option>
+                            <option value="AR">Arunachal Pradesh</option>
+                            <option value="AS">Assam</option>
+                            <option value="BR">Bihar</option>
+                            <option value="CH">Chandigarh</option>
+                            <option value="CG">Chhattisgarh</option>
+                            <option value="DN">Dadra and Nagar Haveli & Daman and Diu</option>
+                            <option value="DL">Delhi</option>
+                            <option value="GA">Goa</option>
+                            <option value="GJ">Gujarat</option>
+                            <option value="HR">Haryana</option>
+                            <option value="HP">Himachal Pradesh</option>
+                            <option value="JK">Jammu & Kashmir</option>
+                            <option value="JH">Jharkhand</option>
+                            <option value="KA">Karnataka</option>
+                            <option value="KL">Kerala</option>
+                            <option value="LD">Lakshadweep</option>
+                            <option value="MP">Madhya Pradesh</option>
+                            <option value="MH">Maharashtra</option>
+                            <option value="MN">Manipur</option>
+                            <option value="ML">Meghalaya</option>
+                            <option value="MZ">Mizoram</option>
+                            <option value="NL">Nagaland</option>
+                            <option value="OR">Odisha</option>
+                            <option value="PY">Puducherry</option>
+                            <option value="PB">Punjab</option>
+                            <option value="RJ">Rajasthan</option>
+                            <option value="SK">Sikkim</option>
+                            <option value="TN">Tamil Nadu</option>
+                            <option value="TG">Telangana</option>
+                            <option value="TR">Tripura</option>
+                            <option value="UP">Uttar Pradesh</option>
+                            <option value="UK">Uttarakhand</option>
+                            <option value="WB">West Bengal</option>
+                        </select>
                     </div>
 
                     <div id="stateResult" class="state-result-box" style="display: none;">
@@ -220,7 +168,7 @@
                     </p>
                     <form id="explainerForm" style="margin-top: 15px;">
                         <input type="text" id="schemeNameInput" placeholder="Enter Scheme Name..." required style="margin-bottom: 10px;">
-                        <button type="submit" class="btn-primary" style="background-color: var(--soil-brown);">✨ Explain This Scheme</button>
+                        <button type="submit" class="btn-primary" style="background-color: var(--soil-brown);" id="voice-explain-scheme-btn">✨ Explain This Scheme</button>
                     </form>
                     
                     <div class="ai-processing" id="explainerLoadingState">

@@ -400,9 +400,17 @@
 <body>
 
     <header class="hero-header">
-        <div class="header-top">
-            <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <h1>Bid Inbox <span class="header-badge" id="bid-count">0</span></h1>
+        <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="farmer_dashboard.html" class="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1 style="margin: 0;">Bid Inbox <span class="header-badge" id="bid-count">0</span></h1>
+            </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: white; color: #2e7d32; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+            </button>
+
         </div>
 
         <p>Manage incoming offers from verified buyers. Accept directly or send a counter-offer to negotiate better
@@ -422,7 +430,6 @@
 
     <div class="inbox-container">
 
-        <!-- JS will replace this container with real cards -->
         <div id="bids-container">
 
 
@@ -437,8 +444,8 @@
 
     </div>
 
-    <!-- We keep the JS logic reference exactly as it was -->
     <script type="module" src="bid_inbox.js"></script>
+    <script src="../shared/global.js"></script>
 
 </body>
 

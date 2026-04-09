@@ -121,10 +121,20 @@
 </head>
 <body>
 
+
     <header class="hero-header">
-        <div class="header-top">
-            <a href="farmer_dashboard.html" class="back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <h1 id="page-heading">Create Listing</h1>
+        
+        <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="farmer_dashboard.html" class="back-btn" id="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1 id="page-heading" style="margin: 0;">Create Listing</h1>
+            </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: white; color: #2e7d32; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s; flex-shrink: 0;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+            </button>
+
         </div>
         <p>List your harvest for verified buyers. Set batches so buyers can purchase in flexible quantities.</p>
     </header>
@@ -132,7 +142,6 @@
     <div class="form-container">
         <form id="produce-form">
 
-            <!-- Section: Crop Details -->
             <div class="section-divider"><span><i class="fa-solid fa-seedling"></i> Crop Details</span></div>
 
             <div class="form-row">
@@ -161,7 +170,6 @@
                 <input type="text" id="variety" placeholder="e.g., Sharbati, Basmati, Local" required>
             </div>
 
-            <!-- Section: Quantity & Batches -->
             <div class="section-divider"><span><i class="fa-solid fa-layer-group"></i> Quantity & Batches</span></div>
 
             <div class="form-row">
@@ -187,7 +195,6 @@
                 <input type="number" id="total_batches" placeholder="e.g., 10" min="1" step="1" required oninput="window.updateBatchPreview()">
                 <small class="helper-text">Split your total produce into equal batches. A buyer can purchase 1 to all batches.</small>
 
-                <!-- Live Batch Preview -->
                 <div class="batch-preview" id="batch-preview">
                     <div style="font-size:0.8rem; font-weight:600; color: #2e7d32; margin-bottom:8px;">
                         <i class="fa-solid fa-calculator"></i> Batch Breakdown Preview
@@ -209,7 +216,6 @@
                 </div>
             </div>
 
-            <!-- Section: Pricing -->
             <div class="section-divider"><span><i class="fa-solid fa-rupee-sign"></i> Pricing & Date</span></div>
 
             <div class="form-group full">
@@ -226,7 +232,6 @@
                 <input type="date" id="harvestDate" required>
             </div>
 
-            <!-- Section: Photos -->
             <div class="section-divider"><span><i class="fa-solid fa-camera"></i> Photos</span></div>
 
             <div class="form-group full">
@@ -239,12 +244,13 @@
                 <input type="file" id="cropImage" accept="image/*" multiple style="display: none;">
             </div>
 
-            <button type="submit" class="submit-btn" id="submit-btn">
+            <button type="submit" class="submit-btn" id="voice-publish-btn">
                 Publish Listing <i class="fa-regular fa-paper-plane"></i>
             </button>
         </form>
     </div>
 
     <script type="module" src="sell_produce.js"></script>
+    <script src="../shared/global.js"></script>
 </body>
 </html>

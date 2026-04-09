@@ -36,10 +36,8 @@
             padding: 20px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: space-between; /* Added to push mic to the right */
         }
-
-
 
         .container {
             max-width: 800px;
@@ -100,21 +98,31 @@
 </head>
 
 <body>
+    
     <header class="header">
-        <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>Escrow & Payments</h2>
+        
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="farmer_dashboard.html" class="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2 style="font-size: 1.4rem; margin: 0;">Escrow & Payments</h2>
+        </div>
+
+        <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: white; color: #2e7d32; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s; flex-shrink: 0;">
+            <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+        </button>
+
     </header>
 
 
     <div class="container" id="payments-container">
-        <!-- Loading state -->
         <div style="text-align:center; padding: 50px 20px;" id="loading-view">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-green);"></i>
             <p style="margin-top:15px;">Fetching your payment records...</p>
         </div>
     </div>
+    
     <script src="../shared/toast.js"></script>
     <script type="module" src="payment_status.js"></script>
+    <script src="../shared/global.js"></script>
 </body>
 
 </html>

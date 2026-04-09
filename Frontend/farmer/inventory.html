@@ -9,12 +9,21 @@
 </head>
 <body>
     <div class="app-container">
+        
         <div class="dashboard-header">
-            <div class="header-top" style="display: flex; align-items: center; gap: 15px;">
-                <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-                <div class="user-info">
-                    <span class="greeting">🌾 Smart Storage & Inventory</span>
+            <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                    <div class="user-info">
+                        <span class="greeting" style="font-weight: 600; font-size: 1.1rem;">🌾 Smart Storage & Inventory</span>
+                    </div>
                 </div>
+
+                <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: linear-gradient(135deg, #2e7d32, #66bb6a); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 3px 8px rgba(46, 125, 50, 0.3); transition: transform 0.2s;">
+                    <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+                </button>
+
             </div>
         </div>
 
@@ -32,7 +41,7 @@
                 </div>
             </div>
 
-            <button class="btn-primary" onclick="toggleAddForm()" style="margin-bottom: 20px;">
+            <button class="btn-primary" id="voice-add-stock-btn" onclick="toggleAddForm()" style="margin-bottom: 20px;">
                 ➕ Add New Stock
             </button>
 
@@ -75,7 +84,7 @@
                     </div>
 
                     <div style="display: flex; gap: 10px;">
-                        <button type="submit" class="btn-primary" style="flex: 1;">Save Stock</button>
+                        <button type="submit" id="voice-save-stock-btn" class="btn-primary" style="flex: 1;">Save Stock</button>
                         <button type="button" class="btn-primary btn-secondary" onclick="toggleAddForm()" style="flex: 1; margin-top: 0;">Cancel</button>
                     </div>
                 </form>
@@ -126,5 +135,6 @@
     </div>
 
     <script type="module" src="inventory.js"></script>
+    <script src="../shared/global.js"></script>
 </body>
 </html>

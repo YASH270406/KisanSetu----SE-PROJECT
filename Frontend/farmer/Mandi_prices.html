@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="mandi_prices_style.css">
     <link rel="stylesheet" href="../shared/common.css">
 
-
     <style>
         :root {
             --primary-green: #2e7d32;
@@ -220,10 +219,20 @@
 <body>
 
     <header class="hero-header">
-        <div class="header-top">
-            <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <h1>Mandi Prices</h1>
+        
+        <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="farmer_dashboard.html" class="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1 style="margin: 0;">Mandi Prices</h1>
+            </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: white; color: #2e7d32; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+            </button>
+
         </div>
+
         <p><i class="fa-solid fa-chart-line"></i> Real-time APMC market rates across India.</p>
 
         <div id="last-updated-badge" style="margin-top: 15px; font-size: 0.8rem; background: rgba(255,255,255,0.2); display: inline-block; padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.4);">
@@ -287,7 +296,6 @@
         </div>
     </div>
 
-    <!-- Chart.js Modal -->
     <div id="trend-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -309,6 +317,7 @@
         });
     </script>
     <script src="mandi_prices.js"></script>
+    <script src="../shared/global.js"></script>
 </body>
 
 </html>
