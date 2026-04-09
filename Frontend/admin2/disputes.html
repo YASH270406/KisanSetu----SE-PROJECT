@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KisanSetu | Resolve Disputes</title>
+<link rel="stylesheet" href="admin_dashboard_style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .dispute-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:22px; }
+    .dstat {
+        background:white; border:1px solid var(--border); border-radius:var(--radius);
+        padding:16px; text-align:center; border-top:3px solid var(--border); cursor:pointer; transition:all 0.15s;
+    }
+    .dstat:hover { box-shadow:var(--card-shadow); }
+    .dstat.active-open      { border-top-color:var(--red); }
+    .dstat.active-resolved  { border-top-color:var(--primary); }
+    .dstat.active-escalated { border-top-color:var(--purple); }
+    .dstat.active-all       { border-top-color:var(--blue); }
+    .dstat .num { font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:700; }
+    .dstat .lbl { font-size:0.72rem; color:var(--text-muted); margin-top:3px; }
+    .parties-row {
+        display:flex; align-items:center; gap:10px; margin-bottom:10px;
+        font-size:0.8rem;
+    }
+    .party-chip {
+        padding:4px 10px; background:var(--surface); border:1px solid var(--border);
+        border-radius:20px; font-weight:600; font-size:0.75rem;
+    }
+    .vs-badge { font-size:0.68rem; color:var(--text-muted); font-weight:700; }
+    .order-ref { font-size:0.72rem; color:var(--blue); background:var(--blue-light); padding:2px 8px; border-radius:4px; font-weight:600; margin-left:auto; }
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">🌾</div>
+        <div class="brand-text"><h2>KisanSetu</h2><span>Admin Console</span></div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-label">Overview</div>
+        <a class="nav-item" href="admin_dashboard.html"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+        <div class="nav-label">Management</div>
+        <a class="nav-item" href="manage_users.html"><i class="fa-solid fa-users"></i><span>Manage Users</span><span class="nav-badge">12</span></a>
+        <a class="nav-item" href="moderate_listings.html"><i class="fa-solid fa-seedling"></i><span>Listings</span><span class="nav-badge">4</span></a>
+        <a class="nav-item active" href="disputes.html"><i class="fa-solid fa-scale-balanced"></i><span>Disputes</span><span class="nav-badge">3</span></a>
+        <div class="nav-label">System</div>
+        <a class="nav-item" href="system_logs.html"><i class="fa-solid fa-server"></i><span>System Logs</span></a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="admin-profile">
+            <div class="admin-avatar">SA</div>
+            <div class="admin-info"><h4>Super Admin</h4><p>Global Administrator</p></div>
+        </div>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="topbar">
+        <div class="topbar-left">
+            <h1>Dispute Resolution</h1>
+            <p>Review, resolve and escalate platform disputes</p>
+        </div>
+        <div class="topbar-right">
+            <a href="admin_dashboard.html" class="topbar-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        </div>
+    </header>
+
+    <div class="page-content">
+        <div class="dispute-stats" id="dstats"></div>
+        <div id="disputes-list"></div>
+        <div class="empty-state" id="empty-state" style="display:none;">
+            <i class="fa-solid fa-handshake"></i>
+            <p>No disputes found for this filter.</p>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="admin_shared.js"></script>
+<script>
+let disputes=DEMO.disputes.map(d=>({...d}));
+let activeTab='open';
+window.setDTab=setDTab;window.togglePanel=togglePanel;
+window.resolveDispute=resolveDispute;window.escalateDispute=escalateDispute;
+
+document.addEventListener('DOMContentLoaded',()=>{renderStats();renderDisputes();});
+
+function counts(){
+    const c={open:0,resolved:0,escalated:0};
+    disputes.forEach(d=>{if(c[d.status]!==undefined)c[d.status]++;});
+    return c;
+}
+
+function renderStats(){
+    const c=counts();
+    const tabs=[
+        ['open','Open',c.open,'red'],
+        ['resolved','Resolved',c.resolved,'green'],
+        ['escalated','Escalated',c.escalated,'purple'],
+    ];
+    document.getElementById('dstats').innerHTML=tabs.map(([key,label,num,col])=>`
+        <div class="dstat ${activeTab===key?'active-'+key:''}" onclick="setDTab('${key}')">
+            <div class="num" style="color:var(--${col})">${num}</div>
+            <div class="lbl">${label} Disputes</div>
+        </div>`).join('');
+}
+
+function setDTab(tab){activeTab=tab;renderStats();renderDisputes();}
+
+function renderDisputes(){
+    const list=disputes.filter(d=>d.status===activeTab);
+    const container=document.getElementById('disputes-list');
+    const empty=document.getElementById('empty-state');
+    if(!list.length){container.innerHTML='';empty.style.display='block';return;}
+    empty.style.display='none';
+
+    const statusBadge={
+        open:`<span class="badge badge-red">Open</span>`,
+        resolved:`<span class="badge badge-green">Resolved</span>`,
+        escalated:`<span class="badge badge-purple">Escalated</span>`,
+    };
+
+    container.innerHTML=list.map(d=>`
+        <div class="dispute-card" id="dcard-${d.id}">
+            <div class="dispute-header">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:0.95rem;font-weight:700;margin-bottom:4px;">${d.title}</div>
+                    <div style="font-size:0.76rem;color:var(--text-muted);">
+                        Raised: ${new Date(d.date).toLocaleDateString('en-IN')}
+                    </div>
+                </div>
+                ${statusBadge[d.status]||''}
+            </div>
+            <div class="dispute-body">
+                <div class="parties-row">
+                    <span class="party-chip">👤 ${d.raised_by}</span>
+                    <span class="vs-badge">VS</span>
+                    <span class="party-chip">👤 ${d.against}</span>
+                    <span class="order-ref">${d.order}</span>
+                </div>
+                <div class="dispute-desc">${d.desc}</div>
+
+                ${d.resolution
+                    ?`<div style="background:var(--primary-light);border:1px solid #a5d6a7;border-radius:8px;padding:10px 12px;font-size:0.8rem;color:var(--primary-dark);">
+                        <strong>✅ Resolution:</strong> ${d.resolution}
+                      </div>`:''}
+
+                ${d.status==='open'?`
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="btn btn-purple" style="flex:1;justify-content:center;" onclick="togglePanel('${d.id}')">
+                        <i class="fa-solid fa-pen-to-square"></i> Add Resolution
+                    </button>
+                    <button class="btn btn-danger" onclick="escalateDispute('${d.id}')">
+                        <i class="fa-solid fa-arrow-up"></i> Escalate
+                    </button>
+                </div>
+                <div class="resolve-panel" id="panel-${d.id}">
+                    <textarea id="notes-${d.id}" placeholder="Describe the resolution and outcome…"></textarea>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="resolveDispute('${d.id}')">
+                            <i class="fa-solid fa-check"></i> Confirm Resolution
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="togglePanel('${d.id}')">Cancel</button>
+                    </div>
+                </div>`:''}
+            </div>
+        </div>`).join('');
+}
+
+function togglePanel(id){
+    document.getElementById(`panel-${id}`)?.classList.toggle('open');
+}
+
+function resolveDispute(id){
+    const notes=(document.getElementById(`notes-${id}`)?.value||'').trim();
+    if(!notes){showToast('Please enter resolution notes first.','warning');return;}
+    const d=disputes.find(x=>x.id===id);if(!d)return;
+    d.status='resolved';d.resolution=notes;
+    DEMO.logs.unshift({id:'lg'+Date.now(),action:'RESOLVE_DISPUTE',cat:'dispute',detail:`${d.title} resolved`,by:'Super Admin',time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});
+    renderStats();renderDisputes();
+    showToast('Dispute resolved and parties notified.','success');
+}
+
+function escalateDispute(id){
+    if(!confirm('Escalate this dispute to senior management?'))return;
+    const d=disputes.find(x=>x.id===id);if(!d)return;
+    d.status='escalated';
+    DEMO.logs.unshift({id:'lg'+Date.now(),action:'ESCALATE_DISPUTE',cat:'dispute',detail:`${d.title} escalated`,by:'Super Admin',time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});
+    renderStats();renderDisputes();
+    showToast('Dispute escalated to senior management.','warning');
+}
+</script>
+</body>
+</html>
