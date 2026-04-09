@@ -11,16 +11,26 @@
 </head>
 <body>
     <div class="app-container">
-        <div class="dashboard-header">
-            <div class="user-info">
-                <a href="buyer_dashboard.html" style="color: white; text-decoration: none; margin-right: 10px; font-size: 1.2rem;">
+        
+        <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            
+            <div class="user-info" style="display: flex; align-items: center; gap: 15px;">
+                <a href="buyer_dashboard.html" style="color: white; text-decoration: none; font-size: 1.2rem;">
                     <i class="fa-solid fa-arrow-left"></i>
                 </a>
-                <span class="greeting">📈 Market Prices</span>
+                <span class="greeting" style="font-weight: 600; font-size: 1.1rem; margin: 0;">📈 Market Prices</span>
             </div>
-            <div class="sync-status">
-                <div class="pulse-dot"></div> Live
+
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="sync-status">
+                    <div class="pulse-dot"></div> Live
+                </div>
+                
+                <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                    <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+                </button>
             </div>
+
         </div>
 
         <div class="content-wrapper">
@@ -36,8 +46,7 @@
                 <div class="form-group">
                     <label>Select Commodity</label>
                     <select id="cropSelect">
-                        <!-- Options generated dynamically by JS -->
-                    </select>
+                        </select>
                 </div>
                 
                 <div class="metric-grid">
@@ -59,6 +68,8 @@
             </div>
         </div>
     </div>
+    
     <script src="livemandi.js"></script>
+    <script src="voice.js"></script>
 </body>
 </html>

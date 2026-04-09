@@ -17,18 +17,26 @@
 
     <header class="hero-header">
         <div class="header-top">
+            
             <div style="display: flex; align-items: center; gap: 15px;">
-                <a href="buyer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-                <h1>Marketplace</h1>
+                <a href="buyer_dashboard.html" class="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1 style="margin: 0;">Marketplace</h1>
             </div>
             
-            <!-- Cart Icon (FR-3.3) -->
-            <div class="cart-toggle" onclick="window.toggleCart()">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <span id="cart-count" class="cart-badge" style="display: none;">0</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                
+                <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                    <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+                </button>
+
+                <div class="cart-toggle" onclick="window.toggleCart()">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cart-count" class="cart-badge" style="display: none;">0</span>
+                </div>
             </div>
+            
         </div>
-        <p>Browse fresh harvests directly from verified farmers. Secure exactly what you need at transparent rates.</p>
+        <p style="margin-top: 10px;">Browse fresh harvests directly from verified farmers. Secure exactly what you need at transparent rates.</p>
     </header>
 
 
@@ -61,14 +69,12 @@
     <div class="listings-wrapper" id="listings-container">
     </div>
 
-    <!-- Slide-out Cart Drawer (FR-3.3) -->
     <div id="cart-drawer" class="cart-drawer">
         <div class="drawer-header">
             <h3><i class="fa-solid fa-cart-shopping"></i> My Shopping Cart</h3>
             <button class="close-btn" onclick="window.toggleCart()">&times;</button>
         </div>
         <div id="cart-items" class="cart-items">
-            <!-- Items injected via JS -->
             <p class="empty-msg">Your cart is empty.</p>
         </div>
         <div class="drawer-footer">
@@ -146,10 +152,10 @@
         }
     </style>
 
-
     <script src="../states_data.js"></script>
     <script src="../shared/toast.js"></script>
     <script type="module" src="browse_produce.js"></script>
+   <script src="voice.js"></script>
 </body>
 
 </html>

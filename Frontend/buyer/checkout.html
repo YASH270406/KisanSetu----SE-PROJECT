@@ -55,12 +55,20 @@
 <body>
 
     <header class="dashboard-header" style="background: var(--primary-green); color: white; padding: 25px 20px;">
-        <div style="display: flex; align-items: center; gap: 15px; max-width: 800px; margin: 0 auto;">
-            <a href="browse_produce.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-            <div>
-                <h1 style="font-size: 1.5rem;">Secure Checkout</h1>
-                <p style="font-size: 0.85rem; opacity: 0.9;">Review your items and place your order</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; max-width: 800px; margin: 0 auto; width: 100%;">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="browse_produce.html" class="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                <div>
+                    <h1 style="font-size: 1.5rem; margin: 0;">Secure Checkout</h1>
+                    <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Review your items and place your order</p>
+                </div>
             </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+            </button>
+
         </div>
     </header>
 
@@ -70,8 +78,7 @@
             <h2 class="section-title"><i class="fa-solid fa-receipt"></i> Order Summary</h2>
             
             <div id="order-items-list">
-                <!-- Injected via JS -->
-            </div>
+                </div>
 
             <div class="summary-details">
                 <div class="summary-row">
@@ -102,7 +109,6 @@
 
     </div>
 
-    <!-- Razorpay SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script type="module">
@@ -297,5 +303,7 @@
             }
         };
     </script>
+    
+    <script src="voice.js"></script>
 </body>
 </html>

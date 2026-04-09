@@ -16,19 +16,24 @@
 
     <div class="app-container">
 
-        <!-- Header -->
-        <header class="form-header">
-            <a href="buyer_dashboard.html" class="back-btn" id="back-to-dashboard">
-                <i class="fa-solid fa-arrow-left"></i>
-            </a>
-            <h2 id="page-title">
-                Bids &amp; Offers
-                <span class="header-badge" id="bid-count" style="display:none">0</span>
-            </h2>
-            <div style="width:24px"></div>
+        <header class="form-header" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px;">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="buyer_dashboard.html" class="back-btn" id="back-to-dashboard" style="text-decoration: none; color: inherit;">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <h2 id="page-title" style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    Bids &amp; Offers
+                    <span class="header-badge" id="bid-count" style="display:none">0</span>
+                </h2>
+            </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+            </button>
+
         </header>
 
-        <!-- Tab Navigation (same glassmorphism style as farmer) -->
         <nav class="tab-navigation" style="margin-top:0; padding: 16px 20px 0;">
             <div class="tab-bar">
                 <button class="tab-btn active" id="tab-active" onclick="window.setViewMode('active')">
@@ -42,7 +47,7 @@
 
         <div class="inbox-body">
 
-            <p class="inbox-subtitle">
+            <p class="inbox-subtitle" style="margin: 20px 20px 10px; font-size: 0.9rem; color: #666;">
                 Track all your negotiations here. The badge shows offers where the farmer has countered and you need to respond.
             </p>
 
@@ -59,5 +64,6 @@
     </div>
 
     <script type="module" src="bids_offers.js"></script>
+   <script src="voice.js"></script>
 </body>
 </html>
