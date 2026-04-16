@@ -1,0 +1,238 @@
+/* Mandi Prices Page Styles */
+
+.mandi-body {
+    padding: 20px;
+    padding-bottom: 40px;
+}
+
+/* Filter Bar */
+.filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filter-group label {
+    font-size: 0.78rem;
+    color: var(--soil-brown);
+    font-weight: 500;
+}
+
+.filter-group select {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    color: var(--charcoal);
+    background-color: var(--white);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.filter-group select:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+
+/* Last Updated Stamp */
+.last-updated {
+    font-size: 0.75rem;
+    color: var(--soil-brown);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.last-updated.offline {
+    color: var(--danger-red);
+}
+
+/* Table */
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.mandi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    background: var(--white);
+}
+
+.mandi-table thead tr {
+    background-color: var(--primary-green);
+    color: var(--white);
+}
+
+.mandi-table th {
+    padding: 11px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.mandi-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.mandi-table tbody tr:hover {
+    background-color: #f5fdf5;
+}
+
+.mandi-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.mandi-table td {
+    padding: 10px 10px;
+    color: var(--charcoal);
+    vertical-align: middle;
+}
+
+/* Best Price Row */
+.mandi-table tbody tr.best-price {
+    background-color: #e8f5e9;
+    border-left: 4px solid var(--primary-green);
+}
+
+.mandi-table tbody tr.best-price td:first-child {
+    padding-left: 8px;
+}
+
+.best-badge {
+    display: inline-block;
+    background-color: var(--primary-green);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+/* Loading and empty states */
+.loading-row,
+.empty-row {
+    text-align: center;
+    padding: 30px;
+    color: var(--soil-brown);
+    font-size: 0.9rem;
+}
+
+/* Trend hint */
+.trend-hint {
+    margin-top: 14px;
+    font-size: 0.78rem;
+    color: var(--soil-brown);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #fff8e1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ffe082;
+}
+
+/* Price direction indicators */
+.price-up {
+    color: var(--primary-green);
+    font-weight: 600;
+}
+
+.price-down {
+    color: var(--danger-red);
+    font-weight: 600;
+}
+
+/* Responsive: on laptop show 3 filters in a row */
+@media (min-width: 600px) {
+    .filter-bar {
+        flex-direction: row;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1;
+    }
+}
+
+@media (min-width: 768px) {
+    .mandi-body {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .mandi-table {
+        font-size: 0.9rem;
+    }
+
+    .mandi-table th,
+    .mandi-table td {
+        padding: 12px 14px;
+    }
+}
+
+/* Modal Overlay Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.modal-overlay.active {
+    opacity: 1; pointer-events: auto;
+}
+.modal-content {
+    background: var(--white);
+    width: 90%; max-width: 700px;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;
+}
+.modal-header h3 {
+    font-size: 1.25rem; color: var(--charcoal); font-weight: 600;
+}
+.close-btn {
+    background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; transition: color 0.2s;
+}
+.close-btn:hover { color: #d32f2f; }
+.modal-body {
+    position: relative; height: 350px; width: 100%;
+}
+@media (max-width: 600px) {
+    .modal-body { height: 250px; }
+}

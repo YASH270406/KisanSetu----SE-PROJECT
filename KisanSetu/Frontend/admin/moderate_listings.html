@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Moderate Listings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        .admin-content { padding:20px; }
+        .status-tabs {
+            display:flex; margin-bottom:16px; border-radius:10px;
+            overflow:hidden; border:1px solid #ddd;
+        }
+        .status-tab {
+            flex:1; padding:9px 4px; text-align:center; font-size:0.75rem; font-weight:600;
+            cursor:pointer; background:white; border:none; font-family:'Poppins',sans-serif;
+            color:#666; display:flex; flex-direction:column; align-items:center; gap:2px;
+        }
+        .tab-count { font-size:0.9rem; font-weight:700; }
+        .status-tab.active.all      { background:#4a148c; color:white; }
+        .status-tab.active.pending  { background:#ef6c00; color:white; }
+        .status-tab.active.verified { background:#2e7d32; color:white; }
+        .status-tab.active.rejected { background:#d32f2f; color:white; }
+        .moderate-item {
+            background:white; padding:14px; border-radius:12px; margin-bottom:10px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.05); border:1px solid #eaeaea; border-left:4px solid #e0e0e0;
+        }
+        .moderate-item.Pending  { border-left-color:#ef6c00; }
+        .moderate-item.Verified { border-left-color:#2e7d32; }
+        .moderate-item.Rejected { border-left-color:#d32f2f; }
+        .item-top { display:flex; align-items:flex-start; gap:12px; }
+        .crop-icon {
+            width:44px; height:44px; background:#e8f5e9; border-radius:10px;
+            color:#2e7d32; font-weight:700; font-size:1.2rem;
+            display:flex; align-items:center; justify-content:center; flex-shrink:0;
+        }
+        .item-info { flex:1; min-width:0; }
+        .item-info h4 { margin:0; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .item-info p  { margin:0; font-size:0.78rem; color:#666; }
+        .status-badge { padding:3px 10px; border-radius:10px; font-size:0.7rem; font-weight:600; white-space:nowrap; }
+        .badge-Pending  { background:#fff3e0; color:#ef6c00; }
+        .badge-Verified { background:#e8f5e9; color:#2e7d32; }
+        .badge-Rejected { background:#ffebee; color:#d32f2f; }
+        .item-actions { display:flex; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #f0f0f0; }
+        .mod-btn {
+            flex:1; padding:8px; border-radius:8px; border:none; font-family:'Poppins',sans-serif;
+            font-size:0.8rem; font-weight:600; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:6px; transition:opacity 0.15s;
+        }
+        .mod-btn:hover   { opacity:0.8; }
+        .mod-btn:disabled { opacity:0.4; cursor:default; }
+        .btn-approve { background:#e8f5e9; color:#2e7d32; }
+        .btn-reject  { background:#ffebee; color:#d32f2f; }
+        .stats-summary {
+            background:#f5f5f5; border:1px solid #ddd; border-radius:12px;
+            padding:14px; margin-bottom:16px; font-size:0.85rem; color:#555;
+        }
+        .empty-state { text-align:center; padding:30px; color:#999; font-size:0.85rem; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <header class="dashboard-header" style="background:linear-gradient(135deg,#2e7d32,#1b5e20);color:white;padding:25px 20px;">
+        <div style="display:flex;align-items:center;gap:15px;">
+            <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h1 style="font-size:1.5rem;">Marketplace Oversight</h1>
+                <p style="font-size:0.85rem;opacity:0.9;">Verify & moderate produce listings</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-content">
+        <div class="stats-summary" id="listing-stats">Loading listing data…</div>
+
+        <div class="status-tabs">
+            <button class="status-tab active all"     onclick="setTab('all',this)">
+                <span class="tab-count" id="count-all">–</span>All
+            </button>
+            <button class="status-tab pending"        onclick="setTab('Pending',this)">
+                <span class="tab-count" id="count-pending">–</span>Pending
+            </button>
+            <button class="status-tab verified"       onclick="setTab('Verified',this)">
+                <span class="tab-count" id="count-verified">–</span>Verified
+            </button>
+            <button class="status-tab rejected"       onclick="setTab('Rejected',this)">
+                <span class="tab-count" id="count-rejected">–</span>Rejected
+            </button>
+        </div>
+
+        <div id="listings-list">
+            <p style="text-align:center;color:#999;">Loading listings…</p>
+        </div>
+
+        <p style="text-align:center;color:#666;font-size:0.85rem;margin-top:20px;">
+            <i class="fa-solid fa-circle-info"></i> All moderation actions are logged to the audit trail.
+        </p>
+    </div>
+
+</div>
+
+<script type="module">
+    /* ── real imports ─────────────────────────────── */
+    import { supabase } from '../supabase-config.js';
+    import '../shared/toast.js';
+
+    let allListings  = [];
+    let activeTab    = 'all';
+
+    window.setTab            = setTab;
+    window.moderateListing   = moderateListing;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        /* admin guard */
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { location.href = '../login.html'; return; }
+        const { data: me } = await supabase
+            .from('profiles').select('role').eq('id', user.id).single();
+        if (!me || me.role !== 'admin') {
+            window.showToast('Access denied.', 'error');
+            setTimeout(() => location.href = '../index.html', 1200);
+            return;
+        }
+        await fetchListings();
+    });
+
+    /* ────────────────── fetch ───────────────────── */
+    async function fetchListings() {
+        const { data, error } = await supabase
+            .from('produce')
+            .select('*, farmer:farmer_id(full_name)')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            window.showToast('Failed to load listings.', 'error');
+            document.getElementById('listings-list').innerHTML =
+                '<p style="color:red;text-align:center;">Failed to load listings.</p>';
+            return;
+        }
+
+        allListings = data || [];
+        updateCounts();
+        updateStats();
+        renderListings(byTab('all'));
+    }
+
+    function updateCounts() {
+        const c = { all: allListings.length, Pending: 0, Verified: 0, Rejected: 0 };
+        allListings.forEach(l => { if (c[l.status] !== undefined) c[l.status]++; });
+        document.getElementById('count-all').textContent      = c.all;
+        document.getElementById('count-pending').textContent  = c.Pending;
+        document.getElementById('count-verified').textContent = c.Verified;
+        document.getElementById('count-rejected').textContent = c.Rejected;
+    }
+
+    function updateStats() {
+        const p = allListings.filter(l => l.status === 'Pending').length;
+        document.getElementById('listing-stats').innerHTML =
+            `<strong>${allListings.length}</strong> total listings — ` +
+            `<span style="color:#ef6c00"><strong>${p}</strong> awaiting review</span>`;
+    }
+
+    function byTab(tab) {
+        return tab === 'all' ? allListings : allListings.filter(l => l.status === tab);
+    }
+
+    /* ────────────────── render ──────────────────── */
+    function renderListings(list) {
+        const container = document.getElementById('listings-list');
+        if (!list.length) {
+            container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-seedling" style="font-size:2rem;margin-bottom:10px;"></i><br>No listings found.</div>';
+            return;
+        }
+        container.innerHTML = list.map(item => {
+            const status = item.status || 'Pending';
+            const date   = new Date(item.created_at).toLocaleDateString('en-IN');
+            return `
+            <div class="moderate-item ${status}" id="listing-${item.id}">
+                <div class="item-top">
+                    <div class="crop-icon">${(item.crop_name||'?').charAt(0).toUpperCase()}</div>
+                    <div class="item-info">
+                        <h4>${esc(item.crop_name)} — ${item.quantity} ${item.unit}</h4>
+                        <p>By: ${esc(item.farmer?.full_name||'N/A')} &nbsp;•&nbsp; ₹${item.price}/${item.unit} &nbsp;•&nbsp; ${date}</p>
+                    </div>
+                    <span class="status-badge badge-${status}">${status}</span>
+                </div>
+                <div class="item-actions">
+                    <button class="mod-btn btn-approve" id="approve-${item.id}"
+                        onclick="moderateListing('${item.id}','Verified')"
+                        ${status==='Verified'?'disabled':''}>
+                        <i class="fa-solid fa-check"></i> ${status==='Verified'?'Approved':'Approve'}
+                    </button>
+                    <button class="mod-btn btn-reject" id="reject-${item.id}"
+                        onclick="moderateListing('${item.id}','Rejected')"
+                        ${status==='Rejected'?'disabled':''}>
+                        <i class="fa-solid fa-xmark"></i> ${status==='Rejected'?'Rejected':'Reject'}
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    /* ────────────────── moderate ────────────────── */
+    async function moderateListing(listingId, newStatus) {
+        document.getElementById(`approve-${listingId}`).disabled = true;
+        document.getElementById(`reject-${listingId}`).disabled  = true;
+
+        try {
+            /* 1. Update status in produce table */
+            const { error } = await supabase
+                .from('produce')
+                .update({ status: newStatus })
+                .eq('id', listingId);
+            if (error) throw error;
+
+            /* 2. Immutable audit log (SRS §6.4.2.4) */
+            const { data: { user } } = await supabase.auth.getUser();
+            await supabase.from('audit_logs').insert({
+                action: newStatus === 'Verified' ? 'APPROVE_LISTING' : 'REJECT_LISTING',
+                target_type: 'listing', target_id: listingId,
+                performed_by: user?.id || null,
+                details: `Listing marked as ${newStatus} by administrator`
+            });
+
+            /* 3. Notify farmer (SRS FR-7.1) */
+            const listing = allListings.find(l => l.id === listingId);
+            if (listing?.farmer_id) {
+                await supabase.from('notifications').insert({
+                    user_id: listing.farmer_id,
+                    notification_type: 'listing_moderated',
+                    message: `Your listing "${listing.crop_name}" has been ${newStatus.toLowerCase()} by an administrator.`,
+                    is_read: false,
+                    delivery_channel: 'in_app',
+                    related_id: listingId
+                });
+            }
+
+            /* 4. Update in-memory + re-render */
+            const idx = allListings.findIndex(l => l.id === listingId);
+            if (idx !== -1) allListings[idx].status = newStatus;
+
+            updateCounts();
+            updateStats();
+            renderListings(byTab(activeTab));
+            window.showToast(`Listing ${newStatus.toLowerCase()} successfully.`, 'success');
+
+        } catch (err) {
+            console.error('Moderation error:', err);
+            /* re-enable buttons on failure */
+            const a = document.getElementById(`approve-${listingId}`);
+            const r = document.getElementById(`reject-${listingId}`);
+            if (a) a.disabled = false;
+            if (r) r.disabled = false;
+            window.showToast('Moderation failed. Please retry.', 'error');
+        }
+    }
+
+    function setTab(tab, el) {
+        document.querySelectorAll('.status-tab').forEach(t =>
+            t.classList.remove('active','all','pending','verified','rejected'));
+        el.classList.add('active', tab.toLowerCase());
+        activeTab = tab;
+        renderListings(byTab(tab));
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s || '';
+        return d.innerHTML;
+    }
+</script>
+</body>
+</html>

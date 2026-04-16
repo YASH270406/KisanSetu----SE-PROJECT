@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        body { background-color: #f4f7f6; color: #37474f; }
+        .checkout-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        
+        .checkout-card {
+            background: white; border-radius: 16px; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 1.2rem; font-weight: 600; color: var(--primary-green);
+            margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+        }
+
+        .order-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid #f9f9f9;
+        }
+        .item-meta h4 { font-size: 1rem; margin-bottom: 2px; }
+        .item-meta p { font-size: 0.85rem; color: #777; }
+        .item-total { font-weight: 600; color: var(--charcoal); }
+
+        .summary-row {
+            display: flex; justify-content: space-between; margin-top: 15px;
+            font-size: 0.95rem; color: #666;
+        }
+        .summary-row.grand-total {
+            margin-top: 25px; padding-top: 20px; border-top: 2px solid #eee;
+            font-weight: 700; font-size: 1.3rem; color: var(--primary-green);
+        }
+
+        .confirm-btn {
+            width: 100%; padding: 18px; background: var(--primary-green);
+            color: white; border: none; border-radius: 12px; margin-top: 30px;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            transition: all 0.3s ease;
+        }
+        .confirm-btn:hover { background: #1b5e20; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(27, 94, 32, 0.3); }
+
+        .empty-cart-state { text-align: center; padding: 60px 20px; }
+        .empty-cart-state i { font-size: 4rem; color: #ccc; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <header class="dashboard-header" style="background: var(--primary-green); color: white; padding: 25px 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; max-width: 800px; margin: 0 auto; width: 100%;">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="browse_produce.html" class="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                <div>
+                    <h1 style="font-size: 1.5rem; margin: 0;">Secure Checkout</h1>
+                    <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Review your items and place your order</p>
+                </div>
+            </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+            </button>
+
+        </div>
+    </header>
+
+    <div class="checkout-container">
+        
+        <div id="checkout-content" class="checkout-card">
+            <h2 class="section-title"><i class="fa-solid fa-receipt"></i> Order Summary</h2>
+            
+            <div id="order-items-list">
+                </div>
+
+            <div class="summary-details">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Platform Fee (Escrow)</span>
+                    <span>₹0</span>
+                </div>
+                <div class="summary-row grand-total">
+                    <span>Amount to Pay</span>
+                    <span id="grand-total">₹0</span>
+                </div>
+            </div>
+
+            <button class="confirm-btn" onclick="window.placeOrder()">
+                Place Order & Confirm <i class="fa-solid fa-circle-check"></i>
+            </button>
+        </div>
+
+        <div id="empty-state" class="empty-cart-state" style="display: none;">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <h3>Your cart is empty</h3>
+            <p>Go back to the marketplace to add some fresh produce.</p>
+            <a href="browse_produce.html" class="primary-btn" style="display:inline-block; margin-top:20px; text-decoration:none; padding: 12px 25px; border-radius: 8px;">Explore Marketplace</a>
+        </div>
+
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script type="module">
+        import { supabase } from '../supabase-config.js';
+        import { getCart, clearCart } from '../shared/cart-manager.js';
+        import { dispatchExternalAlert } from '../shared/notification_service.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bidId = urlParams.get('bid');
+            
+            const orderList  = document.getElementById('order-items-list');
+            const subtotalEl = document.getElementById('subtotal');
+            const totalEl    = document.getElementById('grand-total');
+            let itemsToPay   = [];
+
+            if (bidId) {
+                // CASE: Paying for a Negotiated Bid
+                try {
+                    const { data: bid, error } = await supabase
+                        .from('bids')
+                        .select('*, produce:produce_id (*)')
+                        .eq('id', bidId)
+                        .single();
+
+                    if (error || !bid) throw new Error('Bid not found.');
+
+                    itemsToPay = [{
+                        id:          bid.produce_id,
+                        bid_id:      bid.id,
+                        name:        bid.produce.crop_name,
+                        variety:     bid.produce.variety,
+                        price:       bid.bid_price, // The Negotiated Price
+                        qty:         bid.batch_count * (bid.produce.batch_size || bid.produce.quantity),
+                        unit:        bid.produce.unit,
+                        farmer_id:   bid.produce.farmer_id,
+                        batch_count: bid.batch_count,
+                        negotiated:  true
+                    }];
+                } catch (err) {
+                    alert('Could not load negotiation details: ' + err.message);
+                    window.location.href = 'bids_offers.html';
+                    return;
+                }
+            } else {
+                // CASE: Standard Cart Purchase
+                itemsToPay = getCart();
+            }
+
+            if (itemsToPay.length === 0) {
+                document.getElementById('checkout-content').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'block';
+                return;
+            }
+
+            // Save the list for the placeOrder function to use
+            window.activeOrderItems = itemsToPay;
+
+            let total = 0;
+            itemsToPay.forEach(item => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+                const div = document.createElement('div');
+                div.className = 'order-item';
+                div.innerHTML = `
+                    <div class="item-meta">
+                        <h4>${item.name} ${item.negotiated ? '<span style="background:#e8f5e9; color:#2e7d32; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:5px;">NEGOTIATED</span>' : ''}</h4>
+                        <p>${item.variety || ''} | ${item.qty} ${item.unit}
+                           ${item.batch_count ? ` | ${item.batch_count} batch${item.batch_count > 1 ? 'es' : ''}` : ''}
+                           | ₹${item.price} per ${item.unit}</p>
+                    </div>
+                    <div class="item-total">₹${itemTotal.toLocaleString('en-IN')}</div>`;
+                orderList.appendChild(div);
+            });
+
+            subtotalEl.innerText = `₹${total.toLocaleString('en-IN')}`;
+            totalEl.innerText    = `₹${total.toLocaleString('en-IN')}`;
+        });
+
+        window.placeOrder = async () => {
+            const itemsToPay = window.activeOrderItems || [];
+            if (itemsToPay.length === 0) return;
+
+            const btn = document.querySelector('.confirm-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing Payment...';
+            btn.disabled = true;
+
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) throw new Error('Please login to continue.');
+
+                // 1. Calculate totals
+                const total = itemsToPay.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                const totalPaise = Math.round(total * 100);
+                const firstItem = itemsToPay[0];
+
+                // 2. Create PENDING transactions first
+                const txnRows = itemsToPay.map(item => ({
+                    from_user_id:   user.id,
+                    to_user_id:     item.farmer_id || null,
+                    produce_id:     item.id,
+                    bid_id:         item.bid_id    || null,
+                    amount:         item.price * item.qty,
+                    status:         'Pending_Payment',
+                    reference_type: 'Produce_Sale',
+                    reference_id:   item.id,
+                    crop_name:      item.name || item.crop_name,
+                    quantity:       item.qty,
+                    unit:           item.unit,
+                    batch_count:    item.batch_count || 1,
+                    notes:          item.negotiated ? 'Negotiated deals payment' : 'Direct marketplace purchase'
+                }));
+
+                const { data: createdTxns, error: txnErr } = await supabase
+                    .from('transaction_ledger')
+                    .insert(txnRows)
+                    .select();
+
+                if (txnErr) throw txnErr;
+
+                // 3. Initialize Razorpay
+                const options = {
+                    key: 'rzp_test_SaGQgdzI6xOE0l',
+                    amount: totalPaise,
+                    currency: 'INR',
+                    name: 'KisanSetu Marketplace',
+                    description: `Payment for ${firstItem.name || 'Agri-products'}`,
+                    handler: async function (res) {
+                        try {
+                            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Finalizing...';
+                            
+                            // A. Update transactions to Escrow_Held
+                            const txnIds = createdTxns.map(t => t.id);
+                            await supabase
+                                .from('transaction_ledger')
+                                .update({ 
+                                    status: 'Escrow_Held', 
+                                    razorpay_payment_id: res.razorpay_payment_id,
+                                    payment_verified: true
+                                })
+                                .in('id', txnIds);
+                            
+                            // B. Atomic Inventory Decrement
+                            for (const item of itemsToPay) {
+                                await supabase.rpc('decrement_produce_quantity', {
+                                    p_produce_id: item.id,
+                                    p_qty: item.qty
+                                });
+                            }
+
+                            // C. Update Bid status if applicable
+                            for (const item of itemsToPay) {
+                                if (item.bid_id) {
+                                    await supabase.from('bids').update({ status: 'Accepted' }).eq('id', item.bid_id);
+                                }
+                            }
+
+                            // D. Send notifications to farmers
+                            for (const item of itemsToPay) {
+                                if (item.farmer_id) {
+                                    await supabase.from('notifications').insert({
+                                        user_id: item.farmer_id,
+                                        title: 'New Paid Order! 🎉',
+                                        message: `You received a payment of ₹${item.price * item.qty} for ${item.name}. Please dispatch the goods.`,
+                                        type: 'success'
+                                    });
+
+                                    // [FR-7.1] External Notification to Farmer
+                                    const { data: farmerProf } = await supabase.from('profiles').select('phone_number, full_name').eq('id', item.farmer_id).single();
+                                    if (farmerProf) {
+                                        await dispatchExternalAlert(
+                                            { id: item.farmer_id, full_name: farmerProf.full_name, mobile_num: farmerProf.phone_number },
+                                            { title: 'New Paid Order', message: `You received a payment of ₹${item.price * item.qty} for ${item.name}.`, type: 'success' }
+                                        );
+                                    }
+                                }
+                            }
+
+                            // [FR-7.1] External Notification to Buyer
+                            await dispatchExternalAlert(
+                                { id: user.id, full_name: user.user_metadata?.full_name || 'Buyer', mobile_num: user.phone_number },
+                                { title: 'Order Confirmed', message: `Your payment of ₹${total} was successful. Order is now tracked.`, type: 'success' }
+                            );
+
+                            if (!firstItem.bid_id) clearCart();
+                            
+                            alert('✅ Payment Successful!\nFunds are held in escrow. Farmer has been notified.');
+                            window.location.href = 'trackorders.html';
+
+                        } catch (finalizeErr) {
+                            console.error('Finalization error:', finalizeErr);
+                            alert('Payment successful, but record update failed. Contact support.');
+                        }
+                    },
+                    prefill: { email: user.email },
+                    theme: { color: '#2e7d32' }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (err) {
+                console.error('Checkout error:', err);
+                alert('Checkout failed: ' + err.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+    </script>
+    
+    <script src="voice.js"></script>
+</body>
+</html>

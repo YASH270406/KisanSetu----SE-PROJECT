@@ -1,0 +1,101 @@
+/* =========================================
+   GLOBAL VARIABLES & BASE
+   ========================================= */
+:root {
+    --primary-green: #2e7d32;   
+    --soil-brown: #8d6e63;      
+    --harvest-yellow: #fbc02d;  
+    --off-white: #f9fbe7;       
+    --charcoal: #37474f;        
+    --white: #ffffff;
+    --danger-red: #d32f2f;
+    --border-color: #e0e0e0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; }
+
+body { background-color: #e0e0e0; display: flex; justify-content: center; min-height: 100vh; }
+
+.app-container {
+    width: 100%; max-width: 450px; min-height: 100vh;
+    background-color: var(--off-white); position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+@media (min-width: 768px) {
+    .app-container { max-width: 1000px; height: 95vh; margin-top: 2.5vh; border-radius: 20px; overflow-y: auto; }
+}
+
+.dashboard-header { background-color: var(--primary-green); color: var(--white); padding: 20px; border-radius: 0 0 20px 20px; }
+.greeting { font-size: 1.2rem; font-weight: 600; }
+.content-wrapper { padding: 20px; }
+
+/* =========================================
+   TABS & CARDS
+   ========================================= */
+.tab-container { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px; }
+.tab-btn {
+    flex: 1; padding: 12px; background: none; border: none; 
+    font-size: 1rem; font-weight: 600; color: #999; cursor: pointer;
+    border-bottom: 3px solid transparent; transition: 0.3s;
+}
+.tab-btn.active { color: var(--primary-green); border-bottom-color: var(--primary-green); }
+
+.card { background: var(--white); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+.order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
+.order-id { font-weight: bold; color: var(--soil-brown); font-size: 0.85rem; }
+.order-status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+.status-transit { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb;}
+.status-delivered { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;}
+
+/* =========================================
+   VERTICAL TRACKING TIMELINE
+   ========================================= */
+.timeline {
+    position: relative;
+    border-left: 2px solid var(--border-color);
+    margin-left: 10px;
+    padding-left: 25px;
+    margin-bottom: 20px;
+}
+
+.timeline-step { position: relative; margin-bottom: 20px; }
+.timeline-step:last-child { margin-bottom: 0; }
+
+/* The Dot */
+.timeline-step::before {
+    content: ''; position: absolute; left: -32px; top: 0;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--border-color); border: 2px solid var(--white);
+    z-index: 2;
+}
+
+/* Active State Dot */
+.timeline-step.active::before { background: var(--primary-green); box-shadow: 0 0 0 3px rgba(46,125,50,0.2); }
+.timeline-step.current::before { background: var(--harvest-yellow); box-shadow: 0 0 0 3px rgba(251, 192, 45, 0.3); animation: pulse 2s infinite; }
+
+.step-title { font-weight: 600; font-size: 0.95rem; color: var(--charcoal); margin-bottom: 2px; }
+.step-time { font-size: 0.75rem; color: #999; }
+.step-desc { font-size: 0.85rem; color: var(--soil-brown); margin-top: 5px; }
+
+/* =========================================
+   DRIVER & LOGISTICS CARD
+   ========================================= */
+.driver-card {
+    background-color: #f5f5f5; border-radius: 8px; padding: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 15px; border-left: 4px solid var(--harvest-yellow);
+}
+.driver-info { display: flex; align-items: center; gap: 10px; }
+.driver-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; display: flex; justify-content: center; align-items: center; color: white; }
+.driver-details h4 { font-size: 0.9rem; color: var(--charcoal); }
+.driver-details p { font-size: 0.8rem; color: var(--soil-brown); }
+.call-btn { background-color: #4CAF50; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; }
+
+/* Buttons & Modals */
+.btn-primary { background-color: var(--primary-green); color: var(--white); border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 0.95rem; text-align: center;}
+.btn-secondary { background-color: var(--charcoal); }
+.btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--charcoal); }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+.modal-content { width: 90%; max-width: 400px; }
+
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(251, 192, 45, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(251, 192, 45, 0); } 100% { box-shadow: 0 0 0 0 rgba(251, 192, 45, 0); } }

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Manage Users</title>
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .role-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .role-pill {
+            padding: 5px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: white;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .role-pill.active {
+            background: var(--purple);
+            color: white;
+            border-color: var(--purple);
+        }
+
+        .role-pill:hover:not(.active) {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        .user-count-summary {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .count-chip {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .count-chip strong {
+            display: block;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            color: var(--text);
+        }
+
+        .role-select-inline {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--purple);
+            background: var(--purple-light);
+            outline: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="../images/logo.jpeg" alt="KisanSetu Logo"
+                    style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                <div class="brand-text">
+                    <h2>KisanSetu</h2>
+                    <span>Admin Console</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-label">Overview</div>
+                <a class="nav-item" href="admin_dashboard.html"><i
+                        class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+                <div class="nav-label">Management</div>
+                <a class="nav-item active" href="manage_users.html"><i class="fa-solid fa-users"></i><span>Manage
+                        Users</span><span class="nav-badge" id="nav-users-count" style="display: none;"></span></a>
+                <a class="nav-item" href="moderate_listings.html"><i
+                        class="fa-solid fa-seedling"></i><span>Listings</span><span class="nav-badge"
+                        id="nav-listings-count" style="display: none;"></span></a>
+                <a class="nav-item" href="disputes.html"><i
+                        class="fa-solid fa-scale-balanced"></i><span>Disputes</span><span class="nav-badge"
+                        id="nav-disputes-count" style="display: none;"></span></a>
+                <div class="nav-label">System</div>
+                <a class="nav-item" href="system_logs.html"><i class="fa-solid fa-server"></i><span>System
+                        Logs</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="admin-profile">
+                    <div class="admin-avatar">SA</div>
+                    <div class="admin-info">
+                        <h4>Super Admin</h4>
+                        <p>Global Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Manage Users</h1>
+                    <p>Verify profiles, assign roles, manage access</p>
+                </div>
+                <div class="topbar-right">
+                    <a href="admin_dashboard.html" class="topbar-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                    <div class="topbar-btn" onclick="showToast('All actions are audit-logged','info')"><i
+                            class="fa-solid fa-shield-halved"></i></div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="user-count-summary" id="count-chips"></div>
+                <div class="card">
+                    <div class="filter-bar">
+                        <div class="search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input class="search-input" type="text" id="search-input"
+                                placeholder="Search by name, phone, state…" oninput="filterUsers()">
+                        </div>
+                        <select class="filter-select" id="sort-select" onchange="filterUsers()">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="name">Name A–Z</option>
+                        </select>
+                    </div>
+                    <div class="role-pills">
+                        <div class="role-pill active" onclick="setRoleFilter('all',this)">All Users</div>
+                        <div class="role-pill" onclick="setRoleFilter('farmer',this)">🌾 Farmers</div>
+                        <div class="role-pill" onclick="setRoleFilter('buyer',this)">🛒 Buyers</div>
+                        <div class="role-pill" onclick="setRoleFilter('equipmentOwner',this)">🚜 Equip. Owners</div>
+                        <div class="role-pill" onclick="setRoleFilter('banned',this)">🚫 Banned</div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>User Details</th>
+                                    <th>Phone</th>
+                                    <th>State</th>
+                                    <th>Joined</th>
+                                    <th>KYC Status</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-tbody"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span id="page-info" style="color:var(--text-muted);font-size:0.8rem;"></span>
+                        <div class="page-btns">
+                            <button class="page-btn" id="prev-btn" onclick="changePage(-1)" disabled><i
+                                    class="fa-solid fa-chevron-left"></i></button>
+                            <button class="page-btn" id="next-btn" onclick="changePage(1)"><i
+                                    class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="kyc-modal" class="modal-overlay" style="display:none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>KYC Document Verification</h3>
+                    <button class="modal-close" onclick="closeKYCModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="kyc-modal-body">
+                </div>
+                <div class="modal-footer" id="kyc-modal-footer">
+                    <button class="btn btn-danger" id="kyc-reject-btn">Reject KYC</button>
+                    <button class="btn btn-success" id="kyc-approve-btn">Approve KYC</button>
+                </div>
+            </div>
+        </div>
+        <script src="admin_shared.js"></script>
+        <script type="module">
+            import { checkAdminSession } from './admin_auth.js';
+            import './admin_supabase.js';
+
+            // Auth check on page load
+            checkAdminSession();
+        </script>
+        <script>
+            const PAGE_SIZE = 8;
+            let users = [];
+            let filtered = [], activeRole = 'all', currentPage = 1;
+
+            // Global exports for inline onclicks
+            window.filterUsers = filterUsers; window.setRoleFilter = setRoleFilter;
+            window.banUser = (id) => { if (window.banUserLive) banUserLive(id); else localBan(id); };
+            window.unbanUser = (id) => { if (window.unbanUserLive) unbanUserLive(id); else localUnban(id); };
+            window.changeRole = (id, role) => { if (window.changeRoleLive) changeRoleLive(id, role); else localChangeRole(id, role); };
+            window.changePage = changePage;
+
+            document.addEventListener('DOMContentLoaded', () => {
+                syncFromDemo();
+                renderChips();
+                renderPage();
+            });
+
+            document.addEventListener('liveDataReady', () => {
+                console.log('[Manage Users] Live data detected, refreshing UI...');
+                syncFromSupabase();
+                renderChips();
+                applyFilter();
+                renderPage();
+            });
+
+            function syncFromSupabase() {
+                users = window.DEMO.users || [];
+                filtered = [...users];
+            }
+
+            function renderChips() {
+                const c = { all: users.length, farmer: 0, buyer: 0, equipmentOwner: 0, banned: 0 };
+                users.forEach(u => { if (u.banned) c.banned++; else if (c[u.role] !== undefined) c[u.role]++; });
+                const L = [['all', 'Total'], ['farmer', 'Farmers'], ['buyer', 'Buyers'], ['equipmentOwner', 'Equip. Owners'], ['banned', 'Banned']];
+                document.getElementById('count-chips').innerHTML = L.map(([k, l]) => `<div class="count-chip"><strong>${c[k]}</strong>${l}</div>`).join('');
+            }
+            function applyFilter() {
+                const q = document.getElementById('search-input').value.toLowerCase();
+                const s = document.getElementById('sort-select').value;
+                filtered = users.filter(u => {
+                    const ms = (u.name + u.phone + (u.state || '')).toLowerCase().includes(q);
+                    const mr = activeRole === 'all' ? true : activeRole === 'banned' ? u.banned : (!u.banned && u.role === activeRole);
+                    return ms && mr;
+                });
+                if (s === 'oldest') filtered.sort((a, b) => new Date(a.joined) - new Date(b.joined));
+                else if (s === 'name') filtered.sort((a, b) => a.name.localeCompare(b.name));
+                currentPage = 1;
+            }
+            function filterUsers() { applyFilter(); renderPage(); }
+            function setRoleFilter(role, el) {
+                document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+                el.classList.add('active'); activeRole = role; filterUsers();
+            }
+            function renderPage() {
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const page = filtered.slice(start, start + PAGE_SIZE);
+                const total = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+                document.getElementById('page-info').textContent = `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} of ${filtered.length} users`;
+                document.getElementById('prev-btn').disabled = currentPage <= 1;
+                document.getElementById('next-btn').disabled = currentPage >= total;
+                document.getElementById('user-tbody').innerHTML = page.map(u => `
+        <tr id="row-${u.id}">
+            <td><div style="display:flex;align-items:center;gap:10px;">
+                <div class="avatar ${avC(u)}" style="width:34px;height:34px;font-size:0.73rem;">${ini(u.name)}</div>
+                <div><div style="font-weight:600;">${u.name}</div><div style="font-size:0.72rem;color:var(--text-muted);">${u.id}</div></div>
+            </div></td>
+            <td>${u.phone}</td>
+            <td>${u.state || '—'}</td>
+            <td>${new Date(u.joined).toLocaleDateString('en-IN')}</td>
+            <td><span class="badge badge-${getKYCColor(u.kycStatus)}">${u.kycStatus || 'pending'}</span></td>
+            <td>${!u.banned
+                        ? `<select class="role-select-inline" onchange="changeRole('${u.id}',this.value)">
+                    <option value="farmer"          ${u.role === 'farmer' ? 'selected' : ''}>Farmer</option>
+                    <option value="buyer"           ${u.role === 'buyer' ? 'selected' : ''}>Buyer</option>
+                    <option value="equipmentOwner" ${u.role === 'equipmentOwner' ? 'selected' : ''}>Equip. Owner</option>
+                    <option value="admin"           ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                  </select>`
+                        : `<span class="badge badge-red">Banned</span>`}</td>
+            <td>${u.banned
+                        ? `<span class="badge badge-red"><span class="status-dot dot-red"></span>Banned</span>`
+                        : `<span class="badge badge-green"><span class="status-dot dot-green"></span>Active</span>`}</td>
+            <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-secondary btn-sm" onclick="openKYCModal('${u.id}')"><i class="fa-solid fa-id-card"></i> Verify</button>
+                ${!u.banned
+                        ? `<button class="btn btn-danger btn-sm" onclick="banUser('${u.id}')"><i class="fa-solid fa-ban"></i></button>`
+                        : `<button class="btn btn-success btn-sm" onclick="unbanUser('${u.id}')"><i class="fa-solid fa-check"></i></button>`}
+            </div></td>
+        </tr>`).join('');
+            }
+
+            function getKYCColor(status) {
+                if (status === 'verified') return 'green';
+                if (status === 'rejected') return 'red';
+                if (status === 'pending_verification') return 'orange';
+                return 'gray';
+            }
+
+            function avC(u) {
+                const AV = ['av-green', 'av-orange', 'av-red', 'av-purple', 'av-blue', 'av-teal'];
+                return AV[users.indexOf(u) % AV.length];
+            }
+            function ini(n) { return n.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase(); }
+            function changePage(dir) {
+                currentPage = Math.max(1, Math.min(Math.ceil(filtered.length / PAGE_SIZE), currentPage + dir)); renderPage();
+            }
+            function localBan(id) {
+                const u = users.find(x => x.id === id); if (!u) return;
+                u.banned = true;
+                applyFilter(); renderPage(); renderChips(); showToast(`${u.name} has been banned.`, 'success');
+            }
+            function localUnban(id) {
+                const u = users.find(x => x.id === id); if (!u) return;
+                u.banned = false;
+                applyFilter(); renderPage(); renderChips(); showToast(`${u.name} reinstated.`, 'success');
+            }
+            function localChangeRole(id, newRole) {
+                const u = users.find(x => x.id === id); if (!u) return;
+                u.role = newRole;
+                showToast(`Role updated to "${newRole}".`, 'success');
+            }
+
+            // KYC Modal Logic
+            function openKYCModal(userId) {
+                const u = users.find(x => x.id === userId);
+                if (!u) return;
+                const body = document.getElementById('kyc-modal-body');
+                body.innerHTML = `
+        <div class="kyc-details">
+            <p><strong>Name:</strong> ${u.name}</p>
+            <p><strong>Aadhaar:</strong> ${u.aadhaar || 'Not provided'}</p>
+            <p><strong>PAN:</strong> ${u.pan || 'Not provided'}</p>
+            <div class="doc-preview" style="margin-top:20px; text-align:center;">
+                ${u.kycDoc ? `<img src="${u.kycDoc}" alt="KYC Document" style="max-width:100%; border:1px solid #ddd; border-radius:8px;">` : `<p style="color:red;">No document uploaded.</p>`}
+            </div>
+        </div>
+    `;
+                document.getElementById('kyc-approve-btn').onclick = async () => {
+                    if (window.approveKYCLive) await approveKYCLive(userId);
+                    else { u.kycStatus = 'verified'; renderPage(); }
+                    closeKYCModal();
+                };
+                document.getElementById('kyc-reject-btn').onclick = async () => {
+                    if (window.rejectKYCLive) await rejectKYCLive(userId);
+                    else { u.kycStatus = 'rejected'; renderPage(); }
+                    closeKYCModal();
+                };
+                document.getElementById('kyc-modal').style.display = 'flex';
+            }
+            function closeKYCModal() { document.getElementById('kyc-modal').style.display = 'none'; }
+        </script>
+</body>
+
+</html>

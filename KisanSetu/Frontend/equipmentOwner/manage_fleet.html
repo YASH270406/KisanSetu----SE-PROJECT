@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Manage Fleet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="manage_fleet.css">
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ══ HEADER ══ -->
+    <header class="page-header">
+        <img src="../images/equipment_owner.png" height="40px" class="back-btn" onclick="history.back()" alt="Profile Photo">
+        <!-- <button class="back-btn" onclick="history.back()">
+            
+            <i class="fa-solid fa-chevron-left"></i>
+        </button> -->
+        <div class="header-center">
+            <h1 class="page-title">Manage Fleet</h1>
+            <p class="page-sub">Rohtak, Haryana</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="../shared/notification_settings.html" style="color: var(--text); font-size: 1.2rem;" title="Notification Settings">
+                <i class="fa-solid fa-gear"></i>
+            </a>
+            <div class="sync-status online" id="sync-indicator" onclick="toggleSync()">
+                <span class="pulse-dot"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ══ FLEET STATS STRIP ══ -->
+    <div class="fleet-stats">
+        <div class="fstat">
+            <span class="fstat-num" id="statTotal">0</span>
+            <span class="fstat-lbl">Total</span>
+        </div>
+        <div class="fstat-div"></div>
+        <div class="fstat">
+            <span class="fstat-num green" id="statAvailable">0</span>
+            <span class="fstat-lbl">Available</span>
+        </div>
+        <div class="fstat-div"></div>
+        <div class="fstat">
+            <span class="fstat-num yellow" id="statRented">0</span>
+            <span class="fstat-lbl">Rented</span>
+        </div>
+        <div class="fstat-div"></div>
+        <div class="fstat">
+            <span class="fstat-num red" id="statMaint">0</span>
+            <span class="fstat-lbl">Maintenance</span>
+        </div>
+    </div>
+
+    <!-- ══ STATUS FILTER TABS ══ -->
+    <div class="filter-row">
+        <button class="filter-pill active" onclick="filterFleet('all', this)">All</button>
+        <button class="filter-pill" onclick="filterFleet('Available', this)">
+            <span class="dot green"></span> Available
+        </button>
+        <button class="filter-pill" onclick="filterFleet('Rented', this)">
+            <span class="dot yellow"></span> Rented
+        </button>
+        <button  class="filter-pill" onclick="filterFleet('Maintenance', this)">
+            <span class="dot red"></span> Maintenance
+        </button>
+    </div>
+
+    <!-- ══ FLEET LIST ══ -->
+    <div class="fleet-list" id="fleetList">
+        <!-- injected by JS -->
+    </div>
+
+    <!-- ══ EMPTY STATE ══ -->
+    <div class="empty-fleet" id="emptyFleet" style="display:none">
+        <div class="empty-icon">🚜</div>
+        <h3>No Assets Yet</h3>
+        <p>Tap the + button below to add your first equipment.</p>
+    </div>
+
+    <!-- ══ ADD ASSET FAB ══ -->
+    <button class="fab-add" onclick="openAddSheet()" title="Add New Equipment">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+</div><!-- /app-container -->
+
+
+<!-- ════════════════════════════════════════
+     ADD / EDIT ASSET BOTTOM SHEET
+════════════════════════════════════════ -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+    <div class="asset-sheet" id="assetSheet">
+
+        <div class="sheet-handle"></div>
+
+        <div class="sheet-header">
+            <h2 id="sheetTitle">Add New Asset</h2>
+            <button class="sheet-close" onclick="closeSheetDirect()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="sheet-body">
+
+            <!-- Photo Upload -->
+            <div class="photo-upload-area" id="photoUploadArea" onclick="triggerPhotoUpload()">
+                <div class="photo-placeholder" id="photoPlaceholder">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Add Photo</span>
+                </div>
+                <img id="photoPreviewImg" src="" alt="" class="photo-preview-img" style="display:none">
+                <button class="remove-photo-btn" id="removePhotoBtn" style="display:none"
+                        onclick="event.stopPropagation(); removePhoto()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <input type="file" id="photoFileInput" accept="image/*" style="display:none"
+                       onchange="handlePhotoUpload(event)">
+            </div>
+
+            <!-- Equipment Name -->
+            <div class="field-group">
+                <label>Equipment Name <span class="req">*</span></label>
+                <input type="text" id="fieldName" placeholder="e.g. Mahindra 575 DI Tractor"
+                       oninput="clearErr(this)">
+                <span class="field-err" id="errName"></span>
+            </div>
+
+            <!-- Type + HP row -->
+            <div class="field-row">
+                <div class="field-group">
+                    <label>Type <span class="req">*</span></label>
+                    <select id="fieldType" onchange="clearErr(this)">
+                        <option value="">Select…</option>
+                        <option>Tractor</option>
+                        <option>Harvester</option>
+                        <option>Tiller</option>
+                        <option>Drone</option>
+                        <option>Seed Drill</option>
+                        <option>Sprayer</option>
+                        <option>Other</option>
+                    </select>
+                    <span class="field-err" id="errType"></span>
+                </div>
+                <div class="field-group">
+                    <label>HP</label>
+                    <input type="number" id="fieldHP" placeholder="e.g. 45" min="0">
+                </div>
+            </div>
+
+            <!-- Model -->
+            <div class="field-group">
+                <label>Model / Brand</label>
+                <input type="text" id="fieldModel" placeholder="e.g. 575 DI XP Plus">
+            </div>
+
+            <!-- Rate + Usage row -->
+            <div class="field-row">
+                <div class="field-group">
+                    <label>Hourly Rate (₹) <span class="req">*</span></label>
+                    <input type="number" id="fieldRate" placeholder="e.g. 150" min="1"
+                           oninput="clearErr(this)">
+                    <span class="field-err" id="errRate"></span>
+                </div>
+                <div class="field-group">
+                    <label>Usage Hours</label>
+                    <input type="number" id="fieldUsage" placeholder="e.g. 1200" min="0">
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="field-group">
+                <label>Location <span class="req">*</span></label>
+                <input type="text" id="fieldLocation" placeholder="e.g. Rohtak, Haryana"
+                       oninput="clearErr(this)">
+                <span class="field-err" id="errLocation"></span>
+            </div>
+
+            <!-- Status (only shown on edit) -->
+            <div class="field-group" id="statusFieldGroup" style="display:none">
+                <label>Status</label>
+                <div class="status-selector" id="statusSelector">
+                    <button class="ss-btn available active" onclick="setStatus('Available', this)">
+                        <span class="dot green"></span> Available
+                    </button>
+                    <button class="ss-btn rented" onclick="setStatus('Rented', this)">
+                        <span class="dot yellow"></span> Rented
+                    </button>
+                    <button class="ss-btn maintenance" onclick="setStatus('Maintenance', this)">
+                        <span class="dot red"></span> Maintenance
+                    </button>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button class="btn-primary" id="btnSaveAsset" onclick="saveAsset()">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span id="btnSaveLabel">Add to Fleet</span>
+            </button>
+
+        </div><!-- /sheet-body -->
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     DELETE CONFIRM DIALOG
+════════════════════════════════════════ -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon">🗑️</div>
+        <h3>Delete Asset?</h3>
+        <p id="confirmMsg">This will permanently remove the asset from your fleet.</p>
+        <div class="confirm-btns">
+            <button class="btn-ghost" onclick="closeConfirm()">Cancel</button>
+            <button class="btn-danger" id="btnConfirmDelete" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast">
+    <span class="toast-icon" id="toastIcon">✅</span>
+    <div>
+        <strong id="toastTitle"></strong>
+        <p id="toastMsg"></p>
+    </div>
+</div>
+
+<script src="manage_fleet.js"></script>
+<!-- 30-min session timeout (NFR-5.3) -->
+<script type="module" src="../shared/session-timeout.js"></script>
+</body>
+</html>

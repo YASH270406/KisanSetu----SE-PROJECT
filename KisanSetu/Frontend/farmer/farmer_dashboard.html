@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Farmer Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="farmer_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            
+            <div class="user-info" style="display: flex; align-items: center; gap: 15px;">
+                <img src="../images/farmer_profile.jpeg" alt="Profile" class="profile-pic"
+                    onerror="this.src='https://placehold.co/50?text=User'">
+                <div>
+                    <h2 class="greeting">Namaste!</h2>
+                    <p class="location"><i class="fa-solid fa-location-dot"></i> Amberkdkar Nagar, UP</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: white; color: #2e7d32; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s;">
+                    <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+                </button>
+                <div id="auth-logout-container"></div>
+            </div>
+
+        </header>
+
+        <div id="offline-sync-banner" class="alert-item warning offline-banner" style="display: none;">
+            <i class="fa-solid fa-cloud-arrow-up sync-icon"></i>
+            <div class="alert-text">
+                <h4>Pending Uploads</h4>
+                <p id="sync-banner-text">You have listings waiting to sync.</p>
+            </div>
+            <button onclick="syncOfflineData()" class="sync-btn">
+                Sync Now
+            </button>
+        </div>
+
+
+
+        <div class="action-grid">
+            <a href="sell_produce.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="../images/sell_produce.jpeg" alt="Sell Crop" class="action-img"
+                        onerror="this.src='https://placehold.co/200x200/e8f5e9/2e7d32?text=Sell'">
+                    <p>Sell Produce</p>
+                </div>
+            </a>
+            
+            <a href="rent/farmer_rent_equipment.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="../images/rent_equipment.png" alt="Rent Equipment" class="action-img" 
+                        onerror="this.src='https://placehold.co/200x200/e8f5e9/2e7d32?text=Rent'">
+                    <p>Rent Equipment</p>
+                </div>
+            </a>
+
+
+            <a href="inventory.html" style="text-decoration: none; display: contents;">
+
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=300&q=80"
+                        alt="Inventory" class="action-img">
+                    <p>Inventory</p>
+                </div>
+            </a>
+
+            <a href="mandi_prices.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80"
+                        alt="Mandi Prices" class="action-img">
+                    <p>Mandi Prices</p>
+                </div>
+            </a>
+
+            <a href="soilhealth.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="../images/soil_health.jpg" alt="Soil Test" class="action-img"
+                        onerror="this.src='https://placehold.co/200x200/e8f5e9/2e7d32?text=Soil'">
+                    <p>Soil Health</p>
+                </div>
+            </a>
+
+            <a href="bid.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1604594849809-dfedbc827105?auto=format&fit=crop&w=300&q=80"
+                        alt="Bid Inbox" class="action-img">
+                    <p>Bid Inbox</p>
+                </div>
+            </a>
+
+            <a href="payment_status.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=300&q=80"
+                        alt="Payments" class="action-img">
+                    <p>Payments</p>
+                </div>
+            </a>
+
+            <a href="my_listings.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <img src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=300&q=80"
+                        alt="My Listings" class="action-img"
+                        onerror="this.src='https://placehold.co/200x200/e8f5e9/2e7d32?text=Listings'">
+                    <p>My Listings</p>
+                </div>
+            </a>
+            
+            <a href="../shared/notification_settings.html" style="text-decoration: none; display: contents;">
+                <div class="action-card">
+                    <div style="height: 120px; background: #e8f5e9; display: flex; align-items: center; justify-content: center; border-radius: 12px; margin-bottom: 12px; width: 100%;">
+                        <i class="fa-solid fa-bell" style="font-size: 2.5rem; color: #2e7d32;"></i>
+                    </div>
+                    <p>Notification Settings</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="recent-alerts">
+            <h3 class="section-title">Recent Updates</h3>
+
+            <div class="alert-item warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div class="alert-text">
+                    <h4>Weather Alert</h4>
+                    <p>Light rain expected tomorrow evening.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="farmer_dashboard.js"></script>
+    <script src="../shared/global.js"></script>
+    <!-- Farmer Voice Assistant (NFR-5.4) -->
+    <script src="voice_farmer.js"></script>
+    <!-- 30-min session timeout (NFR-5.3) -->
+    <script type="module" src="../shared/session-timeout.js"></script>
+</body>
+
+</html>

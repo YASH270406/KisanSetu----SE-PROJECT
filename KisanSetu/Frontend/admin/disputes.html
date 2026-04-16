@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Resolve Disputes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        .admin-content { padding:20px; }
+        .status-tabs {
+            display:flex; margin-bottom:16px; border-radius:10px;
+            overflow:hidden; border:1px solid #ddd;
+        }
+        .status-tab {
+            flex:1; padding:9px 4px; text-align:center; font-size:0.75rem; font-weight:600;
+            cursor:pointer; background:white; border:none; font-family:'Poppins',sans-serif;
+            color:#666; display:flex; flex-direction:column; align-items:center; gap:2px;
+        }
+        .tab-count { font-size:0.9rem; font-weight:700; }
+        .status-tab.active.open      { background:#d32f2f; color:white; }
+        .status-tab.active.resolved  { background:#2e7d32; color:white; }
+        .status-tab.active.escalated { background:#4a148c; color:white; }
+        .dispute-card {
+            background:white; border-radius:12px; padding:16px; margin-bottom:12px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06); border:1px solid #eaeaea; border-left:4px solid #e0e0e0;
+        }
+        .dispute-card.open      { border-left-color:#d32f2f; }
+        .dispute-card.resolved  { border-left-color:#2e7d32; }
+        .dispute-card.escalated { border-left-color:#4a148c; }
+        .dispute-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+        .dispute-title  { font-size:0.95rem; font-weight:600; margin:0; }
+        .dispute-meta   { font-size:0.78rem; color:#666; margin-top:3px; }
+        .status-badge   { padding:3px 10px; border-radius:10px; font-size:0.7rem; font-weight:600; white-space:nowrap; }
+        .badge-open      { background:#ffebee; color:#d32f2f; }
+        .badge-resolved  { background:#e8f5e9; color:#2e7d32; }
+        .badge-escalated { background:#f3e5f5; color:#4a148c; }
+        .dispute-desc {
+            font-size:0.82rem; color:#555; margin:8px 0; padding:10px;
+            background:#fafafa; border-radius:8px; border:1px solid #f0f0f0;
+        }
+        .resolution-panel { display:none; margin-top:10px; padding-top:10px; border-top:1px solid #f0f0f0; }
+        .resolution-panel.visible { display:block; }
+        .resolution-panel textarea {
+            width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;
+            font-family:'Poppins',sans-serif; font-size:0.82rem; resize:none; height:80px;
+            box-sizing:border-box; outline:none;
+        }
+        .resolution-panel textarea:focus { border-color:#4a148c; }
+        .action-row { display:flex; gap:8px; margin-top:8px; }
+        .d-btn {
+            padding:8px 14px; border-radius:8px; border:none; font-family:'Poppins',sans-serif;
+            font-size:0.8rem; font-weight:600; cursor:pointer;
+            display:flex; align-items:center; gap:5px; transition:opacity 0.15s;
+        }
+        .d-btn:hover   { opacity:0.8; }
+        .d-btn:disabled { opacity:0.4; cursor:default; }
+        .btn-open-resolve { background:#f3e5f5; color:#4a148c; flex:1; justify-content:center; }
+        .btn-resolve      { background:#e8f5e9; color:#2e7d32; flex:1; justify-content:center; }
+        .btn-escalate     { background:#ffebee; color:#d32f2f; flex:1; justify-content:center; }
+        .btn-cancel-panel { background:#f5f5f5; color:#666; }
+        .resolution-note {
+            font-size:0.78rem; color:#555; background:#e8f5e9;
+            padding:8px 10px; border-radius:8px; margin-top:8px;
+        }
+        .resolution-note strong { color:#2e7d32; }
+        .stats-summary {
+            background:#f5f5f5; border:1px solid #ddd; border-radius:12px;
+            padding:14px; margin-bottom:16px; font-size:0.85rem; color:#555;
+        }
+        .empty-state { text-align:center; padding:40px 20px; color:#999; font-size:0.85rem; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <header class="dashboard-header" style="background:linear-gradient(135deg,#b71c1c,#880e4f);color:white;padding:25px 20px;">
+        <div style="display:flex;align-items:center;gap:15px;">
+            <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h1 style="font-size:1.5rem;">Dispute Resolution</h1>
+                <p style="font-size:0.85rem;opacity:0.9;">Review & resolve platform disputes</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-content">
+        <div class="stats-summary" id="dispute-stats">Loading dispute data…</div>
+
+        <div class="status-tabs">
+            <button class="status-tab active open"     onclick="setTab('open',this)">
+                <span class="tab-count" id="count-open">–</span>Open
+            </button>
+            <button class="status-tab resolved"        onclick="setTab('resolved',this)">
+                <span class="tab-count" id="count-resolved">–</span>Resolved
+            </button>
+            <button class="status-tab escalated"       onclick="setTab('escalated',this)">
+                <span class="tab-count" id="count-escalated">–</span>Escalated
+            </button>
+        </div>
+
+        <div id="disputes-container">
+            <p style="text-align:center;color:#999;">Loading disputes…</p>
+        </div>
+
+        <p style="text-align:center;color:#666;font-size:0.85rem;margin-top:20px;">
+            <i class="fa-solid fa-scale-balanced"></i> All resolutions are recorded in the audit trail.
+        </p>
+    </div>
+
+</div>
+
+<script type="module">
+    /* ── real imports ─────────────────────────────── */
+    import { supabase } from '../supabase-config.js';
+    import '../shared/toast.js';
+
+    let allDisputes = [];
+    let activeTab   = 'open';
+    let adminUser   = null;
+
+    window.setTab             = setTab;
+    window.togglePanel        = togglePanel;
+    window.resolveDispute     = resolveDispute;
+    window.escalateDispute    = escalateDispute;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { location.href = '../login.html'; return; }
+        adminUser = user;
+
+        const { data: me } = await supabase
+            .from('profiles').select('role').eq('id', user.id).single();
+        if (!me || me.role !== 'admin') {
+            window.showToast('Access denied.', 'error');
+            setTimeout(() => location.href = '../index.html', 1200);
+            return;
+        }
+        await fetchDisputes();
+    });
+
+    /* ────────────────── fetch ───────────────────── */
+    async function fetchDisputes() {
+        const { data, error } = await supabase
+            .from('disputes')
+            .select(`
+                *,
+                raised_by_user:raised_by(full_name, phone_number),
+                against_user:against_user_id(full_name)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            window.showToast('Failed to load disputes.', 'error');
+            document.getElementById('disputes-container').innerHTML =
+                '<p style="color:red;text-align:center;">Failed to load disputes.</p>';
+            return;
+        }
+
+        allDisputes = data || [];
+        updateCounts();
+        updateStats();
+        renderDisputes(byTab('open'));
+    }
+
+    function updateCounts() {
+        const c = { open: 0, resolved: 0, escalated: 0 };
+        allDisputes.forEach(d => { if (c[d.status] !== undefined) c[d.status]++; });
+        document.getElementById('count-open').textContent      = c.open;
+        document.getElementById('count-resolved').textContent  = c.resolved;
+        document.getElementById('count-escalated').textContent = c.escalated;
+    }
+
+    function updateStats() {
+        const open = allDisputes.filter(d => d.status === 'open').length;
+        document.getElementById('dispute-stats').innerHTML =
+            `<strong>${allDisputes.length}</strong> total disputes — ` +
+            `<span style="color:#d32f2f"><strong>${open}</strong> require resolution</span>`;
+    }
+
+    function byTab(tab) {
+        return allDisputes.filter(d => d.status === tab);
+    }
+
+    /* ────────────────── render ──────────────────── */
+    function renderDisputes(list) {
+        const container = document.getElementById('disputes-container');
+        if (!list.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-handshake" style="font-size:2rem;margin-bottom:10px;"></i>
+                    <br>No ${activeTab} disputes found.
+                </div>`;
+            return;
+        }
+        container.innerHTML = list.map(d => {
+            const date      = new Date(d.created_at).toLocaleDateString('en-IN');
+            const raisedBy  = d.raised_by_user?.full_name || 'Unknown';
+            const against   = d.against_user?.full_name;
+            const isOpen    = d.status === 'open';
+
+            return `
+            <div class="dispute-card ${d.status}" id="dispute-${d.id}">
+                <div class="dispute-header">
+                    <div>
+                        <p class="dispute-title">${esc(d.title || 'Dispute #' + d.id.slice(0,8))}</p>
+                        <p class="dispute-meta">
+                            Raised by: <strong>${esc(raisedBy)}</strong>
+                            ${against ? ` &nbsp;vs&nbsp; <strong>${esc(against)}</strong>` : ''}
+                            &nbsp;•&nbsp; ${date}
+                            ${d.order_id ? `&nbsp;•&nbsp; Order: #${d.order_id.slice(0,8)}` : ''}
+                        </p>
+                    </div>
+                    <span class="status-badge badge-${d.status}">${d.status}</span>
+                </div>
+
+                <div class="dispute-desc">${esc(d.description || 'No description provided.')}</div>
+
+                ${d.resolution_notes
+                    ? `<div class="resolution-note"><strong>Resolution:</strong> ${esc(d.resolution_notes)}</div>`
+                    : ''}
+
+                ${isOpen ? `
+                <div class="action-row">
+                    <button class="d-btn btn-open-resolve" onclick="togglePanel('${d.id}')">
+                        <i class="fa-solid fa-pen-to-square"></i> Resolve
+                    </button>
+                    <button class="d-btn btn-escalate" onclick="escalateDispute('${d.id}')">
+                        <i class="fa-solid fa-arrow-up"></i> Escalate
+                    </button>
+                </div>
+                <div class="resolution-panel" id="panel-${d.id}">
+                    <textarea id="notes-${d.id}" placeholder="Enter resolution notes (required)…"></textarea>
+                    <div class="action-row">
+                        <button class="d-btn btn-resolve" onclick="resolveDispute('${d.id}')">
+                            <i class="fa-solid fa-check"></i> Confirm Resolution
+                        </button>
+                        <button class="d-btn btn-cancel-panel" onclick="togglePanel('${d.id}')">
+                            Cancel
+                        </button>
+                    </div>
+                </div>` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    function togglePanel(id) {
+        document.getElementById(`panel-${id}`)?.classList.toggle('visible');
+    }
+
+    /* ────────────────── resolve ─────────────────── */
+    async function resolveDispute(disputeId) {
+        const notes = (document.getElementById(`notes-${disputeId}`)?.value || '').trim();
+        if (!notes) { window.showToast('Please enter resolution notes first.', 'warning'); return; }
+
+        try {
+            /* 1. update dispute status */
+            const { error } = await supabase
+                .from('disputes')
+                .update({
+                    status: 'resolved',
+                    resolution_notes: notes,
+                    resolved_at: new Date().toISOString()
+                })
+                .eq('id', disputeId);
+            if (error) throw error;
+
+            /* 2. audit log (SRS §6.4.2.4) */
+            await supabase.from('audit_logs').insert({
+                action: 'RESOLVE_DISPUTE', target_type: 'dispute', target_id: disputeId,
+                performed_by: adminUser?.id || null,
+                details: `Resolved. Notes: ${notes}`
+            });
+
+            /* 3. notify both parties (SRS FR-7.1) */
+            const d = allDisputes.find(x => x.id === disputeId);
+            const notifRecipients = [d?.raised_by, d?.against_user_id].filter(Boolean);
+            for (const uid of notifRecipients) {
+                await supabase.from('notifications').insert({
+                    user_id: uid,
+                    notification_type: 'dispute_resolved',
+                    message: `Dispute "${d?.title || disputeId.slice(0,8)}" has been resolved by the administrator.`,
+                    is_read: false, delivery_channel: 'in_app', related_id: disputeId
+                });
+            }
+
+            /* 4. update memory + re-render */
+            const idx = allDisputes.findIndex(x => x.id === disputeId);
+            if (idx !== -1) {
+                allDisputes[idx].status           = 'resolved';
+                allDisputes[idx].resolution_notes = notes;
+            }
+            updateCounts(); updateStats();
+            renderDisputes(byTab(activeTab));
+            window.showToast('Dispute resolved and parties notified.', 'success');
+
+        } catch (err) {
+            console.error('Resolve error:', err);
+            window.showToast('Failed to resolve dispute.', 'error');
+        }
+    }
+
+    /* ────────────────── escalate ────────────────── */
+    async function escalateDispute(disputeId) {
+        if (!confirm('Escalate this dispute to senior management?')) return;
+        try {
+            const { error } = await supabase
+                .from('disputes')
+                .update({ status: 'escalated' })
+                .eq('id', disputeId);
+            if (error) throw error;
+
+            await supabase.from('audit_logs').insert({
+                action: 'ESCALATE_DISPUTE', target_type: 'dispute', target_id: disputeId,
+                performed_by: adminUser?.id || null,
+                details: 'Dispute escalated by administrator'
+            });
+
+            const idx = allDisputes.findIndex(x => x.id === disputeId);
+            if (idx !== -1) allDisputes[idx].status = 'escalated';
+            updateCounts(); updateStats();
+            renderDisputes(byTab(activeTab));
+            window.showToast('Dispute escalated.', 'warning');
+
+        } catch (err) {
+            console.error('Escalate error:', err);
+            window.showToast('Failed to escalate dispute.', 'error');
+        }
+    }
+
+    function setTab(tab, el) {
+        document.querySelectorAll('.status-tab').forEach(t =>
+            t.classList.remove('active','open','resolved','escalated'));
+        el.classList.add('active', tab);
+        activeTab = tab;
+        renderDisputes(byTab(tab));
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s || '';
+        return d.innerHTML;
+    }
+</script>
+</body>
+</html>

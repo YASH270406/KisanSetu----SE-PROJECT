@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Track My Orders</title>
+    <meta name="description" content="Track your produce orders on KisanSetu — from confirmed to delivered.">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+
+    <style>
+        :root {
+            --primary-green: #2e7d32;
+            --harvest-yellow: #fbc02d;
+            --charcoal: #37474f;
+            --white: #ffffff;
+            --light-bg: #f4f7f6;
+            --danger-red: #d32f2f;
+            --pending-orange: #f57c00;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--light-bg); color: var(--charcoal); }
+
+        /* ── Hero Header (same as Bid Inbox / My Listings) ─── */
+        .hero-header {
+            background: linear-gradient(rgba(46,125,50,0.85), rgba(27,94,32,0.92)),
+                url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80') center/cover;
+            color: var(--white);
+            padding: 40px 20px 80px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Pushes mic to the right */
+            max-width: 900px;
+            margin: 0 auto 10px;
+            width: 100%;
+        }
+
+        .back-btn {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 1.4rem;
+            transition: transform 0.2s;
+        }
+        .back-btn:hover { transform: translateX(-4px); }
+
+        .hero-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 0;
+        }
+
+        .header-badge {
+            background: var(--harvest-yellow);
+            color: var(--charcoal);
+            font-size: 1rem;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .hero-header p {
+            font-size: 0.95rem;
+            color: #e8f5e9;
+            font-weight: 300;
+            max-width: 900px;
+            margin: 0 auto;
+            padding-left: 36px;
+        }
+
+        /* ── Tab Nav ─────────────────────────────────────────── */
+        .tab-nav {
+            background: #1b5e20;
+            display: flex;
+        }
+        .tab-nav button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.65);
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+        .tab-nav button.active {
+            color: var(--white);
+            border-bottom-color: var(--harvest-yellow);
+        }
+
+        /* ── Main Container ──────────────────────────────────── */
+        .orders-container {
+            max-width: 900px;
+            margin: -50px auto 40px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ── Order Card ──────────────────────────────────────── */
+        .order-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 0;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 5px solid #2e7d32;
+        }
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.11);
+        }
+        .order-card.refunded { border-left-color: #d32f2f; opacity: 0.82; }
+        .order-card.settled  { border-left-color: #1565c0; }
+        .order-card.pending  { border-left-color: #f57c00; }
+
+        /* ── Card Top Bar ────────────────────────────────────── */
+        .card-topbar {
+            background: #f9fafb;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .order-id {
+            font-size: 0.75rem;
+            color: #999;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-pill {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        /* ── Card Body ───────────────────────────────────────── */
+        .card-body {
+            padding: 20px;
+        }
+
+        .crop-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 4px;
+        }
+
+        .crop-meta {
+            font-size: 0.78rem;
+            color: #888;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .crop-meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* ── Stats Row ───────────────────────────────────────── */
+        .order-stats {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            flex: 1;
+            min-width: 80px;
+            background: #f7f9f7;
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .stat-label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; font-weight: 700; margin-bottom: 3px; }
+        .stat-val   { font-size: 1.05rem; font-weight: 800; color: #2e7d32; line-height: 1.1; }
+        .stat-val.blue { color: #1565c0; }
+        .stat-val.orange { color: #f57c00; }
+        .stat-unit  { font-size: 0.6rem; color: #aaa; font-weight: 400; }
+
+        /* ── Timeline Stepper ────────────────────────────────── */
+        .timeline {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 4px;
+            margin: 18px 0;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .tl-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+
+        .tl-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #e0e0e0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #ccc;
+            transition: all 0.3s;
+            margin-bottom: 8px;
+        }
+
+        .tl-step.done .tl-dot {
+            background: #2e7d32;
+            border-color: #2e7d32;
+            color: white;
+        }
+
+        .tl-step.active .tl-dot {
+            background: #fff;
+            border-color: #fbc02d;
+            color: #fbc02d;
+            box-shadow: 0 0 0 4px rgba(251,192,45,0.2);
+            animation: pulse 1.5s infinite;
+        }
+
+        .tl-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #bbb;
+            text-align: center;
+            line-height: 1.3;
+            max-width: 60px;
+        }
+
+        .tl-step.done .tl-label  { color: #2e7d32; }
+        .tl-step.active .tl-label { color: #f57c00; font-weight: 700; }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(251,192,45,0.2); }
+            50%       { box-shadow: 0 0 0 8px rgba(251,192,45,0.1); }
+        }
+
+        /* Progress line fill */
+        .tl-progress-line {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            height: 2px;
+            background: linear-gradient(90deg, #2e7d32, #4caf50);
+            z-index: 0;
+            transition: width 0.5s ease;
+        }
+
+        /* ── Cancelled Banner ────────────────────────────────── */
+        .refund-banner {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: #c62828;
+            font-weight: 500;
+            margin: 14px 0;
+        }
+
+        /* ── Action Buttons ──────────────────────────────────── */
+        .card-actions {
+            padding: 16px 20px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-confirm {
+            flex: 2;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 18px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-confirm:hover { background: #1b5e20; transform: translateY(-1px); }
+
+        .btn-invoice {
+            flex: 1;
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-invoice:hover { background: #bbdefb; }
+
+        .btn-issue {
+            flex: 1;
+            background: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #ffcdd2;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-issue:hover { background: #ffcdd2; }
+
+        /* ── Empty State ─────────────────────────────────────── */
+        .empty-state {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+        .empty-state i { font-size: 3.5rem; color: #ccc; margin-bottom: 16px; display: block; }
+        .empty-state h3 { font-size: 1.2rem; font-weight: 600; color: var(--charcoal); margin-bottom: 8px; }
+        .empty-state p { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
+        .empty-state a {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: #2e7d32; color: white;
+            text-decoration: none; padding: 11px 22px;
+            border-radius: 10px; font-weight: 600; font-size: 0.88rem;
+        }
+
+        /* ── Issue Modal ─────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 20px;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal-box h3 { font-size: 1.1rem; font-weight: 700; color: #d32f2f; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .modal-box textarea {
+            width: 100%; padding: 12px; border-radius: 10px;
+            border: 1.5px solid #ddd; margin: 12px 0;
+            font-family: 'Poppins', sans-serif; font-size: 0.88rem;
+            resize: vertical; min-height: 100px; outline: none;
+        }
+        .modal-box textarea:focus { border-color: #d32f2f; }
+        .modal-btns { display: flex; gap: 10px; }
+
+        /* ── Settled badge in history ────────────────────────── */
+        .settled-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: #e8f5e9; border: 1px solid #c8e6c9;
+            border-radius: 10px; padding: 10px 14px;
+            font-size: 0.8rem; color: #2e7d32; font-weight: 500;
+            margin: 10px 0;
+        }
+
+        /* ── Responsive ──────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .hero-header { padding: 30px 16px 70px; }
+            .hero-header h1 { font-size: 1.6rem; }
+            .hero-header p  { padding-left: 0; }
+            .orders-container { padding: 0 12px; }
+            .tl-label { font-size: 0.55rem; max-width: 48px; }
+            .card-actions { flex-wrap: wrap; }
+            .btn-confirm, .btn-invoice, .btn-issue { flex: 1 0 calc(50% - 5px); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero-header">
+        
+        <div class="header-top">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="buyer_dashboard.html" class="back-btn" id="back-btn">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <h1>
+                    <span style="width:16px;height:16px;background:white;border-radius:50%;display:inline-block;flex-shrink:0;"></span>
+                    Track Orders
+                    <span class="header-badge" id="order-badge" style="display:none;">0</span>
+                </h1>
+            </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+            </button>
+
+        </div>
+        <p style="margin-top: 10px;">Monitor your deliveries in real time. Confirm receipt to release payment to the farmer.</p>
+    </header>
+
+    <nav class="tab-nav">
+        <button class="active" id="tab-active" onclick="window.switchTab('active')">
+            <i class="fa-solid fa-truck-moving"></i> Active Deliveries
+        </button>
+        <button id="tab-past" onclick="window.switchTab('past')">
+            <i class="fa-solid fa-clock-rotate-left"></i> Past Orders
+        </button>
+    </nav>
+
+    <div class="orders-container">
+        <div id="orders-list"></div>
+
+        <div class="empty-state" id="empty-msg" style="display:none;">
+            <i class="fa-solid fa-box-open"></i>
+            <h3 id="empty-title">No active deliveries</h3>
+            <p id="empty-sub">Orders from accepted bids and checkout will appear here.</p>
+            <a href="browse_produce.html"><i class="fa-solid fa-store"></i> Browse Produce</a>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="issue-modal">
+        <div class="modal-box">
+            <h3><i class="fa-solid fa-flag"></i> Raise an Issue</h3>
+            <p style="font-size:0.85rem; color:#666;">Having trouble with order <strong id="issue-order-id"></strong>?</p>
+            <textarea id="issue-desc" placeholder="Describe the problem e.g., truck delayed, wrong quality, missing quantity..."></textarea>
+            <div class="modal-btns">
+                <button class="btn-confirm" onclick="window.submitIssue()" style="background:#d32f2f;">
+                    <i class="fa-solid fa-paper-plane"></i> Submit
+                </button>
+                <button class="btn-invoice" onclick="window.closeIssueModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="../shared/invoice_generator.js"></script>
+    <script type="module" src="trackorders.js"></script>
+    <script src="voice.js"></script>
+</body>
+</html>

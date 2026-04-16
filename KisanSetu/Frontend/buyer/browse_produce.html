@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Browse Produce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <link rel="stylesheet" href="browse_produce_style.css">
+
+</head>
+
+<body>
+
+    <header class="hero-header">
+        <div class="header-top">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="buyer_dashboard.html" class="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1 style="margin: 0;">Marketplace</h1>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                
+                <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                    <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+                </button>
+
+                <div class="cart-toggle" onclick="window.toggleCart()">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cart-count" class="cart-badge" style="display: none;">0</span>
+                </div>
+            </div>
+            
+        </div>
+        <p style="margin-top: 10px;">Browse fresh harvests directly from verified farmers. Secure exactly what you need at transparent rates.</p>
+    </header>
+
+
+    <div class="filter-container">
+        <div class="filter-group">
+            <label><i class="fa-solid fa-wheat-awn"></i> Crop</label>
+            <select id="crop-filter">
+                <option value="">All Crops</option>
+                <option value="Wheat">Wheat</option>
+                <option value="Rice">Rice</option>
+                <option value="Tomato">Tomato</option>
+                <option value="Onion">Onion</option>
+                <option value="Potato">Potato</option>
+                <option value="Soyabean">Soyabean</option>
+                <option value="Cauliflower">Cauliflower</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fa-solid fa-map-location-dot"></i> State</label>
+            <select id="state-filter">
+                <option value="">All States</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fa-solid fa-hand-holding-dollar"></i> Max Price (₹/Qtl)</label>
+            <input type="number" id="price-filter" placeholder="e.g. 3000">
+        </div>
+    </div>
+
+    <div class="listings-wrapper" id="listings-container">
+    </div>
+
+    <div id="cart-drawer" class="cart-drawer">
+        <div class="drawer-header">
+            <h3><i class="fa-solid fa-cart-shopping"></i> My Shopping Cart</h3>
+            <button class="close-btn" onclick="window.toggleCart()">&times;</button>
+        </div>
+        <div id="cart-items" class="cart-items">
+            <p class="empty-msg">Your cart is empty.</p>
+        </div>
+        <div class="drawer-footer">
+            <div class="total-row">
+                <span>Total Amount:</span>
+                <span id="cart-total">₹0</span>
+            </div>
+            <button class="checkout-btn" onclick="window.location.href='checkout.html'">
+                Secure Checkout <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    <div id="drawer-overlay" class="drawer-overlay" onclick="window.toggleCart()"></div>
+
+    <style>
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; }
+        
+        .cart-toggle {
+            position: relative;
+            background: rgba(255,255,255,0.2);
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .cart-toggle:hover { background: var(--white); color: var(--primary-green); }
+        .cart-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: #d32f2f; color: white;
+            font-size: 0.7rem; font-weight: 700;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Drawer System */
+        .cart-drawer {
+            position: fixed; top: 0; right: -400px;
+            width: 400px; height: 100%;
+            background: white; z-index: 2000;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column;
+        }
+        .cart-drawer.open { right: 0; }
+        .drawer-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999; display: none;
+            backdrop-filter: blur(4px);
+        }
+        .drawer-overlay.open { display: block; }
+
+        .drawer-header { padding: 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .drawer-header h3 { color: var(--primary-green); font-size: 1.2rem; }
+        .close-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: #999; }
+
+        .cart-items { flex: 1; overflow-y: auto; padding: 20px; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5; }
+        .item-info h4 { font-size: 0.95rem; margin-bottom: 4px; }
+        .item-info p { font-size: 0.8rem; color: #666; }
+        .item-price { text-align: right; font-weight: 600; color: var(--primary-green); }
+        .remove-item { font-size: 0.7rem; color: #d32f2f; cursor: pointer; text-decoration: underline; margin-top: 5px; display: block; }
+
+        .drawer-footer { padding: 25px; border-top: 2px solid #f5f5f5; background: #fafafa; }
+        .total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem; margin-bottom: 20px; }
+        .checkout-btn {
+            width: 100%; padding: 15px;
+            background: var(--primary-green); color: white;
+            border: none; border-radius: 12px;
+            font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+    </style>
+
+    <script src="../states_data.js"></script>
+    <script src="../shared/toast.js"></script>
+    <script type="module" src="browse_produce.js"></script>
+   <script src="voice.js"></script>
+</body>
+
+</html>

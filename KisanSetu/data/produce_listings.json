@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1773855658530,
+    "crop": "Wheat",
+    "variety": "sharbati",
+    "quantity": "50",
+    "unit": "Quintal",
+    "price": "2800",
+    "harvestDate": "2026-04-12"
+  },
+  {
+    "id": 1773857082735,
+    "crop": "Wheat",
+    "variety": "1266",
+    "quantity": "25",
+    "unit": "Quintal",
+    "price": "2800",
+    "harvestDate": "2026-04-11"
+  }
+]

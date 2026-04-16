@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Manage Users</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        .admin-content { padding: 20px; }
+        .search-bar { display:flex; gap:8px; margin-bottom:14px; }
+        .search-bar input {
+            flex:1; padding:10px 14px; border:1px solid #ddd; border-radius:10px;
+            font-family:'Poppins',sans-serif; font-size:0.85rem; outline:none;
+        }
+        .search-bar input:focus { border-color:#4a148c; }
+        .filter-select {
+            padding:10px; border:1px solid #ddd; border-radius:10px;
+            font-family:'Poppins',sans-serif; font-size:0.8rem; outline:none; cursor:pointer;
+        }
+        .role-pills { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; }
+        .role-pill {
+            padding:5px 14px; border-radius:20px; font-size:0.75rem; font-weight:600;
+            border:1.5px solid #ddd; background:white; cursor:pointer; white-space:nowrap; transition:all 0.15s;
+        }
+        .role-pill.active { background:#4a148c; color:white; border-color:#4a148c; }
+        .user-item {
+            background:white; padding:14px; border-radius:12px; margin-bottom:10px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.05); border:1px solid #eaeaea;
+        }
+        .user-item.banned { border-left:4px solid #d32f2f; opacity:0.85; }
+        .user-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+        .user-meta h4 { margin:0; font-size:0.95rem; font-weight:600; }
+        .user-meta p  { margin:0; font-size:0.78rem; color:#666; }
+        .badge-role { padding:4px 10px; border-radius:10px; font-size:0.7rem; font-weight:600; text-transform:uppercase; }
+        .role-farmer          { background:#e8f5e9; color:#2e7d32; }
+        .role-buyer           { background:#e3f2fd; color:#1565c0; }
+        .role-equipment_owner { background:#fff3e0; color:#ef6c00; }
+        .role-admin           { background:#fce4ec; color:#c2185b; }
+        .role-banned          { background:#ffebee; color:#d32f2f; }
+        .user-actions {
+            display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;
+            padding-top:8px; border-top:1px solid #f0f0f0;
+        }
+        .action-btn {
+            padding:5px 12px; border-radius:8px; border:none; font-size:0.75rem; font-weight:600;
+            cursor:pointer; font-family:'Poppins',sans-serif; transition:opacity 0.15s;
+            display:flex; align-items:center; gap:5px;
+        }
+        .action-btn:hover { opacity:0.8; }
+        .action-btn:disabled { opacity:0.4; cursor:default; }
+        .btn-ban   { background:#ffebee; color:#d32f2f; }
+        .btn-unban { background:#e8f5e9; color:#2e7d32; }
+        .role-dropdown {
+            padding:5px 8px; border:1px solid #ddd; border-radius:8px;
+            font-size:0.75rem; font-family:'Poppins',sans-serif;
+            color:#4a148c; outline:none; cursor:pointer; background:#f3e5f5;
+        }
+        .stats-summary {
+            background:#f5f5f5; border:1px solid #ddd; border-radius:12px;
+            padding:14px; margin-bottom:16px; font-size:0.85rem; color:#555;
+        }
+        .stats-summary strong { color:#4a148c; }
+        .empty-state { text-align:center; padding:30px; color:#999; font-size:0.85rem; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <header class="dashboard-header" style="background:linear-gradient(135deg,#37474f,#263238);color:white;padding:25px 20px;">
+        <div style="display:flex;align-items:center;gap:15px;">
+            <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h1 style="font-size:1.5rem;">User Management</h1>
+                <p style="font-size:0.85rem;opacity:0.9;">Verify Profiles & Assign Roles</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-content">
+        <div class="stats-summary" id="system-stats">Analyzing system users…</div>
+
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search by name or phone…" oninput="filterUsers()">
+            <select class="filter-select" id="sort-select" onchange="filterUsers()">
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="name">Name A–Z</option>
+            </select>
+        </div>
+
+        <div class="role-pills">
+            <div class="role-pill active" onclick="setRoleFilter('all',this)">All</div>
+            <div class="role-pill" onclick="setRoleFilter('farmer',this)">Farmers</div>
+            <div class="role-pill" onclick="setRoleFilter('buyer',this)">Buyers</div>
+            <div class="role-pill" onclick="setRoleFilter('equipment_owner',this)">Equipment Owners</div>
+            <div class="role-pill" onclick="setRoleFilter('admin',this)">Admins</div>
+            <div class="role-pill" onclick="setRoleFilter('banned',this)">Banned</div>
+        </div>
+
+        <div class="user-list" id="user-list-container">
+            <p style="text-align:center;color:#999;">Loading profiles…</p>
+        </div>
+
+        <p style="text-align:center;color:#666;font-size:0.85rem;margin-top:20px;">
+            <i class="fa-solid fa-shield-halved"></i> Live DB Monitoring Active
+        </p>
+    </div>
+
+</div>
+
+<script type="module">
+    /* ── real imports ─────────────────────────────── */
+    import { supabase } from '../supabase-config.js';
+    import '../shared/toast.js';   // → window.showToast(msg, type)
+
+    let allUsers       = [];
+    let activeRoleFilter = 'all';
+    let currentAdminId   = null;
+
+    /* expose to inline event handlers */
+    window.filterUsers   = filterUsers;
+    window.setRoleFilter = setRoleFilter;
+    window.banUser       = banUser;
+    window.unbanUser     = unbanUser;
+    window.changeRole    = changeRole;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { location.href = '../login.html'; return; }
+        currentAdminId = user.id;
+
+        /* guard: must be admin */
+        const { data: me } = await supabase
+            .from('profiles').select('role').eq('id', user.id).single();
+        if (!me || me.role !== 'admin') {
+            window.showToast('Access denied.', 'error');
+            setTimeout(() => location.href = '../index.html', 1200);
+            return;
+        }
+        await fetchUsers();
+    });
+
+    /* ────────────────── fetch all profiles ─────────────────── */
+    async function fetchUsers() {
+        const { data, error, count } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact' })
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            window.showToast('Failed to load users.', 'error');
+            document.getElementById('user-list-container').innerHTML =
+                '<p style="color:red;text-align:center;">Failed to load user data.</p>';
+            return;
+        }
+
+        allUsers = data || [];
+
+        /* summary stats */
+        const rc      = allUsers.reduce((a, u) => { a[u.role] = (a[u.role]||0)+1; return a; }, {});
+        const banned  = allUsers.filter(u => u.is_banned).length;
+        document.getElementById('system-stats').innerHTML =
+            `Managing <strong>${count}</strong> users — ` +
+            `Farmers: <strong>${rc.farmer||0}</strong>  |  ` +
+            `Buyers: <strong>${rc.buyer||0}</strong>  |  ` +
+            `Equipment Owners: <strong>${rc.equipment_owner||0}</strong>` +
+            (banned ? `  |  <span style="color:#d32f2f">Banned: <strong>${banned}</strong></span>` : '');
+
+        renderUsers(allUsers);
+    }
+
+    /* ────────────────── render ─────────────────────────────── */
+    function renderUsers(users) {
+        const container = document.getElementById('user-list-container');
+        if (!users.length) {
+            container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users-slash" style="font-size:2rem;margin-bottom:10px;"></i><br>No users found.</div>';
+            return;
+        }
+        container.innerHTML = users.map(u => {
+            const date        = new Date(u.created_at).toLocaleDateString('en-IN');
+            const isBanned    = !!u.is_banned;
+            const displayRole = isBanned ? 'banned' : (u.role || 'farmer');
+            const isSelf      = u.id === currentAdminId;
+
+            return `
+            <div class="user-item${isBanned?' banned':''}" id="user-${u.id}">
+                <div class="user-top">
+                    <div class="user-meta">
+                        <h4>${esc(u.full_name||'Unknown')}${isBanned?' <span style="color:#d32f2f;font-size:0.7rem;">(Banned)</span>':''}</h4>
+                        <p>📞 ${u.phone_number||'N/A'} &nbsp;•&nbsp; Joined: ${date}</p>
+                    </div>
+                    <span class="badge-role role-${displayRole}">${displayRole}</span>
+                </div>
+                <div class="user-actions">
+                    ${isSelf
+                        ? '<span style="font-size:0.75rem;color:#999;"><i class="fa-solid fa-lock"></i> Cannot modify own account</span>'
+                        : !isBanned
+                            ? `<select class="role-dropdown" onchange="changeRole('${u.id}',this.value)">
+                                    <option value="" disabled selected>Change Role</option>
+                                    <option value="farmer"           ${u.role==='farmer'          ?'disabled':''}>Farmer</option>
+                                    <option value="buyer"            ${u.role==='buyer'           ?'disabled':''}>Buyer</option>
+                                    <option value="equipment_owner"  ${u.role==='equipment_owner' ?'disabled':''}>Equipment Owner</option>
+                                    <option value="admin"            ${u.role==='admin'           ?'disabled':''}>Admin</option>
+                               </select>
+                               <button class="action-btn btn-ban" onclick="banUser('${u.id}')">
+                                   <i class="fa-solid fa-ban"></i> Ban
+                               </button>`
+                            : `<button class="action-btn btn-unban" onclick="unbanUser('${u.id}')">
+                                   <i class="fa-solid fa-circle-check"></i> Unban
+                               </button>`
+                    }
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    /* ────────────────── filter / sort ─────────────────────── */
+    function filterUsers() {
+        const q    = document.getElementById('search-input').value.toLowerCase();
+        const sort = document.getElementById('sort-select').value;
+
+        let list = allUsers.filter(u => {
+            const matchSearch =
+                (u.full_name    ||'').toLowerCase().includes(q) ||
+                (u.phone_number ||'').toLowerCase().includes(q);
+            const matchRole =
+                activeRoleFilter === 'all'    ? true :
+                activeRoleFilter === 'banned' ? !!u.is_banned :
+                (u.role === activeRoleFilter && !u.is_banned);
+            return matchSearch && matchRole;
+        });
+
+        if (sort === 'oldest') list.sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
+        else if (sort === 'name') list.sort((a,b) => (a.full_name||'').localeCompare(b.full_name||''));
+
+        renderUsers(list);
+    }
+
+    function setRoleFilter(role, el) {
+        document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        activeRoleFilter = role;
+        filterUsers();
+    }
+
+    /* ────────────────── ban ────────────────────────────────── */
+    async function banUser(userId) {
+        if (!confirm('Ban this user? They will lose platform access immediately.')) return;
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ is_banned: true })
+                .eq('id', userId);
+            if (error) throw error;
+
+            /* write to immutable audit trail (SRS §6.4.2.4) */
+            await writeAudit('BAN_USER', 'user', userId, 'User banned by administrator');
+
+            const u = allUsers.find(u => u.id === userId);
+            if (u) u.is_banned = true;
+            filterUsers();
+            window.showToast('User banned successfully.', 'success');
+        } catch (err) {
+            console.error('Ban error:', err);
+            window.showToast('Failed to ban user.', 'error');
+        }
+    }
+
+    /* ────────────────── unban ──────────────────────────────── */
+    async function unbanUser(userId) {
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ is_banned: false })
+                .eq('id', userId);
+            if (error) throw error;
+
+            await writeAudit('UNBAN_USER', 'user', userId, 'User reinstated by administrator');
+
+            const u = allUsers.find(u => u.id === userId);
+            if (u) u.is_banned = false;
+            filterUsers();
+            window.showToast('User reinstated.', 'success');
+        } catch (err) {
+            console.error('Unban error:', err);
+            window.showToast('Failed to unban user.', 'error');
+        }
+    }
+
+    /* ────────────────── role change ────────────────────────── */
+    async function changeRole(userId, newRole) {
+        if (!newRole) return;
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ role: newRole })
+                .eq('id', userId);
+            if (error) throw error;
+
+            await writeAudit('CHANGE_ROLE', 'user', userId, `Role changed to "${newRole}"`);
+
+            /* also notify the user (SRS FR-7.1) */
+            await supabase.from('notifications').insert({
+                user_id: userId,
+                notification_type: 'role_changed',
+                message: `Your account role has been updated to "${newRole}" by an administrator.`,
+                is_read: false,
+                delivery_channel: 'in_app'
+            });
+
+            const u = allUsers.find(u => u.id === userId);
+            if (u) u.role = newRole;
+            filterUsers();
+            window.showToast(`Role updated to "${newRole}".`, 'success');
+        } catch (err) {
+            console.error('Role change error:', err);
+            window.showToast('Failed to change role.', 'error');
+        }
+    }
+
+    /* ────────────────── shared audit helper ─────────────────── */
+    async function writeAudit(action, targetType, targetId, details) {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from('audit_logs').insert({
+            action, target_type: targetType, target_id: targetId,
+            performed_by: user?.id || null, details
+        });
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+</script>
+</body>
+</html>

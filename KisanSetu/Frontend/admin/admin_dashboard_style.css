@@ -1,0 +1,211 @@
+:root {
+    --primary-green: #2e7d32;
+    --light-green: #e8f5e9;
+    --accent-orange: #ef6c00;
+    --text-dark: #333;
+    --text-light: #666;
+    --bg-gray: #f5f7fa;
+    --white: #ffffff;
+    --admin-purple: #4a148c;
+    --light-purple: #f3e5f5;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: var(--bg-gray);
+    color: var(--text-dark);
+}
+
+.app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--white);
+    min-height: 100vh;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    position: relative;
+    padding-bottom: 80px;
+}
+
+.dashboard-header {
+    background: linear-gradient(135deg, var(--admin-purple) 0%, var(--primary-green) 100%);
+    padding: 25px 20px 35px 20px;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    color: var(--white);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.profile-pic {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.3);
+    object-fit: cover;
+}
+
+.greeting {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.location {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.sync-status {
+    background: rgba(255,255,255,0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #00e676;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(0, 230, 118, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+}
+
+.stats-widget {
+    background: var(--white);
+    margin: -20px 20px 20px 20px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    position: relative;
+    border-left: 5px solid var(--admin-purple);
+}
+
+.stats-info h3 {
+    font-size: 1.4rem;
+    color: var(--admin-purple);
+    margin-bottom: 5px;
+}
+
+.stats-info p {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 0 20px 25px 20px;
+}
+
+.action-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #eaeaea;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.action-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+.action-card p {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.recent-alerts {
+    padding: 0 20px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-dark);
+}
+
+.alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    background: var(--white);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    border: 1px solid #eaeaea;
+}
+
+.alert-item.success i { color: var(--primary-green); background: var(--light-green); padding: 10px; border-radius: 50%; }
+.alert-item.warning i { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 50%; }
+
+.alert-text h4 {
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+}
+
+.alert-text p {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.voice-fab {
+    position: fixed;
+    bottom: 30px;
+    right: max(20px, calc((100vw - 480px) / 2 + 20px));
+    width: 55px;
+    height: 55px;
+    background: linear-gradient(135deg, #d32f2f, #f44336);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    box-shadow: 0 5px 15px rgba(211, 47, 47, 0.4);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s;
+    z-index: 100;
+}
+
+.voice-fab:active {
+    transform: scale(0.9);
+}

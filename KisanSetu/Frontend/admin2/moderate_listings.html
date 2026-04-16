@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Moderate Listings</title>
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .listing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .listing-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+            border-top: 3px solid var(--border);
+        }
+
+        .listing-card:hover {
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .listing-card.Pending {
+            border-top-color: var(--orange);
+        }
+
+        .listing-card.Verified {
+            border-top-color: var(--primary);
+        }
+
+        .listing-card.Rejected {
+            border-top-color: var(--red);
+        }
+
+        .listing-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .crop-initial {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .listing-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .listing-info h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .listing-info p {
+            font-size: 0.77rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .listing-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            padding: 10px 16px;
+            background: var(--surface);
+            font-size: 0.77rem;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .meta-item {
+            color: var(--text-muted);
+        }
+
+        .meta-item strong {
+            color: var(--text);
+            display: block;
+            font-size: 0.82rem;
+        }
+
+        .listing-actions {
+            padding: 12px 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .count-bar {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .count-item {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 3px solid var(--border);
+        }
+
+        .count-item:hover {
+            box-shadow: var(--card-shadow);
+        }
+
+        .count-item.active-all {
+            border-left-color: var(--purple);
+        }
+
+        .count-item.active-pending {
+            border-left-color: var(--orange);
+        }
+
+        .count-item.active-verified {
+            border-left-color: var(--primary);
+        }
+
+        .count-item.active-rejected {
+            border-left-color: var(--red);
+        }
+
+        .count-item .num {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="../images/logo.jpeg" alt="KisanSetu Logo"
+                    style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                <div class="brand-text">
+                    <h2>KisanSetu</h2>
+                    <span>Admin Console</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-label">Overview</div>
+                <a class="nav-item" href="admin_dashboard.html"><i
+                        class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+                <div class="nav-label">Management</div>
+                <a class="nav-item" href="manage_users.html"><i class="fa-solid fa-users"></i><span>Manage
+                        Users</span><span class="nav-badge" id="nav-users-count" style="display: none;"></span></a>
+                <a class="nav-item active" href="moderate_listings.html"><i
+                        class="fa-solid fa-seedling"></i><span>Listings</span><span class="nav-badge"
+                        id="nav-listings-count" style="display: none;"></span></a>
+                <a class="nav-item" href="disputes.html"><i
+                        class="fa-solid fa-scale-balanced"></i><span>Disputes</span><span class="nav-badge"
+                        id="nav-disputes-count" style="display: none;"></span></a>
+                <div class="nav-label">System</div>
+                <a class="nav-item" href="system_logs.html"><i class="fa-solid fa-server"></i><span>System
+                        Logs</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="admin-profile">
+                    <div class="admin-avatar">SA</div>
+                    <div class="admin-info">
+                        <h4>Super Admin</h4>
+                        <p>Global Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Moderate Listings</h1>
+                    <p>Verify and approve farmer produce listings</p>
+                </div>
+                <div class="topbar-right">
+                    <a href="admin_dashboard.html" class="topbar-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                    <div class="topbar-btn" onclick="showToast('All moderation actions are audit-logged','info')"><i
+                            class="fa-solid fa-shield-halved"></i></div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="count-bar" id="count-bar"></div>
+
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="filter-bar" style="padding:12px 16px;">
+                        <div class="search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input class="search-input" type="text" id="search-input"
+                                placeholder="Search item, owner, district…" oninput="renderListings()">
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="role-pill active" id="type-produce"
+                                onclick="setTypeFilter('produce',this)">Crops</button>
+                            <button class="role-pill" id="type-equipment"
+                                onclick="setTypeFilter('equipment',this)">Equipment</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="listing-grid" id="listing-grid"></div>
+                <div class="empty-state" id="empty-state" style="display:none;">
+                    <i class="fa-solid fa-seedling"></i>
+                    <p>No listings found for this filter.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin_shared.js"></script>
+    <script type="module">
+        import { checkAdminSession } from './admin_auth.js';
+        import './admin_supabase.js';
+        checkAdminSession();
+    </script>
+    <script>
+        let listings = [];
+        let activeTab = 'all', activeType = 'produce';
+        window.setTab = setTab; window.setTypeFilter = setTypeFilter;
+        window.moderateListing = (id, status) => { if (window.approveListingLive) (status === 'Verified' ? approveListingLive(id) : rejectListingLive(id)); else localModerate(id, status); };
+
+        document.addEventListener('liveDataReady', () => {
+            console.log('[Moderate Listings] Live data detected, refreshing UI...');
+            syncFromSupabase();
+            renderCountBar();
+            renderListings();
+        });
+
+        function syncFromSupabase() {
+            listings = activeType === 'produce' ? (window.DEMO.listings || []) : (window.DEMO.equipment || []);
+        }
+
+        function counts() {
+            const c = { all: listings.length, Pending: 0, Verified: 0, Rejected: 0 };
+            listings.forEach(l => { if (c[l.status] !== undefined) c[l.status]++; });
+            return c;
+        }
+
+        function renderCountBar() {
+            const c = counts();
+            const tabs = [
+                ['all', 'All', c.all, 'purple'],
+                ['Pending', 'Pending', c.Pending, 'orange'],
+                ['Verified', 'Verified', c.Verified, 'green'],
+                ['Rejected', 'Rejected', c.Rejected, 'red'],
+            ];
+            document.getElementById('count-bar').innerHTML = tabs.map(([key, label, num, col]) => `
+        <div class="count-item ${activeTab === key ? 'active-' + key.toLowerCase() : ''}"
+             onclick="setTab('${key}',this)">
+            <span class="num" style="color:var(--${col})">${num}</span>
+            <span>${label}</span>
+        </div>`).join('');
+        }
+
+        function setTab(tab) {
+            activeTab = tab; renderCountBar(); renderListings();
+        }
+
+        function setTypeFilter(type, el) {
+            document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            activeType = type;
+            syncFromDemo();
+            renderCountBar();
+            renderListings();
+        }
+
+        function renderListings() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            let list = activeTab === 'all' ? listings : listings.filter(l => l.status === activeTab);
+            if (q) list = list.filter(l => (l.crop + l.farmer + l.district).toLowerCase().includes(q));
+
+            const grid = document.getElementById('listing-grid');
+            const empty = document.getElementById('empty-state');
+
+            if (!list.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+            empty.style.display = 'none';
+
+            const statusBadge = {
+                Pending: `<span class="badge badge-orange">Pending</span>`,
+                Verified: `<span class="badge badge-green">Verified</span>`,
+                Rejected: `<span class="badge badge-red">Rejected</span>`,
+            };
+
+            grid.innerHTML = list.map(l => `
+        <div class="listing-card ${l.status}" id="card-${l.id}">
+            <div class="listing-header">
+                <div class="crop-initial">${l.crop.charAt(0)}</div>
+                <div class="listing-info">
+                    <h4>${l.crop}</h4>
+                    <p>By <strong>${l.farmer}</strong> · ${l.district}</p>
+                </div>
+                ${statusBadge[l.status] || ''}
+            </div>
+            <div class="listing-meta">
+                <div class="meta-item"><strong>${l.qty}</strong>Quantity</div>
+                <div class="meta-item"><strong>${l.price}</strong>Price</div>
+                <div class="meta-item"><strong>${new Date(l.date).toLocaleDateString('en-IN')}</strong>Listed On</div>
+                <div class="meta-item"><strong>${l.district}</strong>District</div>
+            </div>
+            <div class="listing-actions">
+                <button class="btn btn-success" style="flex:1;justify-content:center;"
+                    ${l.status === 'Verified' ? 'disabled' : ''}
+                    onclick="moderateListing('${l.id}','Verified')">
+                    <i class="fa-solid fa-check"></i> ${l.status === 'Verified' ? 'Approved' : 'Approve'}
+                </button>
+                <button class="btn btn-danger" style="flex:1;justify-content:center;"
+                    ${l.status === 'Rejected' ? 'disabled' : ''}
+                    onclick="moderateListing('${l.id}','Rejected')">
+                    <i class="fa-solid fa-xmark"></i> ${l.status === 'Rejected' ? 'Rejected' : 'Reject'}
+                </button>
+            </div>
+        </div>`).join('');
+        }
+
+        function localModerate(id, newStatus) {
+            const l = listings.find(x => x.id === id); if (!l) return;
+            l.status = newStatus;
+            renderCountBar(); renderListings();
+            showToast(`${l.crop} listing ${newStatus.toLowerCase()}.`, newStatus === 'Verified' ? 'success' : 'warning');
+        }
+    </script>
+</body>
+
+</html>

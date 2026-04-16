@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <link rel="stylesheet" href="inventory.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <div class="dashboard-header">
+            <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <a href="farmer_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                    <div class="user-info">
+                        <span class="greeting" style="font-weight: 600; font-size: 1.1rem;">🌾 Smart Storage & Inventory</span>
+                    </div>
+                </div>
+
+                <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: linear-gradient(135deg, #2e7d32, #66bb6a); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 3px 8px rgba(46, 125, 50, 0.3); transition: transform 0.2s;">
+                    <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+                </button>
+
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="metrics-grid">
+                <div class="metric-card metric-green">
+                    <p class="metric-title">Total Portfolio Value</p>
+                    <h2 id="totalValueDisplay">₹ 0</h2>
+                    <p class="metric-subtitle">Based on Live Mandi Rates</p>
+                </div>
+                <div class="metric-card metric-red" id="spoilageAlertCard">
+                    <p class="metric-title">Spoilage Alert</p>
+                    <h2 id="riskDisplay">0 Batches</h2>
+                    <p class="metric-subtitle">Require immediate sale</p>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="voice-add-stock-btn" onclick="toggleAddForm()" style="margin-bottom: 12px;">
+                ➕ Add New Stock
+            </button>
+            <button class="btn-primary" id="btn-download-pdf" onclick="downloadStockReport()" style="margin-bottom: 20px; background:#1565c0;">
+                📄 Download Stock Report
+            </button>
+
+            <div class="card" id="addStockForm" style="display: none; border: 2px solid var(--primary-green);">
+                <h3 style="color: var(--primary-green);">Add Inventory</h3>
+                <form id="inventoryForm">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label>Category</label>
+                        <select id="itemCategory" onchange="updateFormFields()" required>
+                            <option value="produce">Harvested Produce (To Sell)</option>
+                            <option value="input">Farm Input (To Use)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label>Item Name</label>
+                        <select id="itemName" required>
+                            </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;" id="qualityGradeContainer">
+                        <label>Quality Grade (Produces Only)</label>
+                        <select id="itemGrade">
+                            <option value="A">Grade A (Premium +15%)</option>
+                            <option value="B" selected>Grade B (Standard Market Rate)</option>
+                            <option value="C">Grade C (Sub-Standard -15%)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Quantity</label>
+                        <div class="input-wrapper" style="display: flex; gap: 10px;">
+                            <input type="number" id="itemQty" placeholder="e.g., 50" required style="width: 70%;">
+                            <select id="itemUnit" style="width: 30%;">
+                                <option value="Quintals">Qtl</option>
+                                <option value="Kg">Kg</option>
+                                <option value="Bags">Bags</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;" id="storageLocationGroup">
+                        <label style="font-weight:600; font-size:0.9rem; margin-bottom:5px; display:block;">📦 Storage Location</label>
+                        <select id="storageLocation" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:8px; font-family:inherit; font-size:0.9rem;">
+                            <option value="On-Farm Storage">🏠 On-Farm Storage</option>
+                            <option value="Warehouse A">🏭 Warehouse A</option>
+                            <option value="Warehouse B">🏭 Warehouse B</option>
+                            <option value="Cold Storage">❄️ Cold Storage</option>
+                            <option value="Regulated Warehouse (NWR)">🏛️ Regulated Warehouse (NWR)</option>
+                            <option value="Co-operative Storage">🤝 Co-operative Storage</option>
+                            <option value="Transit / Mandi">🚚 Transit / Mandi</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" id="voice-save-stock-btn" class="btn-primary" style="flex: 1;">Save Stock</button>
+                        <button type="button" class="btn-primary btn-secondary" onclick="toggleAddForm()" style="flex: 1; margin-top: 0;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="tab-container">
+                <button class="tab-btn active" onclick="switchTab('produce')" id="tabProduce">Harvested Produce</button>
+                <button class="tab-btn" onclick="switchTab('input')" id="tabInput">Farm Inputs</button>
+            </div>
+
+            <div id="produceList" class="inventory-list">
+                </div>
+
+            <div id="inputList" class="inventory-list" style="display: none;">
+                </div>
+
+        </div>
+    </div>
+
+    <div id="listingModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="card" style="width: 90%; max-width: 400px; position: relative; border-left: 6px solid var(--harvest-yellow);">
+            <h3 style="color: var(--charcoal); margin-bottom: 5px;">Sell on Marketplace</h3>
+            <p id="listingModalItemName" style="color: var(--primary-green); font-weight: bold; font-size: 1.1rem; margin-bottom: 15px;">Crop Name</p>
+            
+            <form id="listingForm">
+                <input type="hidden" id="listItemId">
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>Quantity to List (<span id="maxQtyLabel">Max: 0</span>)</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="number" id="listQty" step="0.1" required style="flex: 1;">
+                        <span id="listUnitLabel" style="font-weight: bold; color: var(--charcoal);">Qtl</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Your Asking Price (per <span class="unit-text">Qtl</span>)</label>
+                    <p style="font-size: 0.8rem; color: var(--soil-brown); margin-bottom: 5px;">Suggested based on Live Mandi & Grade: <span id="suggestedPriceLabel" style="font-weight: bold; color: var(--primary-green);">₹0</span></p>
+                    <input type="number" id="listPrice" required>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-primary" style="background-color: var(--harvest-yellow); color: var(--charcoal);">Confirm Listing</button>
+                    <button type="button" class="btn-primary btn-secondary" onclick="closeListingModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="inventory.js"></script>
+    <script src="../shared/global.js"></script>
+    <!-- jsPDF for PDF stock report (FR-5.4) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Inventory modules: PDF export, storage location, farmer voice -->
+    <script src="inventory_pdf.js"></script>
+    <script src="inventory_storage.js"></script>
+    <script src="voice_farmer.js"></script>
+</body>
+</html>

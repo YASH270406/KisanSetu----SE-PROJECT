@@ -1,0 +1,347 @@
+/* Color Palette Variables */
+:root {
+    --primary-green: #2e7d32;   
+    --soil-brown: #8d6e63;      
+    --harvest-yellow: #fbc02d;  
+    --off-white: #f9fbe7;       
+    --charcoal: #37474f;        
+    --white: #ffffff;
+    --danger-red: #d32f2f;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #e0e0e0; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* App Container */
+.app-container {
+    width: 100%;
+    max-width: 400px; 
+    height: 100vh;
+    background-color: var(--off-white);
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    padding-bottom: 80px; /* Space for the floating button */
+}
+
+@media (min-width: 450px) {
+    .app-container {
+        height: 90vh;
+        border-radius: 20px;
+    }
+}
+
+/* Header */
+.dashboard-header {
+    background-color: var(--primary-green);
+    color: var(--white);
+    padding: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.profile-pic {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--harvest-yellow);
+    object-fit: cover;
+}
+
+.greeting {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.location {
+    font-size: 0.8rem;
+    color: #c8e6c9;
+}
+
+/* Sync Indicator */
+.sync-status {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #00e676; /* Green for online */
+    box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7);
+    animation: pulse 1.5s infinite;
+}
+
+/* Added offline specific pill styles */
+.sync-status.offline {
+    color: var(--danger-red);
+    background: rgba(211, 47, 47, 0.15); /* Light red background */
+}
+
+.sync-status.offline .pulse-dot {
+    background-color: var(--danger-red);
+    box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7);
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+}
+
+/* ===== NEW: Offline Sync Banner ===== */
+.offline-banner {
+    margin: 15px 20px 0;
+    background-color: #fff3e0;
+    border: 1px solid #ffb74d;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+
+.offline-banner .sync-icon {
+    color: #f57c00;
+    font-size: 1.5rem;
+    margin-right: 12px;
+}
+
+.offline-banner h4 {
+    color: #e65100;
+    margin: 0 0 4px 0;
+    font-size: 0.9rem;
+}
+
+.offline-banner p {
+    font-size: 0.75rem;
+    color: var(--soil-brown);
+    margin: 0;
+}
+
+.sync-btn {
+    margin-left: auto;
+    padding: 8px 16px;
+    background: #f57c00;
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.sync-btn:hover {
+    background: #e65100;
+}
+
+/* Weather Widget */
+.weather-widget {
+    background: linear-gradient(135deg, #81c784, #4caf50);
+    margin: 20px;
+    border-radius: 12px;
+    padding: 15px;
+    color: var(--white);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.weather-info h3 {
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.weather-icon {
+    width: 35px;
+    height: 35px;
+}
+
+.weather-info p {
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+/* Action Grid */
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 0 20px;
+}
+
+.action-card {
+    position: relative; /* Required to let the image stretch inside */
+    background: var(--white);
+    border: none; /* Removed border for a cleaner image card */
+    border-radius: 12px;
+    overflow: hidden; /* This keeps the image locked inside the rounded corners */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* Pushes the text to the bottom of the card */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s;
+    aspect-ratio: 1 / 1; /* Forces the card to be a perfect square */
+    padding: 0; /* Removed padding so image goes edge-to-edge */
+}
+
+.action-card:active {
+    transform: scale(0.95);
+}
+
+.action-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Stretches image perfectly without distorting it */
+    z-index: 1; /* Places the image BEHIND the text */
+}
+
+.action-card p {
+    position: relative;
+    z-index: 2; /* Places the text ON TOP of the image */
+    color: var(--white); /* White text */
+    font-weight: 600;
+    font-size: 0.9rem;
+    background-color: rgba(0, 0, 0, 0.65); /* Semi-transparent black highlight */
+    padding: 6px 12px;
+    border-radius: 20px; /* Creates a nice pill shape */
+    margin-bottom: 15px; /* Lifts the text slightly off the bottom edge */
+    width: 85%; /* Prevents text from touching the absolute edges */
+    text-align: center;
+}
+
+/* Recent Alerts */
+.recent-alerts {
+    padding: 25px 20px;
+}
+
+.section-title {
+    color: var(--charcoal);
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.alert-item {
+    background: var(--white);
+    padding: 12px 15px;
+    border-radius: 8px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-left: 4px solid transparent;
+}
+
+.alert-item.success { border-left-color: var(--primary-green); }
+.alert-item.success i { color: var(--primary-green); font-size: 1.5rem; }
+
+.alert-item.warning { border-left-color: var(--harvest-yellow); }
+.alert-item.warning i { color: var(--harvest-yellow); font-size: 1.5rem; }
+
+.alert-text h4 { font-size: 0.9rem; color: var(--charcoal); }
+.alert-text p { font-size: 0.75rem; color: var(--soil-brown); margin-top: 3px; }
+
+/* Floating Voice Action Button (FAB) */
+.voice-fab {
+    position: fixed; /* CHANGED from absolute to fixed */
+    bottom: 30px;
+    right: 30px;
+    width: 70px;
+    height: 70px;
+    background-color: var(--harvest-yellow);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1000; /* Increased to ensure it stays above all other content */
+    transition: 0.2s;
+}
+
+.voice-fab:active {
+    transform: scale(0.9) translateY(5px);
+    background-color: #f9a825;
+}
+
+/* ===== NEW: Voice "Listening" State ===== */
+.voice-fab.listening {
+    background-color: var(--danger-red) !important;
+    animation: pulse 1.5s infinite;
+}
+
+.voice-fab.listening .mic-icon {
+    color: var(--white) !important;
+}
+
+.mic-img {
+    width: 35px;
+    height: 35px;
+}
+
+/* Responsive Design for Dashboard on Laptops */
+@media (min-width: 768px) {
+    .app-container {
+        max-width: 1200px; /* Use full laptop width */
+        height: 100vh;
+        border-radius: 0; /* Remove curved edges for a full-screen app feel */
+    }
+
+    /* Put all 4 action buttons in a single row */
+    .action-grid {
+        grid-template-columns: repeat(4, 1fr); 
+        max-width: 1000px;
+        margin: 0 auto; /* Center the grid on the screen */
+        gap: 20px;
+    }
+
+    /* Center the weather and alerts on the wide screen */
+    .weather-widget, .recent-alerts, .offline-banner {
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .action-card p {
+        font-size: 1.1rem;
+    }
+}

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | System Logs</title>
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .action-badge {
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .ab-BAN_USER {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .ab-UNBAN_USER {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .ab-CHANGE_ROLE {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .ab-APPROVE_LISTING {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .ab-REJECT_LISTING {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .ab-RESOLVE_DISPUTE {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .ab-ESCALATE_DISPUTE {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .ab-default {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .log-line-user {
+            background: var(--purple);
+        }
+
+        .log-line-listing {
+            background: var(--orange);
+        }
+
+        .log-line-dispute {
+            background: var(--red);
+        }
+
+        .log-line-system {
+            background: var(--blue);
+        }
+
+        .summary-chips {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .sum-chip {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            border-left: 3px solid var(--border);
+        }
+
+        .sum-chip .n {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="../images/logo.jpeg" alt="KisanSetu Logo"
+                    style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                <div class="brand-text">
+                    <h2>KisanSetu</h2>
+                    <span>Admin Console</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-label">Overview</div>
+                <a class="nav-item" href="admin_dashboard.html"><i
+                        class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+                <div class="nav-label">Management</div>
+                <a class="nav-item" href="manage_users.html"><i class="fa-solid fa-users"></i><span>Manage
+                        Users</span><span class="nav-badge" id="nav-users-count" style="display: none;"></span></a>
+                <a class="nav-item" href="moderate_listings.html"><i
+                        class="fa-solid fa-seedling"></i><span>Listings</span><span class="nav-badge"
+                        id="nav-listings-count" style="display: none;"></span></a>
+                <a class="nav-item" href="disputes.html"><i
+                        class="fa-solid fa-scale-balanced"></i><span>Disputes</span><span class="nav-badge"
+                        id="nav-disputes-count" style="display: none;"></span></a>
+                <div class="nav-label">System</div>
+                <a class="nav-item active" href="system_logs.html"><i class="fa-solid fa-server"></i><span>System
+                        Logs</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="admin-profile">
+                    <div class="admin-avatar">SA</div>
+                    <div class="admin-info">
+                        <h4>Super Admin</h4>
+                        <p>Global Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>System Logs</h1>
+                    <p>Immutable audit trail — all admin actions</p>
+                </div>
+                <div class="topbar-right">
+                    <a href="admin_dashboard.html" class="topbar-btn"><i class="fa-solid fa-arrow-left"></i></a>
+                    <button class="btn btn-primary btn-sm" onclick="exportCSV()">
+                        <i class="fa-solid fa-download"></i> Export CSV
+                    </button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="summary-chips" id="summary-chips"></div>
+
+                <div class="card">
+                    <div class="filter-bar">
+                        <div class="search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input class="search-input" type="text" id="search-input"
+                                placeholder="Search action, detail…" oninput="applyFilter()">
+                        </div>
+                        <select class="filter-select" id="type-filter" onchange="applyFilter()">
+                            <option value="all">All Categories</option>
+                            <option value="user">User Actions</option>
+                            <option value="listing">Listing Actions</option>
+                            <option value="dispute">Dispute Actions</option>
+                        </select>
+                    </div>
+
+                    <div id="logs-container"></div>
+
+                    <div class="pagination">
+                        <span id="page-info" style="color:var(--text-muted);font-size:0.8rem;"></span>
+                        <div class="page-btns">
+                            <button class="page-btn" id="prev-btn" onclick="changePage(-1)" disabled><i
+                                    class="fa-solid fa-chevron-left"></i></button>
+                            <button class="page-btn" id="next-btn" onclick="changePage(1)"><i
+                                    class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="text-align:center;color:var(--text-muted);font-size:0.78rem;margin-top:14px;">
+                    <i class="fa-solid fa-lock"></i> Logs are immutable and tamper-proof
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin_shared.js"></script>
+    <script type="module">
+        import { checkAdminSession } from './admin_auth.js';
+        import './admin_supabase.js';
+        checkAdminSession();
+    </script>
+    <script>
+        const PAGE_SIZE = 10;
+        let filtered = [];
+        let currentPage = 1;
+        window.applyFilter = applyFilter; window.changePage = changePage; window.exportCSV = exportCSV;
+
+        const ICONS = { user: 'fa-user-shield', listing: 'fa-seedling', dispute: 'fa-scale-balanced', system: 'fa-server' };
+        const COLORS = { user: 'purple', listing: 'orange', dispute: 'red', system: 'blue' };
+        const LABELS = {
+            BAN_USER: 'User Banned', UNBAN_USER: 'User Unbanned', CHANGE_ROLE: 'Role Changed',
+            APPROVE_LISTING: 'Listing Approved', REJECT_LISTING: 'Listing Rejected',
+            RESOLVE_DISPUTE: 'Dispute Resolved', ESCALATE_DISPUTE: 'Dispute Escalated',
+        };
+
+        document.addEventListener('liveDataReady', () => {
+            console.log('[System Logs] Live data ready, refreshing UI...');
+            syncFromSupabase();
+            renderChips();
+            applyFilter();
+        });
+
+        function syncFromSupabase() {
+            filtered = [...(window.DEMO.logs || [])];
+        }
+
+        function renderChips() {
+            const c = { user: 0, listing: 0, dispute: 0 };
+            DEMO.logs.forEach(l => { if (c[l.cat] !== undefined) c[l.cat]++; });
+            const chips = [
+                ['fa-user-shield', 'purple', c.user, 'User Actions'],
+                ['fa-seedling', 'orange', c.listing, 'Listing Actions'],
+                ['fa-scale-balanced', 'red', c.dispute, 'Dispute Actions'],
+            ];
+            document.getElementById('summary-chips').innerHTML =
+                `<div class="sum-chip" style="border-left-color:var(--blue);">
+            <i class="fa-solid fa-list" style="color:var(--blue)"></i>
+            <span class="n">${DEMO.logs.length}</span> Total Entries
+        </div>`+
+                chips.map(([ic, col, n, lbl]) => `
+        <div class="sum-chip" style="border-left-color:var(--${col});">
+            <i class="fa-solid ${ic}" style="color:var(--${col})"></i>
+            <span class="n">${n}</span> ${lbl}
+        </div>`).join('');
+        }
+
+        function applyFilter() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const t = document.getElementById('type-filter').value;
+            filtered = (window.DEMO.logs || []).filter(l => {
+                const mc = t === 'all' || l.cat === t;
+                const mq = (l.action + l.detail).toLowerCase().includes(q);
+                return mc && mq;
+            });
+            currentPage = 1; renderPage();
+        }
+
+        function renderPage() {
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const page = filtered.slice(start, start + PAGE_SIZE);
+            const total = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+            document.getElementById('page-info').textContent = `Page ${currentPage} of ${total} · ${filtered.length} entries`;
+            document.getElementById('prev-btn').disabled = currentPage <= 1;
+            document.getElementById('next-btn').disabled = currentPage >= total;
+
+            const container = document.getElementById('logs-container');
+            if (!filtered.length) {
+                container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-clipboard-list"></i><p>No entries match this filter.</p></div>`;
+                return;
+            }
+
+            container.innerHTML = page.map(l => {
+                const col = COLORS[l.cat] || 'blue';
+                const icon = ICONS[l.cat] || 'fa-circle';
+                const label = LABELS[l.action] || l.action;
+                const badgeCls = `ab-${l.action || 'default'}`;
+                return `
+        <div class="log-row">
+            <div class="log-line log-line-${l.cat}"></div>
+            <div class="stat-icon ${col}" style="width:34px;height:34px;border-radius:8px;font-size:0.82rem;flex-shrink:0;">
+                <i class="fa-solid ${icon}"></i>
+            </div>
+            <div class="log-body">
+                <div class="log-action" style="display:flex;align-items:center;gap:8px;">
+                    ${label}
+                    <span class="action-badge ${badgeCls}">${l.action}</span>
+                </div>
+                <div class="log-details">${l.detail} · by ${l.by}</div>
+                <div class="log-time"><i class="fa-regular fa-clock"></i> ${l.time}</div>
+            </div>
+        </div>`;
+            }).join('');
+        }
+
+        function changePage(dir) {
+            const total = Math.ceil(filtered.length / PAGE_SIZE);
+            currentPage = Math.max(1, Math.min(total, currentPage + dir));
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function exportCSV() {
+            if (!filtered.length) { showToast('No logs to export.', 'warning'); return; }
+            const rows = [['Action', 'Category', 'Detail', 'Performed By', 'Time'], ...filtered.map(l => [l.action, l.cat, l.detail, l.by, l.time])];
+            const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+            const a = Object.assign(document.createElement('a'), {
+                href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+                download: `kisansetu_logs_${new Date().toISOString().slice(0, 10)}.csv`
+            });
+            a.click();
+            showToast('Audit log exported.', 'success');
+        }
+    </script>
+</body>
+
+</html>

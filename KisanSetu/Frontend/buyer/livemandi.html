@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Real-Time Mandi Prices</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mandi_prices_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+
+    <style>
+        :root {
+            --primary-green: #2e7d32;
+            --soil-brown: #8d6e63;
+            --harvest-yellow: #fbc02d;
+            --charcoal: #37474f;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            color: var(--charcoal);
+        }
+
+        .hero-header {
+            background: linear-gradient(rgba(46, 125, 50, 0.85), rgba(46, 125, 50, 0.85)),
+                url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80') center/cover;
+            color: var(--white);
+            padding: 30px 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-3px);
+        }
+
+        .hero-header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .hero-header p {
+            font-size: 0.9rem;
+            color: #e8f5e9;
+            font-weight: 300;
+        }
+
+        .filter-container {
+            background: var(--white);
+            margin: -20px 20px 20px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.8rem;
+            color: var(--soil-brown);
+            font-weight: 600;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--charcoal);
+            outline: none;
+            background: #fafafa;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            border-color: var(--primary-green);
+        }
+
+        .filter-group select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .dashboard-container {
+            padding: 0 20px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .info-banner {
+            background: #fff3e0;
+            border-left: 4px solid var(--harvest-yellow);
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #e65100;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-wrapper {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: rgba(46, 125, 50, 0.05);
+            color: var(--primary-green);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .crop-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .crop-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .crop-name {
+            font-weight: 600;
+            color: var(--charcoal);
+            display: block;
+        }
+
+        .crop-variety {
+            font-size: 0.75rem;
+            color: var(--soil-brown);
+        }
+
+        .price-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-green);
+        }
+
+        .location-text {
+            font-size: 0.85rem;
+            color: var(--charcoal);
+            font-weight: 500;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .badge-best {
+            background: #e8f5e9;
+            color: var(--primary-green);
+            border: 1px solid #a5d6a7;
+        }
+
+        .badge-api {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #90caf9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="hero-header">
+        
+        <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="buyer_dashboard.html" class="back-btn" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1 style="margin: 0;">Market Prices</h1>
+            </div>
+
+            <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: white; color: #2e7d32; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.2s;">
+                <i class="fa-solid fa-microphone" style="font-size: 1.1rem;"></i>
+            </button>
+
+        </div>
+
+        <p><i class="fa-solid fa-chart-line"></i> Real-time APMC market rates across India.</p>
+
+        <div id="last-updated-badge" style="margin-top: 15px; font-size: 0.8rem; background: rgba(255,255,255,0.2); display: inline-block; padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.4);">
+            <i class="fa-solid fa-clock"></i> Fetching Live Data...
+        </div>
+    </header>
+
+    <div class="filter-container">
+        <div class="filter-group">
+            <label>State</label>
+            <select id="state-filter" onchange="onStateChange(event)">
+                <option value="">All States</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>District</label>
+            <select id="district-filter" disabled onchange="filterListings()">
+                <option value="">All Districts</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Search Commodity</label>
+            <select id="crop-filter" onchange="filterListings()">
+                <option value="">All Commodities</option>
+                <option value="Wheat">Wheat</option>
+                <option value="Rice">Rice</option>
+                <option value="Tomato">Tomato</option>
+                <option value="Potato">Potato</option>
+                <option value="Onion">Onion</option>
+                <option value="Cauliflower">Cauliflower</option>
+                <option value="Brinjal">Brinjal</option>
+                <option value="Bitter gourd">Bitter Gourd</option>
+                <option value="Green Chilli">Green Chilli</option>
+                <option value="Cotton">Cotton</option>
+                <option value="Apple">Apple</option>
+                <option value="Garlic">Garlic</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="info-banner">
+            <i class="fa-solid fa-earth-americas"></i>
+            <span id="geocode-progress"><strong>Calculating Live Routes:</strong> Fetching real OpenStreetMap geographic data...</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('commodity')" style="cursor: pointer; user-select: none;" title="Click to sort">Commodity <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                        <th onclick="sortTable('location')" style="cursor: pointer; user-select: none;" title="Click to sort">Market Location <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                        <th onclick="sortTable('price')" style="cursor: pointer; user-select: none;" title="Click to sort">Modal Price (₹/Qtl) <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                        <th onclick="sortTable('date')" style="cursor: pointer; user-select: none;" title="Click to sort">Arrival Date <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                        <th onclick="sortTable('distance')" style="cursor: pointer; user-select: none;" title="Click to sort">Distance <i class="fa-solid fa-sort indicator" style="color: #ccc; margin-left: 5px;"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="mandi-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="trend-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Crop Price Trend</h3>
+                <button class="close-btn" onclick="closeTrendModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../states_data.js"></script>
+    <script type="module">
+        import { initializeDashboard } from '../shared/auth-helper.js';
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeDashboard('Buyer');
+        });
+    </script>
+    <script src="mandi_prices.js"></script>
+    <script src="../shared/global.js"></script>
+</body>
+
+</html>

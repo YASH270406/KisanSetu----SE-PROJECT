@@ -1,0 +1,343 @@
+/* =============================================================
+   Shared Negotiation Trail Styles
+   Used by: farmer/bid.html and buyer/bids_offers.html
+   ============================================================= */
+
+/* ── Bid Meta Line ─────────────────────────────────────────── */
+.bid-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 3px;
+    font-size: 0.72rem;
+    color: #888;
+}
+
+/* ── Move Tags ─────────────────────────────────────────────── */
+.move-tag {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.move-farmer  { background: #ede9fe; color: #7c3aed; }
+.move-buyer   { background: #fff3e0; color: #e65100; }
+.move-initial { background: #f0f0f0; color: #666; }
+
+/* ── Negotiation Trail Block ───────────────────────────────── */
+.negotiation-trail {
+    background: #f9fafb;
+    border: 1px solid #efefef;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.trail-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.trail-item {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.trail-label {
+    font-size: 0.7rem;
+    color: #999;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.trail-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #37474f;
+}
+
+.trail-value small {
+    font-size: 0.7rem;
+    color: #999;
+    font-weight: 400;
+    margin-left: 1px;
+}
+
+/* ── Divider Arrow ─────────────────────────────────────────── */
+.trail-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
+}
+
+.trail-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #ddd, transparent);
+}
+
+.trail-divider-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #e8f5e9;
+    color: #2e7d32;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+    border: 1px solid #c8e6c9;
+}
+
+/* ── Current Offer Row ─────────────────────────────────────── */
+.trail-current {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 10px;
+    padding: 10px 14px;
+    gap: 10px;
+}
+
+/* Farmer's counter → purple tint */
+.trail-by-farmer {
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border: 1px solid #ddd6fe;
+}
+
+/* Buyer's offer/counter → orange tint */
+.trail-by-buyer {
+    background: linear-gradient(135deg, #fff8f0 0%, #fff3e0 100%);
+    border: 1px solid #ffe0b2;
+}
+
+.trail-current-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.trail-offer-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #37474f;
+    line-height: 1.2;
+}
+
+.trail-offer-price small {
+    font-size: 0.72rem;
+    color: #999;
+    font-weight: 400;
+}
+
+/* ── Diff Badge ────────────────────────────────────────────── */
+.trail-diff-badge {
+    text-align: center;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.diff-below {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.diff-above {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* ── Total Row ─────────────────────────────────────────────── */
+.trail-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fffde7;
+    border: 1px solid #fff59d;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.trail-total-val {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+/* ── Inline Counter Form ───────────────────────────────────── */
+.counter-form-inline {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 12px;
+    animation: slideDown 0.2s ease;
+}
+
+.counter-form-inline label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #e65100;
+    margin-bottom: 10px;
+}
+
+.counter-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+}
+
+.currency-sym {
+    padding: 10px 13px;
+    background: #f5f5f5;
+    color: #37474f;
+    font-weight: 700;
+    border-right: 1px solid #ddd;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.counter-input-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    color: #37474f;
+    min-width: 0;
+}
+
+.counter-input-row button {
+    padding: 10px 16px;
+    background: #fbc02d;
+    border: none;
+    font-size: 0.83rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: #37474f;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.counter-input-row button:hover {
+    background: #f9a825;
+}
+
+.btn-cancel-counter {
+    background: #f5f5f5 !important;
+    color: #888 !important;
+    border-left: 1px solid #ddd !important;
+}
+
+.btn-cancel-counter:hover {
+    background: #e0e0e0 !important;
+}
+
+/* ── State Banners ─────────────────────────────────────────── */
+.waiting-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff8f0;
+    border: 1px solid #ffe0b2;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #e65100;
+    font-weight: 500;
+    flex: 1;
+}
+
+.waiting-state i {
+    animation: pulse 1.5s infinite;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.terminal-state {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+.terminal-success {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    color: #2e7d32;
+}
+
+.terminal-rejected {
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    color: #757575;
+}
+
+/* ── Offline Banner ────────────────────────────────────────── */
+.offline-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff8f0;
+    border: 1px dashed #ffcc80;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    color: #e65100;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+/* ── Animations ────────────────────────────────────────────── */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .trail-row          { flex-direction: column; gap: 8px; }
+    .trail-current      { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .trail-offer-price  { font-size: 1.1rem; }
+    .counter-input-row  { flex-wrap: wrap; }
+    .counter-input-row button { flex: 1; }
+}

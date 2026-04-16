@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Notification Preferences</title>
+    <meta name="description" content="Manage your KisanSetu notification preferences — control alerts for orders, bookings, price drops, and expiry warnings.">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --green:        #2e7d32;
+            --green-dark:   #1b5e20;
+            --green-light:  #e8f5e9;
+            --amber:        #e65100;
+            --blue:         #1565c0;
+            --charcoal:     #37474f;
+            --muted:        #78909c;
+            --bg:           #f4f7f6;
+            --border:       #e0e0e0;
+            --white:        #ffffff;
+            --radius:       14px;
+        }
+        body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--charcoal); min-height:100vh; }
+
+        /* ── Header ── */
+        .np-header {
+            background: linear-gradient(135deg, var(--green-dark), var(--green));
+            color: white; padding: 20px 20px 28px;
+        }
+        .np-header-inner {
+            display:flex; align-items:center; gap:14px;
+            max-width: 620px; margin: 0 auto;
+        }
+        .np-back-btn {
+            background:rgba(255,255,255,0.15); border:none; border-radius:50%;
+            width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+            cursor:pointer; color:white; font-size:1rem; text-decoration:none; flex-shrink:0;
+            transition: background 0.2s;
+        }
+        .np-back-btn:hover { background:rgba(255,255,255,0.25); }
+        .np-header h1 { font-size:1.4rem; font-weight:700; }
+        .np-header p  { font-size:0.82rem; opacity:0.85; margin-top:2px; }
+        .np-user-badge {
+            margin-left:auto; background:rgba(255,255,255,0.15);
+            border-radius:20px; padding:4px 12px; font-size:0.75rem;
+            display:flex; align-items:center; gap:6px; white-space:nowrap;
+        }
+
+        /* ── Main ── */
+        .np-container { max-width:620px; margin:0 auto; padding:24px 16px 60px; }
+
+        .np-section {
+            background:white; border-radius:var(--radius);
+            border:1px solid var(--border);
+            margin-bottom:20px; overflow:hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .np-section-header {
+            padding:16px 20px; border-bottom:1px solid #f0f4f4;
+            display:flex; align-items:center; gap:10px;
+        }
+        .np-section-header .np-sec-icon {
+            font-size:1.3rem;
+        }
+        .np-section-header h2 { font-size:1rem; font-weight:600; }
+        .np-section-header p  { font-size:0.75rem; color:var(--muted); margin-top:1px; }
+
+        /* ── Toggle Row ── */
+        .np-row {
+            display:flex; align-items:center; gap:14px;
+            padding:16px 20px; border-bottom:1px solid #f9f9f9;
+            transition: background 0.15s;
+        }
+        .np-row:last-child { border-bottom:none; }
+        .np-row:hover { background:#f9fbf9; }
+
+        .np-row-icon {
+            width:40px; height:40px; border-radius:10px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.2rem; flex-shrink:0;
+        }
+        .icon-green  { background:#e8f5e9; }
+        .icon-blue   { background:#e3f2fd; }
+        .icon-amber  { background:#fff3e0; }
+        .icon-red    { background:#ffebee; }
+        .icon-purple { background:#f3e5f5; }
+        .icon-teal   { background:#e0f2f1; }
+
+        .np-row-text { flex:1; }
+        .np-label { font-size:0.9rem; font-weight:600; color:var(--charcoal); }
+        .np-desc  { font-size:0.76rem; color:var(--muted); margin-top:2px; }
+
+        /* ── Toggle Switch ── */
+        .np-toggle { position:relative; width:50px; height:28px; flex-shrink:0; }
+        .np-toggle input { opacity:0; width:0; height:0; }
+        .np-slider {
+            position:absolute; cursor:pointer;
+            top:0; left:0; right:0; bottom:0;
+            background:#cfd8dc; border-radius:28px;
+            transition:background 0.25s;
+        }
+        .np-slider::before {
+            content:''; position:absolute;
+            width:22px; height:22px; left:3px; bottom:3px;
+            background:white; border-radius:50%;
+            transition:transform 0.25s;
+            box-shadow:0 1px 4px rgba(0,0,0,0.2);
+        }
+        .np-toggle input:checked + .np-slider { background:var(--green); }
+        .np-toggle input:checked + .np-slider::before { transform:translateX(22px); }
+        .np-toggle input:disabled + .np-slider { opacity:0.6; cursor:not-allowed; }
+
+        /* ── Info box ── */
+        .np-info-box {
+            background:var(--green-light); border-left:4px solid var(--green);
+            border-radius:10px; padding:14px 16px; margin-bottom:20px;
+            font-size:0.82rem; color:var(--green-dark);
+            display:flex; gap:10px; align-items:flex-start;
+        }
+        .np-info-box i { margin-top:2px; }
+
+        /* ── Status badge ── */
+        .np-status-badge {
+            display:inline-flex; align-items:center; gap:6px;
+            background:#e3f2fd; color:var(--blue);
+            border-radius:20px; padding:4px 12px; font-size:0.72rem; font-weight:600;
+        }
+
+        /* ── Toast ── */
+        #np-toast {
+            position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+            color:white; border-radius:12px; padding:12px 22px;
+            font-size:0.85rem; font-weight:500; z-index:9999;
+            display:none; max-width:320px; text-align:center;
+            box-shadow:0 6px 20px rgba(0,0,0,0.25);
+        }
+
+        /* ── Channel note ── */
+        .np-channel-note {
+            font-size:0.7rem; color:var(--muted);
+            background:#f5f5f5; border-radius:8px;
+            padding:10px 14px; margin:0 20px 16px;
+        }
+
+        /* ── Save confirm ── */
+        .np-saved-bar {
+            position:fixed; bottom:0; left:0; right:0;
+            background:var(--green-dark); color:white;
+            text-align:center; padding:12px; font-size:0.85rem;
+            font-weight:600; display:none; z-index:9998;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="np-header">
+    <div class="np-header-inner">
+        <a href="javascript:history.back()" class="np-back-btn">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1>🔔 Notification Preferences</h1>
+            <p>Control how and when KisanSetu alerts you</p>
+        </div>
+        <div class="np-user-badge" id="kyc-user-name">
+            <i class="fa-solid fa-user-circle"></i>
+            <span id="np-user-email">Account</span>
+        </div>
+    </div>
+</header>
+
+<div class="np-container">
+
+    <!-- Info Box -->
+    <div class="np-info-box">
+        <i class="fa-solid fa-circle-info"></i>
+        <div>
+            Changes save automatically. Preferences are synced across all your devices.
+            In-app notifications cannot be disabled — they are required for account security.
+        </div>
+    </div>
+
+    <!-- ── Section 1: In-App Alerts ── -->
+    <div class="np-section">
+        <div class="np-section-header">
+            <span class="np-sec-icon">📱</span>
+            <div>
+                <h2>In-App Notifications</h2>
+                <p>Alerts shown inside KisanSetu while you are active</p>
+            </div>
+        </div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-green"><i class="fa-solid fa-bell fa-sm" style="color:#2e7d32;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">In-App Alerts</div>
+                <div class="np-desc">All notifications displayed in the bell menu <span class="np-status-badge"><i class="fa-solid fa-lock fa-xs"></i> Always On</span></div>
+            </div>
+            <label class="np-toggle">
+                <input type="checkbox" id="pref-in_app" checked disabled onchange="togglePref('in_app', this)">
+                <span class="np-slider"></span>
+            </label>
+        </div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-blue"><i class="fa-solid fa-cart-shopping fa-sm" style="color:#1565c0;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">Order & Payment Alerts</div>
+                <div class="np-desc">Order placed, payment received, escrow released</div>
+            </div>
+            <label class="np-toggle">
+                <input type="checkbox" id="pref-order_alerts" checked onchange="togglePref('order_alerts', this)">
+                <span class="np-slider"></span>
+            </label>
+        </div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-teal"><i class="fa-solid fa-tractor fa-sm" style="color:#00695c;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">Booking & Rental Alerts</div>
+                <div class="np-desc">Equipment booking approved, rejected, or upcoming</div>
+            </div>
+            <label class="np-toggle">
+                <input type="checkbox" id="pref-booking_alerts" checked onchange="togglePref('booking_alerts', this)">
+                <span class="np-slider"></span>
+            </label>
+        </div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-amber"><i class="fa-solid fa-chart-line fa-sm" style="color:#e65100;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">Mandi Price Drop Alerts</div>
+                <div class="np-desc">Notified when a crop price drops &gt;5% in your district</div>
+            </div>
+            <label class="np-toggle">
+                <input type="checkbox" id="pref-price_alerts" checked onchange="togglePref('price_alerts', this)">
+                <span class="np-slider"></span>
+            </label>
+        </div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-red"><i class="fa-solid fa-triangle-exclamation fa-sm" style="color:#c62828;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">Inventory Expiry Warnings</div>
+                <div class="np-desc">Alert when produce batch shelf-life falls below 15%</div>
+            </div>
+            <label class="np-toggle">
+                <input type="checkbox" id="pref-expiry_alerts" checked onchange="togglePref('expiry_alerts', this)">
+                <span class="np-slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Marketing / Email ── -->
+    <div class="np-section">
+        <div class="np-section-header">
+            <span class="np-sec-icon">📧</span>
+            <div>
+                <h2>Email & Marketing</h2>
+                <p>Emails sent to your registered address</p>
+            </div>
+        </div>
+
+        <div class="np-channel-note">
+            ℹ️ Transactional emails (security, password reset) <strong>cannot</strong> be opted out of.
+            Only promotional content can be disabled below.
+        </div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-purple"><i class="fa-solid fa-envelope fa-sm" style="color:#7b1fa2;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">Email Marketing & Offers</div>
+                <div class="np-desc">Government scheme updates, seasonal crop tips, KisanSetu news</div>
+            </div>
+            <label class="np-toggle">
+                <input type="checkbox" id="pref-email_marketing" checked onchange="togglePref('email_marketing', this)">
+                <span class="np-slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- ── Section 3: Live Status ── -->
+    <div class="np-section">
+        <div class="np-section-header">
+            <span class="np-sec-icon">📡</span>
+            <div>
+                <h2>Notification Channels</h2>
+                <p>How alerts reach you (read-only — set during onboarding)</p>
+            </div>
+        </div>
+        <!-- Status ID message -->
+        <div id="kyc-status-msg" style="display:none;padding:10px 20px;font-size:0.8rem;"></div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-green"><i class="fa-brands fa-chrome fa-sm" style="color:#2e7d32;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">In-App (Web)</div>
+                <div class="np-desc">Bell icon, toast popups, and dashboard banners</div>
+            </div>
+            <span class="np-status-badge" style="background:#e8f5e9;color:#2e7d32;">✅ Active</span>
+        </div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-amber"><i class="fa-solid fa-mobile-screen-button fa-sm" style="color:#e65100;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">SMS / WhatsApp</div>
+                <div class="np-desc">Critical alerts to registered mobile number</div>
+            </div>
+            <span class="np-status-badge" style="background:#fff3e0;color:#e65100;">⏳ Coming Soon</span>
+        </div>
+
+        <div class="np-row">
+            <div class="np-row-icon icon-blue"><i class="fa-solid fa-envelope fa-sm" style="color:#1565c0;"></i></div>
+            <div class="np-row-text">
+                <div class="np-label">Email</div>
+                <div class="np-desc">Sent to your registered email address</div>
+            </div>
+            <span class="np-status-badge">✅ Active</span>
+        </div>
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div id="np-toast"></div>
+
+<!-- Auto-save bar -->
+<div class="np-saved-bar" id="np-saved-bar">
+    ✅ Preferences saved automatically
+</div>
+
+<script type="module" src="notification-prefs.js"></script>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Identity Verification (KYC)</title>
+    <meta name="description" content="Complete your KYC verification to unlock all KisanSetu features. Submit Aadhaar and PAN details securely.">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+        :root {
+            --green:       #2e7d32;
+            --green-dark:  #1b5e20;
+            --green-light: #e8f5e9;
+            --blue:        #1565c0;
+            --amber:       #e65100;
+            --danger:      #c62828;
+            --charcoal:    #37474f;
+            --muted:       #78909c;
+            --bg:          #f4f7f6;
+            --border:      #e0e0e0;
+            --radius:      14px;
+        }
+        body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--charcoal); min-height:100vh; }
+
+        /* ── Animated background ── */
+        body::before {
+            content:''; position:fixed; top:-50%; left:-50%;
+            width:200%; height:200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(46,125,50,0.07) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 80%, rgba(21,101,192,0.05) 0%, transparent 50%);
+            pointer-events:none; z-index:0;
+        }
+
+        /* ── Header ── */
+        .kyc-header {
+            background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 60%, #43a047 100%);
+            color: white; padding: 24px 20px 40px; text-align:center;
+            position:relative; z-index:1;
+        }
+        .kyc-header .logo { font-size:2rem; margin-bottom:6px; }
+        .kyc-header h1 { font-size:1.5rem; font-weight:700; margin-bottom:4px; }
+        .kyc-header p  { font-size:0.85rem; opacity:0.85; }
+        .kyc-header .kyc-steps {
+            display:flex; justify-content:center; gap:0; margin-top:20px;
+        }
+        .kyc-step {
+            display:flex; flex-direction:column; align-items:center; gap:4px;
+            padding:0 16px; position:relative;
+        }
+        .kyc-step:not(:last-child)::after {
+            content:''; position:absolute; right:-1px; top:14px;
+            width:2px; height:2px; background:rgba(255,255,255,0.4);
+            box-shadow: 12px 0 0 rgba(255,255,255,0.4);
+        }
+        .kyc-step-circle {
+            width:28px; height:28px; border-radius:50%;
+            background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.5);
+            display:flex; align-items:center; justify-content:center;
+            font-size:0.75rem; font-weight:700;
+        }
+        .kyc-step.active .kyc-step-circle { background:white; color:var(--green-dark); border-color:white; }
+        .kyc-step.done   .kyc-step-circle { background:#a5d6a7; border-color:#a5d6a7; color:var(--green-dark); }
+        .kyc-step-label { font-size:0.65rem; opacity:0.8; }
+
+        /* ── Card ── */
+        .kyc-card {
+            background:white; border-radius:20px;
+            max-width:520px; margin:-20px auto 30px; padding:28px 26px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.08);
+            position:relative; z-index:2;
+        }
+
+        /* ── Section header ── */
+        .kyc-section-title {
+            display:flex; align-items:center; gap:10px;
+            font-size:1rem; font-weight:700; color:var(--charcoal);
+            margin-bottom:16px; padding-bottom:12px;
+            border-bottom:1px solid var(--border);
+        }
+        .kyc-section-title span { background:var(--green-light); border-radius:8px; padding:4px 10px; font-size:0.8rem; color:var(--green); }
+
+        /* ── Form ── */
+        .kyc-form-group { margin-bottom:18px; }
+        .kyc-form-group label {
+            display:block; font-weight:600; font-size:0.85rem;
+            color:var(--charcoal); margin-bottom:6px;
+        }
+        .kyc-form-group .kyc-label-sub {
+            font-weight:400; font-size:0.75rem; color:var(--muted); margin-left:6px;
+        }
+        .kyc-input {
+            width:100%; padding:12px 16px; border:1.5px solid var(--border);
+            border-radius:10px; font-family:inherit; font-size:0.95rem;
+            color:var(--charcoal); transition:border-color 0.2s, box-shadow 0.2s;
+            background:white;
+        }
+        .kyc-input:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(46,125,50,0.1); }
+        .kyc-input-error { border-color:var(--danger) !important; }
+        .kyc-input-hint { font-size:0.72rem; color:var(--muted); margin-top:5px; }
+
+        /* ── Upload area ── */
+        .kyc-upload-area {
+            border:2px dashed var(--border); border-radius:12px;
+            padding:20px; text-align:center; cursor:pointer;
+            transition:border-color 0.2s, background 0.2s;
+        }
+        .kyc-upload-area:hover { border-color:var(--green); background:var(--green-light); }
+        .kyc-upload-area input { display:none; }
+        .kyc-upload-icon { font-size:2rem; margin-bottom:8px; }
+        .kyc-upload-label { font-size:0.85rem; font-weight:600; color:var(--green); }
+        .kyc-upload-sub   { font-size:0.72rem; color:var(--muted); margin-top:4px; }
+        #kyc-file-name    { font-size:0.78rem; color:var(--green); margin-top:8px; font-weight:500; }
+
+        /* ── Existing status ── */
+        #kyc-existing-status {
+            display:none; padding:10px 14px;
+            background:var(--green-light); border-radius:10px;
+            color:var(--green-dark); font-size:0.85rem; font-weight:600;
+            margin-bottom:16px; border-left:4px solid var(--green);
+        }
+        #kyc-aadhaar-hint { display:none; font-size:0.72rem; color:var(--muted); margin-top:4px; }
+
+        /* ── Buttons ── */
+        .kyc-btn-row { display:flex; gap:12px; margin-top:24px; }
+        .kyc-btn-primary {
+            flex:1; padding:14px; background:var(--green); color:white;
+            border:none; border-radius:12px; font-family:inherit;
+            font-size:0.95rem; font-weight:700; cursor:pointer;
+            transition:background 0.2s, transform 0.15s;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+        }
+        .kyc-btn-primary:hover:not(:disabled) { background:var(--green-dark); transform:translateY(-1px); }
+        .kyc-btn-primary:disabled { opacity:0.55; cursor:not-allowed; }
+        .kyc-btn-skip {
+            padding:14px 20px; background:white; color:var(--muted);
+            border:1.5px solid var(--border); border-radius:12px;
+            font-family:inherit; font-size:0.9rem; cursor:pointer;
+            transition:border-color 0.2s, color 0.2s;
+        }
+        .kyc-btn-skip:hover { border-color:var(--muted); color:var(--charcoal); }
+
+        /* ── Error ── */
+        #kyc-error {
+            display:none; padding:10px 14px; background:#ffebee;
+            border-radius:8px; color:var(--danger); font-size:0.82rem;
+            margin-bottom:14px; border-left:3px solid var(--danger);
+        }
+        #kyc-status-msg { display:none; font-size:0.8rem; margin-bottom:10px; }
+
+        /* ── Security badges ── */
+        .kyc-trust-bar {
+            display:flex; gap:16px; flex-wrap:wrap; justify-content:center;
+            margin-top:16px; padding-top:16px; border-top:1px solid var(--border);
+        }
+        .kyc-trust-item {
+            display:flex; align-items:center; gap:6px;
+            font-size:0.72rem; color:var(--muted);
+        }
+        .kyc-trust-item i { color:var(--green); }
+
+        /* ── Success screen ── */
+        #kyc-success-wrap { display:none; text-align:center; padding:20px 0; }
+        .kyc-success-icon { font-size:4rem; margin-bottom:16px; }
+        .kyc-success-title { font-size:1.3rem; font-weight:700; color:var(--green); margin-bottom:8px; }
+        .kyc-success-sub   { font-size:0.85rem; color:var(--muted); margin-bottom:24px; }
+        .kyc-proceed-btn {
+            display:inline-block; padding:14px 32px;
+            background:var(--green); color:white; border-radius:12px;
+            font-weight:700; font-size:0.95rem; text-decoration:none;
+            transition:background 0.2s;
+        }
+        .kyc-proceed-btn:hover { background:var(--green-dark); }
+
+        /* ── Disclaimer ── */
+        .kyc-disclaimer {
+            font-size:0.7rem; color:var(--muted); text-align:center;
+            max-width:520px; margin:0 auto 30px; padding:0 16px;
+            line-height:1.6;
+        }
+        .kyc-disclaimer a { color:var(--green); }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="kyc-header">
+    <div class="logo">🌾</div>
+    <h1>Identity Verification</h1>
+    <p>Secure your account and unlock all KisanSetu features</p>
+
+    <div class="kyc-steps">
+        <div class="kyc-step done">
+            <div class="kyc-step-circle"><i class="fa-solid fa-check fa-xs"></i></div>
+            <div class="kyc-step-label">Register</div>
+        </div>
+        <div class="kyc-step active">
+            <div class="kyc-step-circle">2</div>
+            <div class="kyc-step-label">Verify KYC</div>
+        </div>
+        <div class="kyc-step">
+            <div class="kyc-step-circle">3</div>
+            <div class="kyc-step-label">Dashboard</div>
+        </div>
+    </div>
+</header>
+
+<!-- ── Main Card ── -->
+<div style="padding:0 16px;">
+    <div class="kyc-card">
+
+        <!-- Existing KYC status banner -->
+        <div id="kyc-existing-status"></div>
+        <div id="kyc-error"></div>
+        <div id="kyc-status-msg"></div>
+
+        <!-- ── Form ── -->
+        <div id="kyc-form-wrap">
+
+            <!-- Section: Aadhaar -->
+            <div class="kyc-section-title">
+                <i class="fa-solid fa-id-card" style="color:#2e7d32;"></i>
+                Aadhaar Details
+                <span>Required</span>
+            </div>
+
+            <div class="kyc-form-group">
+                <label for="kyc-aadhaar">
+                    Aadhaar Number
+                    <span class="kyc-label-sub">(12 digits)</span>
+                </label>
+                <input type="text" id="kyc-aadhaar" class="kyc-input"
+                       placeholder="XXXX XXXX XXXX"
+                       maxlength="14" inputmode="numeric"
+                       oninput="onAadhaarInput(this)">
+                <div id="kyc-aadhaar-hint"></div>
+                <div class="kyc-input-hint">
+                    <i class="fa-solid fa-lock fa-xs"></i>
+                    Your Aadhaar number is encrypted and stored securely. It is never shared with third parties.
+                </div>
+            </div>
+
+            <!-- Section: PAN -->
+            <div class="kyc-section-title" style="margin-top:20px;">
+                <i class="fa-solid fa-credit-card" style="color:#1565c0;"></i>
+                PAN Card
+                <span style="background:#e3f2fd;color:#1565c0;">Optional</span>
+            </div>
+
+            <div class="kyc-form-group">
+                <label for="kyc-pan">PAN Number <span class="kyc-label-sub">(optional, helps with GST)</span></label>
+                <input type="text" id="kyc-pan" class="kyc-input"
+                       placeholder="e.g. ABCDE1234F"
+                       maxlength="10"
+                       oninput="this.value=this.value.toUpperCase()">
+            </div>
+
+            <!-- Section: Document Upload -->
+            <div class="kyc-section-title" style="margin-top:20px;">
+                <i class="fa-solid fa-file-image" style="color:#e65100;"></i>
+                Upload Aadhaar Document
+                <span style="background:#fff3e0;color:#e65100;">Optional but Recommended</span>
+            </div>
+
+            <div class="kyc-form-group">
+                <label>Aadhaar Card Photo / PDF</label>
+                <div class="kyc-upload-area" onclick="document.getElementById('kyc-doc').click()">
+                    <input type="file" id="kyc-doc" accept=".jpg,.jpeg,.png,.pdf"
+                           onchange="showFileName(this)">
+                    <div class="kyc-upload-icon">📤</div>
+                    <div class="kyc-upload-label">Tap to upload Aadhaar (front side)</div>
+                    <div class="kyc-upload-sub">JPG, PNG, or PDF · Max 5 MB</div>
+                    <div id="kyc-file-name"></div>
+                </div>
+            </div>
+
+            <!-- User name display -->
+            <div style="text-align:center; margin-bottom:4px; font-size:0.8rem; color:var(--muted);">
+                Submitting for account: <strong id="kyc-user-name">—</strong>
+            </div>
+
+            <!-- Buttons -->
+            <div class="kyc-btn-row">
+                <button class="kyc-btn-primary" id="kyc-submit-btn" onclick="submitKYC()">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Submit for Verification
+                </button>
+                <button class="kyc-btn-skip" onclick="skipKYC()">
+                    Skip <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Trust bar -->
+            <div class="kyc-trust-bar">
+                <div class="kyc-trust-item">
+                    <i class="fa-solid fa-lock fa-xs"></i> AES-256 Encrypted
+                </div>
+                <div class="kyc-trust-item">
+                    <i class="fa-solid fa-shield-halved fa-xs"></i> DPDP Act Compliant
+                </div>
+                <div class="kyc-trust-item">
+                    <i class="fa-solid fa-eye-slash fa-xs"></i> Data never sold
+                </div>
+                <div class="kyc-trust-item">
+                    <i class="fa-solid fa-server fa-xs"></i> Stored on Supabase (India)
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Success Screen ── -->
+        <div id="kyc-success-wrap">
+            <div class="kyc-success-icon">✅</div>
+            <div class="kyc-success-title">KYC Submitted!</div>
+            <div class="kyc-success-sub">
+                Your documents are under review. Verification usually takes 24–48 hours.
+                You can continue using KisanSetu in the meantime.
+            </div>
+            <a href="javascript:history.back()" class="kyc-proceed-btn">
+                <i class="fa-solid fa-arrow-right"></i> Go to Dashboard
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<!-- Disclaimer -->
+<div class="kyc-disclaimer">
+    By submitting, you agree to KisanSetu's 
+    <a href="#">Privacy Policy</a> and confirm that the information provided is accurate.
+    Your data is processed under India's <a href="#">Digital Personal Data Protection Act, 2023</a>.
+</div>
+
+<script>
+    function showFileName(input) {
+        const el = document.getElementById('kyc-file-name');
+        if (el && input.files[0]) {
+            el.textContent = '📎 ' + input.files[0].name;
+        }
+    }
+</script>
+<script type="module" src="kyc-uploader.js"></script>
+
+</body>
+</html>

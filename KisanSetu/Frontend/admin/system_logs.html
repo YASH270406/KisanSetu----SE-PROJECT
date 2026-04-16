@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | System Logs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <style>
+        .admin-content { padding:20px; }
+        .filter-row { display:flex; gap:8px; margin-bottom:14px; align-items:center; }
+        .filter-select, .filter-input {
+            padding:9px 12px; border:1px solid #ddd; border-radius:10px;
+            font-family:'Poppins',sans-serif; font-size:0.8rem; outline:none; color:#333;
+        }
+        .filter-select { cursor:pointer; }
+        .filter-input  { flex:1; }
+        .filter-select:focus, .filter-input:focus { border-color:#1565c0; }
+        .export-btn {
+            padding:9px 14px; background:#1565c0; color:white; border:none; border-radius:10px;
+            font-family:'Poppins',sans-serif; font-size:0.8rem; font-weight:600; cursor:pointer;
+            display:flex; align-items:center; gap:6px; white-space:nowrap;
+        }
+        .export-btn:hover { opacity:0.9; }
+        .log-entry {
+            background:white; border-radius:10px; padding:12px 14px; margin-bottom:8px;
+            box-shadow:0 1px 5px rgba(0,0,0,0.04); border:1px solid #eaeaea; border-left:4px solid #e0e0e0;
+            display:flex; align-items:flex-start; gap:12px;
+        }
+        .log-entry.user     { border-left-color:#4a148c; }
+        .log-entry.listing  { border-left-color:#ef6c00; }
+        .log-entry.dispute  { border-left-color:#d32f2f; }
+        .log-entry.system   { border-left-color:#1565c0; }
+        .log-icon {
+            width:36px; height:36px; border-radius:8px;
+            display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;
+        }
+        .icon-user    { background:#f3e5f5; color:#4a148c; }
+        .icon-listing { background:#fff3e0; color:#ef6c00; }
+        .icon-dispute { background:#ffebee; color:#d32f2f; }
+        .icon-system  { background:#e3f2fd; color:#1565c0; }
+        .log-body { flex:1; min-width:0; }
+        .log-action  { font-size:0.85rem; font-weight:600; color:#333; margin:0 0 2px; }
+        .log-details {
+            font-size:0.78rem; color:#666; margin:0 0 3px;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .log-time { font-size:0.72rem; color:#aaa; }
+        .action-badge {
+            padding:2px 8px; border-radius:6px; font-size:0.65rem; font-weight:700; white-space:nowrap;
+            margin-left:6px;
+        }
+        .badge-BAN_USER         { background:#ffebee; color:#d32f2f; }
+        .badge-UNBAN_USER       { background:#e8f5e9; color:#2e7d32; }
+        .badge-CHANGE_ROLE      { background:#f3e5f5; color:#4a148c; }
+        .badge-APPROVE_LISTING  { background:#e8f5e9; color:#2e7d32; }
+        .badge-REJECT_LISTING   { background:#ffebee; color:#d32f2f; }
+        .badge-RESOLVE_DISPUTE  { background:#e8f5e9; color:#2e7d32; }
+        .badge-ESCALATE_DISPUTE { background:#f3e5f5; color:#4a148c; }
+        .badge-default          { background:#e3f2fd; color:#1565c0; }
+        .stats-summary {
+            background:#f5f5f5; border:1px solid #ddd; border-radius:12px;
+            padding:14px; margin-bottom:16px; font-size:0.85rem; color:#555;
+        }
+        .pagination {
+            display:flex; align-items:center; justify-content:space-between;
+            margin-top:16px; padding-top:12px; border-top:1px solid #eee;
+        }
+        .page-btn {
+            padding:7px 14px; border:1px solid #ddd; border-radius:8px; background:white;
+            font-family:'Poppins',sans-serif; font-size:0.8rem; cursor:pointer; transition:all 0.15s;
+        }
+        .page-btn:hover:not(:disabled) { background:#1565c0; color:white; border-color:#1565c0; }
+        .page-btn:disabled { opacity:0.4; cursor:default; }
+        .page-info { font-size:0.8rem; color:#666; }
+        .empty-state { text-align:center; padding:40px 20px; color:#999; font-size:0.85rem; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <header class="dashboard-header" style="background:linear-gradient(135deg,#1565c0,#0d47a1);color:white;padding:25px 20px;">
+        <div style="display:flex;align-items:center;gap:15px;">
+            <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h1 style="font-size:1.5rem;">System Logs</h1>
+                <p style="font-size:0.85rem;opacity:0.9;">Immutable audit trail — all admin actions</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-content">
+        <div class="stats-summary" id="log-stats">Loading audit logs…</div>
+
+        <div class="filter-row">
+            <select class="filter-select" id="type-filter" onchange="applyFilters()">
+                <option value="all">All Actions</option>
+                <option value="user">User Actions</option>
+                <option value="listing">Listing Actions</option>
+                <option value="dispute">Dispute Actions</option>
+            </select>
+            <input class="filter-input" type="text" id="search-filter"
+                   placeholder="Search action / details…" oninput="applyFilters()">
+            <button class="export-btn" onclick="exportCSV()">
+                <i class="fa-solid fa-download"></i> CSV
+            </button>
+        </div>
+
+        <div id="logs-container">
+            <p style="text-align:center;color:#999;">Loading…</p>
+        </div>
+
+        <div class="pagination">
+            <button class="page-btn" id="prev-btn" onclick="changePage(-1)" disabled>
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+            <span class="page-info" id="page-info">Page 1</span>
+            <button class="page-btn" id="next-btn" onclick="changePage(1)">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <p style="text-align:center;color:#666;font-size:0.82rem;margin-top:16px;">
+            <i class="fa-solid fa-lock"></i> Logs are immutable and tamper-proof (SRS §6.4.2.4)
+        </p>
+    </div>
+
+</div>
+
+<script type="module">
+    /* ── real imports ─────────────────────────────── */
+    import { supabase } from '../supabase-config.js';
+    import '../shared/toast.js';
+
+    const PAGE_SIZE = 20;
+    let allLogs    = [];
+    let filtered   = [];
+    let currentPage = 1;
+
+    /* action → category map */
+    const CAT = {
+        BAN_USER: 'user', UNBAN_USER: 'user', CHANGE_ROLE: 'user',
+        APPROVE_LISTING: 'listing', REJECT_LISTING: 'listing',
+        RESOLVE_DISPUTE: 'dispute', ESCALATE_DISPUTE: 'dispute',
+    };
+    const ICON = {
+        user: 'fa-user-shield', listing: 'fa-seedling',
+        dispute: 'fa-scale-balanced', system: 'fa-server'
+    };
+    const LABEL = {
+        BAN_USER: 'User Banned',         UNBAN_USER: 'User Unbanned',
+        CHANGE_ROLE: 'Role Changed',      APPROVE_LISTING: 'Listing Approved',
+        REJECT_LISTING: 'Listing Rejected', RESOLVE_DISPUTE: 'Dispute Resolved',
+        ESCALATE_DISPUTE: 'Dispute Escalated',
+    };
+
+    window.applyFilters = applyFilters;
+    window.changePage   = changePage;
+    window.exportCSV    = exportCSV;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        /* admin guard */
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { location.href = '../login.html'; return; }
+        const { data: me } = await supabase
+            .from('profiles').select('role').eq('id', user.id).single();
+        if (!me || me.role !== 'admin') {
+            window.showToast('Access denied.', 'error');
+            setTimeout(() => location.href = '../index.html', 1200);
+            return;
+        }
+        await fetchLogs();
+    });
+
+    /* ────────────────── fetch all logs ─────────────────── */
+    async function fetchLogs() {
+        /* fetch with performer profile join */
+        const { data, error } = await supabase
+            .from('audit_logs')
+            .select('*, performer:performed_by(full_name)')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            window.showToast('Failed to load audit logs.', 'error');
+            document.getElementById('logs-container').innerHTML =
+                '<p style="color:red;text-align:center;">Failed to load audit logs.</p>';
+            return;
+        }
+
+        allLogs  = data || [];
+        filtered = [...allLogs];
+
+        document.getElementById('log-stats').innerHTML =
+            `<strong>${allLogs.length}</strong> audit entries — records are permanently stored and tamper-proof.`;
+
+        renderPage();
+    }
+
+    /* ────────────────── filter ─────────────────────────── */
+    function applyFilters() {
+        const typeF = document.getElementById('type-filter').value;
+        const q     = document.getElementById('search-filter').value.toLowerCase();
+
+        filtered = allLogs.filter(log => {
+            const cat        = CAT[log.action] || 'system';
+            const matchType  = typeF === 'all' || cat === typeF;
+            const matchSearch =
+                (log.action  || '').toLowerCase().includes(q) ||
+                (log.details || '').toLowerCase().includes(q) ||
+                (log.target_id || '').toLowerCase().includes(q) ||
+                (log.performer?.full_name || '').toLowerCase().includes(q);
+            return matchType && matchSearch;
+        });
+
+        currentPage = 1;
+        renderPage();
+    }
+
+    /* ────────────────── render page ────────────────────── */
+    function renderPage() {
+        const start      = (currentPage - 1) * PAGE_SIZE;
+        const page       = filtered.slice(start, start + PAGE_SIZE);
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+        document.getElementById('page-info').textContent =
+            `Page ${currentPage} of ${totalPages}  (${filtered.length} entries)`;
+        document.getElementById('prev-btn').disabled = currentPage <= 1;
+        document.getElementById('next-btn').disabled = currentPage >= totalPages;
+
+        const container = document.getElementById('logs-container');
+        if (!filtered.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-clipboard-list" style="font-size:2rem;margin-bottom:10px;"></i>
+                    <br>No log entries match this filter.
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = page.map(log => {
+            const cat      = CAT[log.action] || 'system';
+            const icon     = ICON[cat];
+            const label    = LABEL[log.action] || log.action || 'System Event';
+            const ts       = log.created_at
+                ? new Date(log.created_at).toLocaleString('en-IN')
+                : 'Unknown';
+            const badgeCls = `badge-${log.action || 'default'}`;
+            const performer = log.performer?.full_name || 'System';
+
+            return `
+            <div class="log-entry ${cat}">
+                <div class="log-icon icon-${cat}">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div class="log-body">
+                    <p class="log-action">
+                        ${esc(label)}
+                        <span class="action-badge ${badgeCls}">${log.action || 'SYSTEM'}</span>
+                    </p>
+                    <p class="log-details">
+                        By: ${esc(performer)}
+                        ${log.target_type
+                            ? ` &nbsp;•&nbsp; ${log.target_type} #${(log.target_id||'').slice(0,8)}`
+                            : ''}
+                        ${log.details ? ` &nbsp;•&nbsp; ${esc(log.details)}` : ''}
+                    </p>
+                    <span class="log-time">
+                        <i class="fa-regular fa-clock"></i> ${ts}
+                    </span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function changePage(dir) {
+        const total = Math.ceil(filtered.length / PAGE_SIZE);
+        currentPage = Math.max(1, Math.min(total, currentPage + dir));
+        renderPage();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ────────────────── CSV export ─────────────────────── */
+    /* SRS §6.4.2.4 — tamper-proof audit trail for compliance */
+    function exportCSV() {
+        if (!filtered.length) {
+            window.showToast('No logs to export.', 'warning');
+            return;
+        }
+        const headers = ['Action','Category','Target Type','Target ID','Performed By','Details','Timestamp'];
+        const rows = filtered.map(l => [
+            l.action       || '',
+            CAT[l.action]  || 'system',
+            l.target_type  || '',
+            l.target_id    || '',
+            l.performer?.full_name || 'System',
+            (l.details     || '').replace(/,/g, ';'),
+            l.created_at   || ''
+        ]);
+
+        const csv  = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = Object.assign(document.createElement('a'), {
+            href: url,
+            download: `kisansetu_audit_${new Date().toISOString().slice(0,10)}.csv`
+        });
+        a.click();
+        URL.revokeObjectURL(url);
+        window.showToast('Audit log exported.', 'success');
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s || '';
+        return d.innerHTML;
+    }
+</script>
+</body>
+</html>

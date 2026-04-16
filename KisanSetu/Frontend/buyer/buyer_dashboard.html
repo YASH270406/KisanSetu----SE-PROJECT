@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Buyer Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="buyer_dashboard_style.css">
+    <link rel="stylesheet" href="../shared/common.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            
+            <div class="user-info" style="display: flex; align-items: center; gap: 15px;">
+                <img src="../images/buyer_profile.jpg" alt="Profile" class="profile-pic"
+                     onerror="this.src='https://placehold.co/50?text=User'">
+                <div>
+                    <h2 class="greeting">Welcome!</h2>
+                    <p class="location"><i class="fa-solid fa-location-dot"></i> Akbarpur Mandi, UP</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button id="global-mic-icon" onclick="toggleGlobalVoice()" title="Tap to speak" style="background: #ffffff !important; color: #2e7d32 !important; border: 2px solid #ffffff !important; width: 42px !important; height: 42px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important; transition: transform 0.2s !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+                    <i class="fa-solid fa-microphone" style="font-size: 1.2rem !important; color: #2e7d32 !important; margin: 0 !important; padding: 0 !important;"></i>
+                </button>
+                <div id="auth-logout-container"></div>
+            </div>
+
+        </header>
+
+        <div class="market-widget">
+            <div class="market-info">
+                <h3>Market Trends <i class="fa-solid fa-arrow-trend-up"></i></h3>
+                <p>Wheat prices are up by 2% today.</p>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <div class="action-card" onclick="window.location.href='browse_produce.html'" style="cursor: pointer;">
+                <img src="../images/produce.jpeg" alt="Browse Produce" class="action-img">
+                <p>Browse Produce</p>
+            </div>
+            <a href="livemandi.html" style="text-decoration: none; color: inherit;">
+                <div class="action-card">
+                    <img src="../images/mandi_price.png" alt="Mandi Prices" class="action-img">
+                    <p>Live Mandi Prices</p>
+                </div>
+            </a>
+            <a href="trackorders.html" style="text-decoration: none; color: inherit;">
+                <div class="action-card">
+                    <img src="../images/track_order.jpeg" alt="My Orders" class="action-img">
+                    <p>Track Orders</p>
+                </div>
+            </a>
+            <a href="bids_offers.html" style="text-decoration: none; color: inherit;">
+                <div class="action-card">
+                    <img src="../images/bids.jpeg" alt="Bids and Offers" class="action-img">
+                    <p>Bids & Offers</p>
+                </div>
+            </a>
+            <a href="../shared/notification_settings.html" style="text-decoration: none; color: inherit;">
+                <div class="action-card notification-card">
+                    <div class="action-img-placeholder" style="background: #e8f5e9; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 12px; margin-bottom: 10px;">
+                        <i class="fa-solid fa-bell" style="font-size: 2rem; color: #2e7d32;"></i>
+                    </div>
+                    <p>Notification Settings</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="recent-alerts" id="cart-summary-section" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 class="section-title" style="margin-bottom:0;">🛒 Your Shopping Cart</h3>
+                <button onclick="window.clearUserCart()" style="background:none; border:none; color:var(--danger-red); font-size:0.75rem; font-weight:600; cursor:pointer;">
+                    Clear Cart
+                </button>
+            </div>
+            <div id="dashboard-cart-items">
+                </div>
+            <div style="margin-top:20px; padding:20px; background:rgba(255,255,255,0.5); border-radius:16px; border:1px dashed var(--primary-green); text-align:center;">
+                <div style="font-size:0.85rem; color:#666; margin-bottom:5px;">Estimated Total</div>
+                <div style="font-size:1.5rem; font-weight:700; color:var(--primary-green); margin-bottom:15px;" id="dashboard-cart-total">₹0</div>
+                <button onclick="window.location.href='checkout.html'" class="primary-btn" style="width:100%; padding:14px; border-radius:12px;">
+                    Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="recent-alerts">
+            <h3 class="section-title">Recent Activity</h3>
+        </div>
+
+    </div>
+
+    <script type="module" src="buyer_dashboard.js"></script>
+    <script src="voice.js"></script>
+    <!-- 30-min session timeout (NFR-5.3) -->
+    <script type="module" src="../shared/session-timeout.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,118 @@
+/* Frontend/shared/common.css */
+
+:root {
+    --primary-green: #2e7d32;
+    --harvest-yellow: #ffca28;
+    --white: #ffffff;
+    --charcoal: #37474f;
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.2);
+}
+
+/* Universal Navbar/Header Layout */
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.user-info {
+    flex: 1;
+}
+
+/* Universal Logout Button Style */
+.logout-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    color: var(--white);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    margin-left: auto;
+}
+
+.logout-btn:hover {
+    background: rgba(211, 47, 47, 0.8); /* Red on hover */
+    border-color: transparent;
+    transform: translateY(-2px);
+}
+
+.logout-btn i {
+    font-size: 1rem;
+}
+
+/* Universal Back Button Style */
+.back-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-green);
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.back-btn:hover {
+    background: var(--primary-green);
+    color: var(--white);
+    transform: translateX(-3px);
+}
+
+/* Glassmorphism Card Style (Standardized) */
+.glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+}
+
+/* Animation for page entry */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-header {
+    animation: slideDown 0.6s ease-out;
+}
+
+/* Offline/Cached Data Badge */
+.offline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(121, 85, 72, 0.9); /* Soil Brown / Offline */
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@keyframes syncPulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.sync-pulse {
+    animation: syncPulse 2s infinite ease-in-out;
+}
+

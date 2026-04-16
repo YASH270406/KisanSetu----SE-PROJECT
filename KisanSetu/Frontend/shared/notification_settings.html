@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanSetu | Notification Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #66bb6a;
+            --bg: #f4f7f6;
+            --text: #37474f;
+            --white: #ffffff;
+            --border: #e0e0e0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); }
+
+        .app-container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--white); box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+
+        .page-header { background: var(--primary); color: var(--white); padding: 25px 20px; display: flex; align-items: center; gap: 15px; }
+        .back-btn { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+        .page-title { font-size: 1.1rem; font-weight: 600; }
+
+        .settings-content { padding: 20px; }
+        
+        .settings-section { margin-bottom: 30px; }
+        .section-title { font-size: 0.85rem; text-transform: uppercase; color: #999; letter-spacing: 1px; margin-bottom: 15px; font-weight: 600; }
+
+        .setting-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 0; border-bottom: 1px solid #f0f0f0; 
+        }
+        .setting-info h4 { font-size: 0.95rem; margin-bottom: 2px; }
+        .setting-info p { font-size: 0.75rem; color: #777; }
+
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #ccc; transition: .4s; border-radius: 24px; 
+        }
+        .slider:before { 
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; 
+            background-color: white; transition: .4s; border-radius: 50%; 
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .lang-select { 
+            width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; 
+            font-family: inherit; font-size: 0.9rem; outline: none; margin-top: 10px;
+        }
+
+        .save-btn {
+            width: 100%; padding: 15px; background: var(--primary); color: white; border: none;
+            border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer;
+            margin-top: 20px; transition: 0.3s;
+        }
+        .save-btn:active { transform: scale(0.98); }
+
+        .footer-note { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 30px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header class="page-header">
+        <button class="back-btn" onclick="history.back()">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h1 class="page-title">Notification Settings</h1>
+    </header>
+
+    <div class="settings-content">
+        <div class="settings-section">
+            <h3 class="section-title">Delivery Channels</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Push Notifications</h4>
+                    <p>Real-time alerts in the application</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="pushNotif" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>SMS Alerts</h4>
+                    <p>Order & booking updates via SMS</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="smsNotif" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Email Notifications</h4>
+                    <p>Reports and weekly summaries</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="emailNotif">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3 class="section-title">Preference</h3>
+            <div class="setting-info">
+                <h4>Notification Language</h4>
+                <p>Choose the language for your alerts</p>
+            </div>
+            <select class="lang-select" id="notifLang">
+                <option value="en">English</option>
+                <option value="hi">Hindi (हिन्दी)</option>
+                <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                <option value="mr">Marathi (मराठी)</option>
+            </select>
+        </div>
+
+        <button class="save-btn" onclick="saveSettings()">Save Preferences</button>
+
+        <p class="footer-note">
+            SMS charges may apply as per your service provider.<br>
+            Emergency alerts will be sent regardless of settings.
+        </p>
+    </div>
+</div>
+
+<script type="module">
+    import { supabase } from '../supabase-config.js';
+    import '../toast.js';
+
+    async function loadSettings() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data } = await supabase
+            .from('users')
+            .select('notification_prefs')
+            .eq('id', user.id)
+            .single();
+
+        if (data?.notification_prefs) {
+            const prefs = data.notification_prefs;
+            document.getElementById('pushNotif').checked = prefs.push !== false;
+            document.getElementById('smsNotif').checked = prefs.sms !== false;
+            document.getElementById('emailNotif').checked = prefs.email === true;
+            document.getElementById('notifLang').value = prefs.lang || 'en';
+        }
+    }
+
+    window.saveSettings = async () => {
+        const btn = document.querySelector('.save-btn');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const prefs = {
+            push: document.getElementById('pushNotif').checked,
+            sms:  document.getElementById('smsNotif').checked,
+            email: document.getElementById('emailNotif').checked,
+            lang: document.getElementById('notifLang').value
+        };
+
+        const { error } = await supabase
+            .from('users')
+            .update({ notification_prefs: prefs })
+            .eq('id', user.id);
+
+        btn.innerHTML = 'Save Preferences';
+        btn.disabled = false;
+
+        if (error) {
+            showToast('Error saving settings: ' + error.message, 'error');
+        } else {
+            showToast('Preferences updated successfully', 'success');
+            setTimeout(() => history.back(), 1500);
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', loadSettings);
+</script>
+
+</body>
+</html>
