@@ -32,17 +32,17 @@ const INPUT_OPTIONS = ["Urea (45kg Bag)", "DAP (50kg Bag)", "Pesticide (1L)"];
 // 2. LOCAL STORAGE (Survives Page Refresh)
 // ==========================================
 
-let inventory = [];
+window.inventory = window.inventory || [];
 let marketListings = [];
 
 async function loadData() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         console.warn("User not logged in. Falling back to local storage.");
-        const savedInventory = localStorage.getItem('kisan_inventory');
+        const savedInventory = localStorage.getItem('kisan_inventory_guest');
         if (savedInventory) {
-            inventory = JSON.parse(savedInventory);
-            inventory.forEach(item => item.dateAdded = new Date(item.dateAdded));
+            window.inventory = JSON.parse(savedInventory);
+            window.inventory.forEach(item => item.dateAdded = new Date(item.dateAdded));
         }
         return;
     }
@@ -57,7 +57,8 @@ async function loadData() {
         if (error) throw error;
 
         // MIGRATION LOGIC: Check if local storage has data not in cloud
-        const savedInventoryStr = localStorage.getItem('kisan_inventory');
+        const localKey = `kisan_inventory_${user.id}`;
+        const savedInventoryStr = localStorage.getItem(localKey) || localStorage.getItem('kisan_inventory');
         let localInventory = savedInventoryStr ? JSON.parse(savedInventoryStr) : [];
         
         if (localInventory.length > 0 && cloudInventory.length === 0) {
@@ -74,21 +75,23 @@ async function loadData() {
             
             const { error: syncErr } = await supabase.from('farmer_inventory').insert(migrationData);
             if (!syncErr) {
-                localStorage.removeItem('kisan_inventory'); // Clear local after successful sync
+                localStorage.removeItem('kisan_inventory'); // Clear legacy general cache
+                localStorage.removeItem(localKey);
                 // Re-fetch to get IDs
                 const { data: refreshed } = await supabase.from('farmer_inventory').select('*').eq('farmer_id', user.id);
-                inventory = mapCloudToLocal(refreshed);
+                window.inventory = mapCloudToLocal(refreshed);
             }
         } else {
-            inventory = mapCloudToLocal(cloudInventory);
+            window.inventory = mapCloudToLocal(cloudInventory);
         }
     } catch (err) {
         console.error("Failed to fetch cloud inventory:", err);
         // Fallback to local
-        const savedInventory = localStorage.getItem('kisan_inventory');
+        const userStr = user ? user.id : 'guest';
+        const savedInventory = localStorage.getItem(`kisan_inventory_${userStr}`);
         if (savedInventory) {
-            inventory = JSON.parse(savedInventory);
-            inventory.forEach(item => item.dateAdded = new Date(item.dateAdded));
+            window.inventory = JSON.parse(savedInventory);
+            window.inventory.forEach(item => item.dateAdded = new Date(item.dateAdded));
         }
     }
 
@@ -106,6 +109,8 @@ function mapCloudToLocal(cloudItems) {
         grade: item.item_grade,
         qty: item.quantity,
         unit: item.unit,
+        totalBatches: item.total_batches || 1,
+        batchSize: item.batch_size || item.quantity,
         dateAdded: new Date(item.date_added)
     }));
 }
@@ -113,7 +118,9 @@ function mapCloudToLocal(cloudItems) {
 async function saveData(newItem = null) {
     // We update Supabase on "Save Stock" event directly.
     // This local saveData is kept to maintain a local cache for offline views.
-    localStorage.setItem('kisan_inventory', JSON.stringify(inventory));
+    const { data: { user } } = await supabase.auth.getUser();
+    const key = user ? `kisan_inventory_${user.id}` : 'kisan_inventory_guest';
+    localStorage.setItem(key, JSON.stringify(window.inventory));
 }
 
 // ==========================================
@@ -140,10 +147,12 @@ async function fetchLiveMandiPrices() {
                      LIVE_MANDI_PRICES[cropName] = price; 
                 }
             });
+            window.LIVE_MANDI_PRICES = LIVE_MANDI_PRICES; // Expose globally for PDF Export
             console.log("Inventory Live Prices Successfully Loaded!", LIVE_MANDI_PRICES);
         }
     } catch (error) {
         console.error("API failed. Falling back to default prices.", error);
+        window.LIVE_MANDI_PRICES = LIVE_MANDI_PRICES; // Still Expose local fallback
     }
 }
 
@@ -166,11 +175,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function calculatePortfolioValue() {
     let totalValue = 0;
-    inventory.forEach(item => {
-        if (item.category === 'produce' && LIVE_MANDI_PRICES[item.name] && item.unit === 'Quintals') {
+    window.inventory.forEach(item => {
+        if (item.category === 'produce' && LIVE_MANDI_PRICES[item.name]) {
             const basePrice = LIVE_MANDI_PRICES[item.name];
             const multiplier = GRADE_MULTIPLIERS[item.grade] || 1;
-            totalValue += (item.qty * (basePrice * multiplier));
+            const pricePerQtl = basePrice * multiplier;
+            
+            // Normalize calculation based on unit. Mandi basePrice is always per Quintal (100 Kg).
+            if (item.unit === 'Quintals') {
+                totalValue += (item.qty * pricePerQtl);
+            } else if (item.unit === 'Kg') {
+                totalValue += (item.qty * (pricePerQtl / 100)); // 1 Qtl = 100 Kg
+            } else if (item.unit === 'Bags') {
+                totalValue += (item.qty * (pricePerQtl / 2)); // Approximation: 1 Bag ~ 50 Kg
+            }
         }
     });
     document.getElementById('totalValueDisplay').innerText = `₹ ${totalValue.toLocaleString('en-IN', {maximumFractionDigits: 0})}`;
@@ -212,7 +230,7 @@ function renderDashboard() {
     inputContainer.innerHTML = '';
     let criticalCount = 0;
 
-    inventory.forEach(item => {
+    window.inventory.forEach(item => {
         if (item.category === 'produce') {
             const lifeData = getShelfLifeData(item);
             if (lifeData.isCritical) criticalCount++;
@@ -249,7 +267,7 @@ function renderDashboard() {
                     </div>
                     
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button class="btn-primary btn-small" style="flex: 1;" onclick="openListingModal(${item.id})">Sell on Market</button>
+                        <button class="btn-primary btn-small" style="flex: 1;" onclick="openListingModal('${item.id}')">Sell on Market</button>
                     </div>
                 </div>
             `;
@@ -258,7 +276,7 @@ function renderDashboard() {
                 <div class="card">
                     <h3 style="margin-bottom: 5px;">🧪 ${item.name}</h3>
                     <p style="color: var(--charcoal); font-weight: 600;">Stock Available: ${item.qty} ${item.unit}</p>
-                    <button class="btn-primary btn-outline btn-small" style="margin-top: 10px;">Update Quantity</button>
+                    <button class="btn-primary btn-outline btn-small" style="margin-top: 10px;" onclick="updateInputQuantity('${item.id}')">Update Quantity</button>
                 </div>
             `;
         }
@@ -322,6 +340,8 @@ document.getElementById('inventoryForm').addEventListener('submit', async functi
     const grade = category === 'produce' ? document.getElementById('itemGrade').value : null;
     const qty = parseFloat(document.getElementById('itemQty').value);
     const unit = document.getElementById('itemUnit').value;
+    const totalBatches = parseInt(document.getElementById('itemBatches').value) || 1;
+    const batchSize = parseFloat((qty / totalBatches).toFixed(2));
 
     try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -334,20 +354,24 @@ document.getElementById('inventoryForm').addEventListener('submit', async functi
                     item_name: name,
                     item_grade: grade,
                     quantity: qty,
-                    unit: unit
+                    unit: unit,
+                    total_batches: totalBatches,
+                    batch_size: batchSize
                 }])
                 .select()
                 .single();
 
             if (error) throw error;
 
-            inventory.push({
+            window.inventory.push({
                 id: data.id,
                 category: data.category,
                 name: data.item_name,
                 grade: data.item_grade,
                 qty: data.quantity,
                 unit: data.unit,
+                totalBatches: data.total_batches,
+                batchSize: data.batch_size,
                 dateAdded: new Date(data.date_added)
             });
         } else {
@@ -359,9 +383,11 @@ document.getElementById('inventoryForm').addEventListener('submit', async functi
                 grade: grade,
                 qty: qty,
                 unit: unit,
+                totalBatches: totalBatches,
+                batchSize: batchSize,
                 dateAdded: new Date()
             };
-            inventory.push(newItem);
+            window.inventory.push(newItem);
         }
 
         saveData();
@@ -383,7 +409,7 @@ document.getElementById('inventoryForm').addEventListener('submit', async functi
 // ==========================================
 
 function openListingModal(itemId) {
-    const item = inventory.find(i => i.id === itemId);
+    const item = window.inventory.find(i => i.id === itemId);
     if (!item) return;
 
     document.getElementById('listItemId').value = item.id;
@@ -394,11 +420,23 @@ function openListingModal(itemId) {
 
     const basePrice = LIVE_MANDI_PRICES[item.name] || 0;
     const multiplier = GRADE_MULTIPLIERS[item.grade] || 1;
-    const suggested = Math.round(basePrice * multiplier);
+    let suggested = basePrice * multiplier;
+    
+    if (item.unit === 'Kg') {
+        suggested = suggested / 100;
+    } else if (item.unit === 'Bags') {
+        suggested = suggested / 2;
+    }
+    suggested = Math.round(suggested);
     
     document.getElementById('suggestedPriceLabel').innerText = `₹${suggested}`;
     document.getElementById('listPrice').value = suggested; 
-    document.getElementById('listQty').max = item.qty; 
+    document.getElementById('listQty').max = item.qty;
+    document.getElementById('listQty').value = item.qty; // Default to max
+    
+    // Default to existing total batches or 1
+    document.getElementById('listBatches').value = item.totalBatches || 1;
+    window.updateListBatchPreview();
 
     document.getElementById('listingModalOverlay').style.display = 'flex';
 }
@@ -418,12 +456,14 @@ document.getElementById('listingForm').addEventListener('submit', async function
     const itemId = document.getElementById('listItemId').value;
     const qtyToList = parseFloat(document.getElementById('listQty').value);
     const askingPrice = parseFloat(document.getElementById('listPrice').value);
+    const listBatches = parseInt(document.getElementById('listBatches').value) || 1;
+    const listBatchSize = parseFloat((qtyToList / listBatches).toFixed(2));
 
     // Use current ID logic (Supabase uses UUID/UUID string, local uses Number)
-    const itemIndex = inventory.findIndex(i => String(i.id) === String(itemId));
+    const itemIndex = window.inventory.findIndex(i => String(i.id) === String(itemId));
     
     if (itemIndex > -1) {
-        const item = inventory[itemIndex];
+        const item = window.inventory[itemIndex];
         if (qtyToList > 0 && qtyToList <= item.qty) {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
@@ -434,8 +474,12 @@ document.getElementById('listingForm').addEventListener('submit', async function
                         farmer_id: user.id,
                         crop_name: item.name,
                         variety: item.grade ? `Grade ${item.grade}` : '',
-                        quantity_kg: item.unit === 'Kg' ? qtyToList : (item.unit === 'Quintals' ? qtyToList * 100 : qtyToList), // Approximate
-                        expected_price: askingPrice,
+                        quantity: qtyToList,
+                        unit: item.unit,
+                        price: askingPrice,
+                        total_batches: listBatches,
+                        batch_size: listBatchSize,
+                        harvest_date: new Date().toISOString(),
                         status: 'Available'
                     }]);
 
@@ -451,7 +495,7 @@ document.getElementById('listingForm').addEventListener('submit', async function
                 // 3. Update Local State
                 item.qty -= qtyToList;
                 if (item.qty <= 0) {
-                    inventory.splice(itemIndex, 1);
+                    window.inventory.splice(itemIndex, 1);
                 }
 
                 saveData();
@@ -472,6 +516,79 @@ document.getElementById('listingForm').addEventListener('submit', async function
         }
     }
 });
+
+// ==========================================
+// 8. PREVIEW HELPERS (BATCHES)
+// ==========================================
+
+window.updateLocalBatchPreview = function() {
+    const qty = parseFloat(document.getElementById('itemQty').value);
+    const batches = parseInt(document.getElementById('itemBatches').value);
+    const unit = document.getElementById('itemUnit').value;
+    const preview = document.getElementById('local-batch-preview');
+
+    if (qty > 0 && batches > 0) {
+        const each = (qty / batches).toFixed(2);
+        document.getElementById('preview-local-batches').textContent = batches;
+        document.getElementById('preview-local-each').textContent = `${each} ${unit}`;
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+};
+
+window.updateListBatchPreview = function() {
+    const qty = parseFloat(document.getElementById('listQty').value);
+    const batches = parseInt(document.getElementById('listBatches').value);
+    const unitLabel = document.getElementById('listUnitLabel').innerText;
+    const preview = document.getElementById('list-batch-preview');
+
+    if (qty > 0 && batches > 0) {
+        const each = (qty / batches).toFixed(2);
+        document.getElementById('preview-list-batches').textContent = batches;
+        document.getElementById('preview-list-each').textContent = `${each} ${unitLabel}`;
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+};
+
+window.updateInputQuantity = async function(itemId) {
+    const itemIndex = window.inventory.findIndex(i => String(i.id) === String(itemId));
+    if (itemIndex > -1) {
+        const item = window.inventory[itemIndex];
+        const newQtyStr = prompt(`Update quantity for ${item.name} (Current: ${item.qty} ${item.unit}):`, item.qty);
+        if (newQtyStr !== null && newQtyStr.trim() !== '') {
+            const newQty = parseFloat(newQtyStr);
+            if (!isNaN(newQty) && newQty >= 0) {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        if (newQty === 0) {
+                            await supabase.from('farmer_inventory').delete().eq('id', item.id);
+                        } else {
+                            await supabase.from('farmer_inventory').update({ quantity: newQty }).eq('id', item.id);
+                        }
+                    }
+                    
+                    if (newQty === 0) {
+                        window.inventory.splice(itemIndex, 1);
+                    } else {
+                        item.qty = newQty;
+                    }
+                    
+                    saveData();
+                    renderDashboard();
+                } catch (err) {
+                    console.error("Failed to update input quantity:", err);
+                    alert("Failed to update in database. Check connection.");
+                }
+            } else {
+                alert("Please enter a valid positive number or 0 to delete.");
+            }
+        }
+    }
+};
 
 // EXPOSE TO WINDOW FOR HTML ONCLICK COMPATIBILITY
 window.toggleAddForm = toggleAddForm;

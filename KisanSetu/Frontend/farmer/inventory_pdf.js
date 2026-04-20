@@ -113,7 +113,7 @@ window.downloadStockReport = async function () {
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
-        doc.text('🌾 KisanSetu', 14, 14);
+        doc.text('KisanSetu', 14, 14);
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
@@ -127,7 +127,15 @@ window.downloadStockReport = async function () {
         produceItems.forEach(item => {
             const base = mandiPrices[item.name] || 0;
             const mult = GRADE_MULTIPLIERS[item.grade] || 1;
-            if (item.unit === 'Quintals') totalPortfolioValue += item.qty * base * mult;
+            const pricePerQtl = base * mult;
+            
+            if (item.unit === 'Quintals') {
+                totalPortfolioValue += item.qty * pricePerQtl;
+            } else if (item.unit === 'Kg') {
+                totalPortfolioValue += item.qty * (pricePerQtl / 100);
+            } else if (item.unit === 'Bags') {
+                totalPortfolioValue += item.qty * (pricePerQtl / 2);
+            }
         });
 
         doc.setFillColor(...hexToRgb(COLORS.lightGreen));
@@ -179,7 +187,11 @@ window.downloadStockReport = async function () {
                 const shelf = getShelfStatus(item);
                 const base  = mandiPrices[item.name] || 0;
                 const mult  = GRADE_MULTIPLIERS[item.grade] || 1;
-                const batchVal = item.unit === 'Quintals' ? Math.round(item.qty * base * mult) : 0;
+                const pricePerQtl = base * mult;
+                let batchVal = 0;
+                if (item.unit === 'Quintals') batchVal = Math.round(item.qty * pricePerQtl);
+                else if (item.unit === 'Kg') batchVal = Math.round(item.qty * (pricePerQtl / 100));
+                else if (item.unit === 'Bags') batchVal = Math.round(item.qty * (pricePerQtl / 2));
 
                 if (shelf.label === 'CRITICAL') criticalCount++;
 

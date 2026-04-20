@@ -59,17 +59,17 @@ const DEFAULT_FLEET = [
 ];
 
 /* ══ STATE ══ */
-let fleet           = [];
-let activeFilter    = 'all';
-let editingId       = null;   // null = adding new, string = editing existing
-let deleteTargetId  = null;
-let currentPhotoB64 = null;
-let currentStatus   = 'Available';
+window.fleet           = [];
+window.activeFilter    = 'all';
+window.editingId       = null;   // null = adding new, string = editing existing
+window.deleteTargetId  = null;
+window.currentPhotoB64 = null;
+window.currentStatus   = 'Available';
 
 /* ══ INIT ══ */
 document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem(FLEET_KEY);
-    fleet = saved ? JSON.parse(saved) : [...DEFAULT_FLEET];
+    window.fleet = saved ? JSON.parse(saved) : [...DEFAULT_FLEET];
     if (!saved) saveFleet();
 
     renderFleet();
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ══ SAVE TO LOCALSTORAGE ══ */
 function saveFleet() {
-    localStorage.setItem(FLEET_KEY, JSON.stringify(fleet));
+    localStorage.setItem(FLEET_KEY, JSON.stringify(window.fleet));
 }
 
 /* ══ RENDER FLEET LIST (FR-4.1) ══ */
@@ -87,8 +87,8 @@ function renderFleet() {
     const emptyMsg  = document.getElementById('emptyFleet');
 
     const filtered = activeFilter === 'all'
-        ? fleet
-        : fleet.filter(a => a.status === activeFilter);
+        ? window.fleet
+        : window.fleet.filter(a => a.status === activeFilter);
 
     if (filtered.length === 0) {
         list.innerHTML = '';
@@ -161,10 +161,10 @@ function typeClass(type) {
 
 /* ══ STATS ══ */
 function updateStats() {
-    document.getElementById('statTotal').textContent     = fleet.length;
-    document.getElementById('statAvailable').textContent = fleet.filter(a => a.status === 'Available').length;
-    document.getElementById('statRented').textContent    = fleet.filter(a => a.status === 'Rented').length;
-    document.getElementById('statMaint').textContent     = fleet.filter(a => a.status === 'Maintenance').length;
+    document.getElementById('statTotal').textContent     = window.fleet.length;
+    document.getElementById('statAvailable').textContent = window.fleet.filter(a => a.status === 'Available').length;
+    document.getElementById('statRented').textContent    = window.fleet.filter(a => a.status === 'Rented').length;
+    document.getElementById('statMaint').textContent     = window.fleet.filter(a => a.status === 'Maintenance').length;
 }
 
 /* ══ FILTER ══ */
@@ -195,7 +195,7 @@ function openAddSheet() {
 
 /* ══ OPEN EDIT SHEET ══ */
 function openEditSheet(id) {
-    const asset = fleet.find(a => a.id === id);
+    const asset = window.fleet.find(a => a.id === id);
     if (!asset) return;
 
     editingId       = id;
@@ -285,17 +285,17 @@ function saveAsset() {
 
     if (editingId) {
         // Edit existing
-        const idx = fleet.findIndex(a => a.id === editingId);
+        const idx = window.fleet.findIndex(a => a.id === editingId);
         if (idx === -1) return;
 
-        fleet[idx] = {
-            ...fleet[idx],
+        window.fleet[idx] = {
+            ...window.fleet[idx],
             name, type,
             emoji: emojiMap[type] || '🔧',
             model, hp, usageHours: usage,
             hourlyRate: rate, location,
             status: currentStatus,
-            photo: currentPhotoB64 !== undefined ? currentPhotoB64 : fleet[idx].photo,
+            photo: currentPhotoB64 !== undefined ? currentPhotoB64 : window.fleet[idx].photo,
             updatedAt: new Date().toISOString()
         };
 
@@ -313,7 +313,7 @@ function saveAsset() {
             addedAt: new Date().toISOString()
         };
 
-        fleet.unshift(newAsset); // newest first
+        window.fleet.unshift(newAsset); // newest first
         showToast('success', 'Asset Added!', `"${name}" is now in your fleet.`);
     }
 
@@ -344,7 +344,7 @@ function setStatus(status, btn) {
 
 /* ══ DELETE FLOW ══ */
 function promptDelete(id) {
-    const asset = fleet.find(a => a.id === id);
+    const asset = window.fleet.find(a => a.id === id);
     if (!asset) return;
     deleteTargetId = id;
     document.getElementById('confirmMsg').textContent =
@@ -354,8 +354,8 @@ function promptDelete(id) {
 
 function confirmDelete() {
     if (!deleteTargetId) return;
-    const asset = fleet.find(a => a.id === deleteTargetId);
-    fleet = fleet.filter(a => a.id !== deleteTargetId);
+    const asset = window.fleet.find(a => a.id === deleteTargetId);
+    window.fleet = window.fleet.filter(a => a.id !== deleteTargetId);
     saveFleet();
     updateStats();
     renderFleet();
