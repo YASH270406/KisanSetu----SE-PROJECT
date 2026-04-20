@@ -632,6 +632,67 @@ async function finalSubmit() {
 }
 window.finalSubmit = finalSubmit;
 
+// ── Resend OTP (Resend link on OTP screen) ────────────────────────────────────
+async function resendOTP() {
+    const link = document.getElementById('resend-otp-link');
+
+    // ── 30-second cooldown to prevent spam ───────────────────────────────────
+    if (link && link.dataset.cooldown === 'true') {
+        showRegToast('Please wait before requesting a new OTP.', 'warning');
+        return;
+    }
+
+    const mobile = document.getElementById('mobileNum').value.trim();
+    if (!mobile || mobile.length !== 10) {
+        showRegToast('Could not read mobile number. Please go back and try again.', 'error');
+        return;
+    }
+
+    const otp = generateOTP();
+    storeRegOTP(mobile, otp);
+
+    // Update subtitle immediately
+    const otpView = document.getElementById('otp-view');
+    const subtitle = otpView ? otpView.querySelector('.helper-text') : null;
+    if (subtitle) {
+        subtitle.textContent = `New OTP sent to +91 ${mobile}. Valid for 5 minutes.`;
+    }
+
+    // Clear OTP input boxes
+    const boxes = document.querySelectorAll('#otp-view input[maxlength="1"]');
+    boxes.forEach(b => { b.value = ''; });
+    if (boxes.length > 0) boxes[0].focus();
+
+    // Disable resend link during cooldown
+    if (link) {
+        link.dataset.cooldown = 'true';
+        link.style.opacity = '0.5';
+        link.style.pointerEvents = 'none';
+        let seconds = 30;
+        const originalText = link.textContent;
+        const timer = setInterval(() => {
+            seconds--;
+            link.textContent = `Resend (${seconds}s)`;
+            if (seconds <= 0) {
+                clearInterval(timer);
+                link.dataset.cooldown = 'false';
+                link.style.opacity = '';
+                link.style.pointerEvents = '';
+                link.textContent = originalText;
+            }
+        }, 1000);
+    }
+
+    // Try real SMS, fall back to demo OTP in toast (same as finalSubmit)
+    const result = await sendOTPviaSMS(mobile, otp);
+    if (result.success) {
+        showRegToast(`New OTP sent to +91 ${mobile}`, 'success');
+    } else {
+        showRegToast(`SMS unavailable. Demo OTP: ${otp}`, 'warning');
+    }
+}
+window.resendOTP = resendOTP;
+
 // ── Verify OTP and create account ─────────────────────────────────────────────
 async function verifyRegistrationOTP() {
     const finalBtn = document.getElementById('final-verify-btn');
