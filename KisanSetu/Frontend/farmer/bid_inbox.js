@@ -158,10 +158,13 @@ function buildFarmerCard(bid) {
 
     const askedPrice   = bid.produce?.price || 0;
     const currentOffer = bid.bid_price || 0;
-    const quantity     = bid.produce?.quantity || 1;
+    const batchCount   = bid.batch_count || 1;
+    const batchSize    = bid.produce?.batch_size || bid.produce?.quantity || 1;
     const unit         = bid.produce?.unit || '';
     const cropName     = bid.produce?.crop_name || 'Produce';
-    const totalValue   = currentOffer * quantity;
+    // Qty for THIS negotiation = batches buyer selected × size per batch
+    const negotiatedQty = batchCount * batchSize;
+    const totalValue   = currentOffer * negotiatedQty;
     const diff         = currentOffer - askedPrice;
     const diffPct      = askedPrice > 0 ? Math.abs(Math.round((diff / askedPrice) * 100)) : 0;
     const timeAgo      = getTimeAgo(new Date(bid.created_at));
@@ -220,20 +223,19 @@ function buildFarmerCard(bid) {
             <div class="trail-row">
                 <div class="trail-item">
                     <span class="trail-label"><i class="fa-solid fa-seedling"></i> Crop &amp; Qty</span>
-                    <span class="trail-value">${cropName} &bull; ${quantity} ${unit}</span>
+                    <span class="trail-value">${cropName} &bull; ${negotiatedQty} ${unit}</span>
                 </div>
                 <div class="trail-item">
                     <span class="trail-label"><i class="fa-solid fa-tag"></i> Your Asking</span>
                     <span class="trail-value">₹${askedPrice}<small>/${unit}</small></span>
                 </div>
             </div>
-            ${bid.batch_count && bid.batch_count > 1 ? `
             <div class="trail-row" style="margin-top:8px;">
                 <div class="trail-item">
                     <span class="trail-label"><i class="fa-solid fa-boxes-stacked"></i> Batch Order</span>
-                    <span class="trail-value">${bid.batch_count} batch${bid.batch_count > 1 ? 'es' : ''} &bull; ${(bid.batch_count * (bid.produce?.batch_size || 0)).toFixed(1)} ${unit} total</span>
+                    <span class="trail-value">${batchCount} batch${batchCount > 1 ? 'es' : ''} &times; ${batchSize} ${unit}/batch = ${negotiatedQty} ${unit}</span>
                 </div>
-            </div>` : ''}
+            </div>
             <div class="trail-divider">
                 <span class="trail-divider-line"></span>
                 <span class="trail-divider-icon"><i class="fa-solid fa-arrow-down"></i></span>
@@ -252,6 +254,9 @@ function buildFarmerCard(bid) {
             <div class="trail-total">
                 <span>Total Deal Value</span>
                 <span class="trail-total-val">₹${totalValue.toLocaleString('en-IN')}</span>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:4px; font-size:0.75rem; color:#666;">
+                <span>${batchCount} batch${batchCount > 1 ? 'es' : ''} &times; ₹${currentOffer}/${unit} &times; ${batchSize} ${unit} = ₹${totalValue.toLocaleString('en-IN')}</span>
             </div>
         </div>
 

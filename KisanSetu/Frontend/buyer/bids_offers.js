@@ -51,6 +51,7 @@ async function loadBids() {
                 *,
                 produce:produce_id (
                     crop_name, quantity, unit, price,
+                    batch_size, total_batches,
                     farmer_id,
                     farmer:farmer_id (full_name)
                 )
@@ -129,11 +130,14 @@ function buildBuyerCard(bid) {
 
     const askedPrice   = bid.produce?.price || 0;
     const currentOffer = bid.bid_price || 0;
-    const quantity     = bid.produce?.quantity || 1;
+    const batchCount   = bid.batch_count || 1;
+    const batchSize    = bid.produce?.batch_size || bid.produce?.quantity || 1;
     const unit         = bid.produce?.unit || '';
     const cropName     = bid.produce?.crop_name || 'Produce';
     const farmerName   = bid.produce?.farmer?.full_name || 'Verified Farmer';
-    const totalValue   = currentOffer * quantity;
+    // Qty for THIS negotiation = batches buyer selected × size per batch
+    const negotiatedQty = batchCount * batchSize;
+    const totalValue   = currentOffer * negotiatedQty;
     const diff         = currentOffer - askedPrice;
     const diffPct      = askedPrice > 0 ? Math.abs(Math.round((diff / askedPrice) * 100)) : 0;
     const timeAgo      = getTimeAgo(new Date(bid.created_at));
@@ -179,7 +183,7 @@ function buildBuyerCard(bid) {
                     <i class="fa-solid fa-tractor"></i>
                 </div>
                 <div>
-                    <h4 class="buyer-name">${cropName} &bull; ${quantity} ${unit}</h4>
+                    <h4 class="buyer-name">${cropName} &bull; ${negotiatedQty} ${unit}</h4>
                     <div class="bid-meta">
                         <span><i class="fa-regular fa-user"></i> ${farmerName}</span>
                         <span><i class="fa-regular fa-clock"></i> ${timeAgo}</span>
@@ -198,11 +202,17 @@ function buildBuyerCard(bid) {
             <div class="trail-row">
                 <div class="trail-item">
                     <span class="trail-label"><i class="fa-solid fa-seedling"></i> Crop &amp; Qty</span>
-                    <span class="trail-value">${cropName} &bull; ${quantity} ${unit}</span>
+                    <span class="trail-value">${cropName} &bull; ${negotiatedQty} ${unit}</span>
                 </div>
                 <div class="trail-item">
                     <span class="trail-label"><i class="fa-solid fa-tag"></i> Farmer Asking</span>
                     <span class="trail-value">₹${askedPrice}<small>/${unit}</small></span>
+                </div>
+            </div>
+            <div class="trail-row" style="margin-top:8px;">
+                <div class="trail-item">
+                    <span class="trail-label"><i class="fa-solid fa-boxes-stacked"></i> Batch Order</span>
+                    <span class="trail-value">${batchCount} batch${batchCount > 1 ? 'es' : ''} &times; ${batchSize} ${unit}/batch = ${negotiatedQty} ${unit}</span>
                 </div>
             </div>
             <div class="trail-divider">
@@ -222,30 +232,51 @@ function buildBuyerCard(bid) {
             </div>
             <div class="trail-total">
                 <span>Total Deal Value</span>
-                <span class="trail-total-val">₹${totalValue.toLocaleString('en-IN')}</span>
+                <span class="trail-total-val" id="buyer-total-${bid.id}">₹${totalValue.toLocaleString('en-IN')}</span>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:4px; font-size:0.75rem; color:#666;">
+                <span id="buyer-batch-summary-${bid.id}">${batchCount} batch${batchCount > 1 ? 'es' : ''} &times; ₹${currentOffer}/${unit} &times; ${batchSize} ${unit} = ₹${totalValue.toLocaleString('en-IN')}</span>
             </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="bid-actions" id="actions-${bid.id}" style="display:flex; gap:8px; margin-top:14px;">
+        <div class="bid-actions" id="actions-${bid.id}" style="display:flex; gap:8px; margin-top:14px; flex-direction:column;">
             ${isActionable ? `
-                <button class="btn-accept" onclick="window.handleCounterResponse('${bid.id}', 'Accepted')">
-                    <i class="fa-solid fa-handshake"></i> Accept
-                </button>
-                <button class="btn-counter" onclick="window.showBuyerCounterForm('${bid.id}', ${currentOffer})">
-                    <i class="fa-solid fa-arrows-rotate"></i> Counter
-                </button>
-                <button class="btn-reject" onclick="window.handleCounterResponse('${bid.id}', 'Rejected')">
-                    <i class="fa-solid fa-xmark"></i> Decline
-                </button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-accept" onclick="window.handleCounterResponse('${bid.id}', 'Accepted')">
+                        <i class="fa-solid fa-handshake"></i> Accept
+                    </button>
+                    <button class="btn-counter" onclick="window.showBuyerCounterForm('${bid.id}', ${currentOffer})">
+                        <i class="fa-solid fa-arrows-rotate"></i> Counter
+                    </button>
+                    <button class="btn-reject" onclick="window.handleCounterResponse('${bid.id}', 'Rejected')">
+                        <i class="fa-solid fa-xmark"></i> Decline
+                    </button>
+                </div>
             ` : isWaiting ? `
                 <div class="waiting-state" style="width:100%;">
                     <i class="fa-solid fa-hourglass-half"></i> ${waitMessage}
                 </div>
             ` : bid.status === 'Accepted' ? `
-                <button class="btn-accept" style="width:100%;" onclick="window.location.href='checkout.html?bid=${bid.id}'">
-                    <i class="fa-solid fa-credit-card"></i> Pay Now
-                </button>
+                <!-- Deal locked — batch was chosen at offer time -->
+                <div style="background:#e8f5e9; border:1.5px solid #a5d6a7; border-radius:10px; padding:12px 14px;">
+                    <div style="font-size:0.72rem; color:#388e3c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+                        <i class="fa-solid fa-circle-check"></i> Deal Accepted — Your Order
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <div style="font-size:0.82rem; color:#37474f;">
+                            <strong>${batchCount}</strong> batch${batchCount > 1 ? 'es' : ''}
+                            &times; ${batchSize} ${unit}/batch
+                            = <strong>${negotiatedQty} ${unit}</strong>
+                        </div>
+                        <div style="font-size:1rem; font-weight:800; color:#2e7d32;">
+                            ₹${totalValue.toLocaleString('en-IN')}
+                        </div>
+                    </div>
+                    <button class="btn-accept" style="width:100%;" onclick="window.location.href='checkout.html?bid=${bid.id}'">
+                        <i class="fa-solid fa-credit-card"></i> Pay Now
+                    </button>
+                </div>
             ` : `
                 <div class="terminal-state terminal-rejected" style="width:100%;">
                     <i class="fa-solid fa-circle-xmark"></i> Deal Closed
@@ -269,6 +300,43 @@ function buildBuyerCard(bid) {
 
     return card;
 }
+
+/* ── Batch counter for Pay Now ────────────────────────────────────────────── */
+
+// Track selected pay-batch per bid
+const payBatchSelections = {};
+
+window.changeBuyerBatchCount = (bidId, delta, maxBatches, batchSize, pricePerUnit, unit) => {
+    const current = payBatchSelections[bidId] || 1;
+    const next = Math.min(maxBatches, Math.max(1, current + delta));
+    payBatchSelections[bidId] = next;
+
+    const countEl = document.getElementById(`pay-batch-count-${bidId}`);
+    const qtyEl   = document.getElementById(`pay-batch-qty-${bidId}`);
+    const totEl   = document.getElementById(`pay-batch-total-${bidId}`);
+
+    if (countEl) countEl.textContent = next;
+    if (qtyEl)   qtyEl.textContent   = `${(next * batchSize).toFixed(1)} ${unit}`;
+    if (totEl)   totEl.textContent   = `Est. Total: ₹${(next * batchSize * pricePerUnit).toLocaleString('en-IN')}`;
+};
+
+window.proceedToPayment = async (bidId, batchSize, pricePerUnit, unit) => {
+    const selectedBatches = payBatchSelections[bidId] || 1;
+
+    try {
+        // Write chosen batch_count back to the bid before checkout reads it
+        const { error } = await supabase
+            .from('bids')
+            .update({ batch_count: selectedBatches })
+            .eq('id', bidId);
+
+        if (error) throw error;
+
+        window.location.href = `checkout.html?bid=${bidId}`;
+    } catch (err) {
+        alert('Could not save batch selection: ' + err.message);
+    }
+};
 
 /* ── Exposed Window Functions ─────────────────────────────────── */
 

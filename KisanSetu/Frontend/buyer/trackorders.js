@@ -13,6 +13,7 @@ const STAGES = [
 
 let currentTab = 'active';
 let currentBuyerId = null;
+let currentBuyerName = 'KisanSetu Buyer'; // resolved at init
 let allOrders = [];
 
 // ── Init ──────────────────────────────────────────────────────────────────
@@ -21,6 +22,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!user) { window.location.href = '../index.html'; return; }
 
     currentBuyerId = user.id;
+
+    // Resolve buyer's real name: auth metadata → profiles table → email prefix
+    currentBuyerName =
+        user.user_metadata?.full_name ||
+        sessionStorage.getItem('kisansetu_user_name') ||
+        (user.email ? user.email.split('@')[0] : 'KisanSetu Buyer');
+
+    // Also try fetching from profiles for the most up-to-date name
+    try {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+        if (profile?.full_name) currentBuyerName = profile.full_name;
+    } catch (_) { /* non-critical */ }
+
     await loadOrders();
     setupRealtime();
 });
@@ -376,7 +394,7 @@ window.downloadInvoice = async (orderId) => {
         dealPrice:  dealPrice,
         amount:     amount,
         farmerName: farmerName,
-        buyerName:  'KisanSetu Buyer',
+        buyerName:  currentBuyerName,        // ← real buyer name, not hardcoded
         orderDate:  order.created_at || new Date().toISOString(),
         status:     order.status || ''
     }, btn);

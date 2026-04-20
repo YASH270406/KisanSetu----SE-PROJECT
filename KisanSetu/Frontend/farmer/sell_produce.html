@@ -352,7 +352,7 @@
     </header>
 
     <div class="form-container">
-        <form id="produce-form">
+        <form id="produce-form" onkeydown="return event.key !== 'Enter' || event.target.tagName === 'BUTTON'">
 
             <div class="section-divider"><span><i class="fa-solid fa-seedling"></i> Crop Details</span></div>
 
@@ -460,7 +460,7 @@
                 <input type="file" id="cropImage" accept="image/*" multiple style="display: none;">
             </div>
 
-            <button type="submit" class="submit-btn" id="voice-publish-btn">
+            <button type="button" class="submit-btn" id="voice-publish-btn" onclick="document.getElementById('produce-form').dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}))">
                 Publish Listing <i class="fa-regular fa-paper-plane"></i>
             </button>
         </form>
