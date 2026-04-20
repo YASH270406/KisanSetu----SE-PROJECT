@@ -31,8 +31,13 @@ app.get('/api/config/gemini', (req, res) => {
     res.json({ apiKey: process.env.GEMINI_API_KEY });
 }); 
 
-// Start the Server AND force the database to build instantly
-app.listen(PORT, async () => {
-    console.log(`🚀 KisanSetu Backend running on http://localhost:${PORT}`);
-    console.log(`🔗 Connected to Supabase Cloud for Data & Auth.`);
-});
+// Start the Server locally (Conditional for Vercel)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, async () => {
+        console.log(`🚀 KisanSetu Backend running on http://localhost:${PORT}`);
+        console.log(`🔗 Connected to Supabase Cloud for Data & Auth.`);
+    });
+}
+
+// Export for Vercel Serverless
+module.exports = app;
