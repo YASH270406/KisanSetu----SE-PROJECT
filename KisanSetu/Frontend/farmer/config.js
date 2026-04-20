@@ -1,2 +1,0 @@
-// config.js - DO NOT UPLOAD THIS FILE TO GITHUB
-export const GEMINI_API_KEY = "AIzaSyA372Ie1X2HpU58RjlQHMWCy6FRwzRSpfA";

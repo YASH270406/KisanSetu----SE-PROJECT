@@ -1,5 +1,4 @@
 import { initializeDashboard } from '../shared/auth-helper.js';
-import { GEMINI_API_KEY } from './config.js';
 
 // =========================================
 // GLOBAL CONFIGURATION
@@ -52,8 +51,10 @@ const STATE_PORTAL_DB = {
 // =========================================
 // This reusable function handles the heavy lifting for AI calls
 async function callGemini(promptText) {
-    // Grabs the key from config.js automatically!
-    const API_KEY = GEMINI_API_KEY; 
+    // Fetch the key securely from the backend to avoid GitHub leaks
+    const configRes = await fetch('/api/config/gemini');
+    const configData = await configRes.json();
+    const API_KEY = configData.apiKey; 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
     
     // ... rest of the code stays exactly the same

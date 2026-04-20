@@ -25,6 +25,12 @@ app.use(express.static(path.join(__dirname, 'Frontend')));
 app.use('/api/produce', produceRoutes);
 app.use('/api/equipment', equipmentRoutes); 
 
+// Expose safe config to frontend (To prevent committing API keys to GitHub)
+app.get('/api/config/gemini', (req, res) => {
+    // Only send the key if requested (still not perfect security, but keeps it out of GitHub)
+    res.json({ apiKey: process.env.GEMINI_API_KEY });
+}); 
+
 // Start the Server AND force the database to build instantly
 app.listen(PORT, async () => {
     console.log(`🚀 KisanSetu Backend running on http://localhost:${PORT}`);
