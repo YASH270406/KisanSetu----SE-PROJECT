@@ -6,7 +6,6 @@
     <title>KisanSetu | Resolve Disputes</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="admin_dashboard_style.css">
     <link rel="stylesheet" href="../shared/common.css">
     <style>
         .admin-content { padding:20px; }
@@ -76,12 +75,13 @@
 <body>
 <div class="app-container">
 
-    <header class="dashboard-header" style="background:linear-gradient(135deg,#b71c1c,#880e4f);color:white;padding:25px 20px;">
-        <div style="display:flex;align-items:center;gap:15px;">
-            <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+    <!-- Premium Hero Header Sync (Matching Dashboard) -->
+    <header class="hero-header" style="background: #2e7d32; border-radius: 0 0 25px 25px; padding: 15px 25px 25px 25px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        <div style="display:flex; align-items:center; gap:15px; width:100%;">
+            <a href="admin_dashboard.html" class="back-btn" style="background: rgba(255,255,255,0.2); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items:center; justify-content:center; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
             <div>
-                <h1 style="font-size:1.5rem;">Dispute Resolution</h1>
-                <p style="font-size:0.85rem;opacity:0.9;">Review & resolve platform disputes</p>
+                <h1 style="font-size:1.3rem; margin:0; color: white; font-weight: 700;">Dispute Resolution</h1>
+                <p style="font-size:0.8rem; opacity:0.85; margin:0; color: white;">Mediate conflicts & issue refunds</p>
             </div>
         </div>
     </header>
@@ -132,8 +132,9 @@
         adminUser = user;
 
         const { data: me } = await supabase
-            .from('profiles').select('role').eq('id', user.id).single();
-        if (!me || me.role !== 'admin') {
+            .from('users').select('role').eq('id', user.id).single();
+        const myRole = (me?.role || '').toLowerCase();
+        if (myRole !== 'admin' && myRole !== 'administrator') {
             window.showToast('Access denied.', 'error');
             setTimeout(() => location.href = '../index.html', 1200);
             return;
@@ -147,15 +148,20 @@
             .from('disputes')
             .select(`
                 *,
-                raised_by_user:raised_by(full_name, phone_number),
+                raised_by_user:raised_by(full_name, mobile_num),
                 against_user:against_user_id(full_name)
             `)
             .order('created_at', { ascending: false });
 
         if (error) {
-            window.showToast('Failed to load disputes.', 'error');
+            console.error('SUPABASE DISPUTE ERROR:', error);
+            window.showToast('Load Error: ' + error.message, 'error');
             document.getElementById('disputes-container').innerHTML =
-                '<p style="color:red;text-align:center;">Failed to load disputes.</p>';
+                `<p style="color:red;text-align:center;padding:20px;">
+                    <strong>Failed to load disputes.</strong><br>
+                    <small>Error: ${error.message}</small><br>
+                    <small>Details: ${error.details || 'None'}</small>
+                </p>`;
             return;
         }
 

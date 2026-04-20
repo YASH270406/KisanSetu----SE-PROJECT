@@ -78,10 +78,12 @@ async function fetchLiveListings() {
     let isOffline = false;
 
     try {
-        // Show ALL listings including sold out (filter = status display, not hidden)
+        // Show only Verified listings (admin approved)
+        // Joint with 'users' table for farmer names since 'profiles' 404s
         const { data, error } = await supabase
             .from('produce')
-            .select(`*, farmer:farmer_id (full_name)`)
+            .select(`*, farmer:users!farmer_id(full_name)`) 
+            .eq('status', 'Verified')
             .order('created_at', { ascending: false });
 
         if (error) throw error;

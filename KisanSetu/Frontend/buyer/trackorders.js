@@ -208,7 +208,8 @@ function buildOrderCard(order) {
     const stageIdx    = getStageIndex(order.status);
     const isCancelled = order.status === 'Refunded';
     const isSettled   = order.status === 'Settled';
-    const isActive    = order.status === 'Escrow_Held';
+    const isActive    = ['Escrow_Held', 'InTransit', 'Delivered'].includes(order.status);
+    const canRaiseIssue = order.status !== 'Refunded';
 
     const orderDate   = new Date(order.created_at).toLocaleDateString('en-IN', {
         day: '2-digit', month: 'short', year: 'numeric'
@@ -320,8 +321,8 @@ function buildOrderCard(order) {
                     <i class="fa-solid fa-handshake"></i> Confirm Receipt & Release Payment
                 </button>
             ` : ''}
-            ${isActive ? `
-                <button class="btn-issue" onclick="window.raiseIssue('${order.id}', 'TXN-${shortId}')">
+            ${canRaiseIssue ? `
+                <button class="btn-issue" onclick="window.raiseIssue('${order.id}', 'TXN-${shortId}')" style="background:#fff1f0; color:#d85140; border:1px solid #ffa39e;">
                     <i class="fa-solid fa-flag"></i> Issue
                 </button>
             ` : ''}
@@ -352,6 +353,41 @@ window.confirmReceipt = async (orderId) => {
     // Show success toast
     showToast('✅ Payment released! Escrow settled successfully.');
     await loadOrders();
+};
+
+// ── Raise Dispute ─────────────────────────────────────────────────────────
+window.raiseIssue = async (orderId, shortId) => {
+    const issueReason = prompt(`Raising issue for order ${shortId}\nPlease provide a short description of the problem (e.g. "Bad Quality", "Never Arrived"):`);
+    if (!issueReason || issueReason.trim() === '') return;
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Fetch order details to get against_user_id (the farmer)
+        const { data: order } = await supabase
+            .from('transaction_ledger')
+            .select('to_user_id')
+            .eq('id', orderId)
+            .single();
+
+        const { error } = await supabase
+            .from('disputes')
+            .insert([{
+                title: `Dispute on ${shortId}`,
+                description: issueReason,
+                raised_by: user.id,
+                against_user_id: order ? order.to_user_id : null,
+                order_id: orderId,
+                reference_id: orderId, // satisfy database constraint
+                status: 'open'
+            }]);
+
+        if (error) throw error;
+        showToast('⚠️ Dispute submitted to Admin moderation queue.');
+    } catch (err) {
+        alert('Failed to raise dispute: ' + err.message);
+    }
 };
 
 // ── Download Invoice (jsPDF via shared KisanInvoice engine) ──────────────

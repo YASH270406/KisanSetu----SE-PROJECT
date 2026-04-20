@@ -6,7 +6,6 @@
     <title>KisanSetu | Manage Users</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="admin_dashboard_style.css">
     <link rel="stylesheet" href="../shared/common.css">
     <style>
         .admin-content { padding: 20px; }
@@ -69,12 +68,13 @@
 <body>
 <div class="app-container">
 
-    <header class="dashboard-header" style="background:linear-gradient(135deg,#37474f,#263238);color:white;padding:25px 20px;">
-        <div style="display:flex;align-items:center;gap:15px;">
-            <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+    <!-- Premium Hero Header Sync (Matching Dashboard) -->
+    <header class="hero-header" style="background: #2e7d32; border-radius: 0 0 25px 25px; padding: 15px 25px 25px 25px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        <div style="display:flex; align-items:center; gap:15px; width:100%;">
+            <a href="admin_dashboard.html" class="back-btn" style="background: rgba(255,255,255,0.2); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items:center; justify-content:center; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
             <div>
-                <h1 style="font-size:1.5rem;">User Management</h1>
-                <p style="font-size:0.85rem;opacity:0.9;">Verify Profiles & Assign Roles</p>
+                <h1 style="font-size:1.3rem; margin:0; color: white; font-weight: 700;">User Management</h1>
+                <p style="font-size:0.8rem; opacity:0.85; margin:0; color: white;">Review accounts & access control</p>
             </div>
         </div>
     </header>
@@ -134,8 +134,9 @@
 
         /* guard: must be admin */
         const { data: me } = await supabase
-            .from('profiles').select('role').eq('id', user.id).single();
-        if (!me || me.role !== 'admin') {
+            .from('users').select('role').eq('id', user.id).single();
+        const myRole = (me?.role || '').toLowerCase();
+        if (myRole !== 'admin' && myRole !== 'administrator') {
             window.showToast('Access denied.', 'error');
             setTimeout(() => location.href = '../index.html', 1200);
             return;
@@ -146,7 +147,7 @@
     /* ────────────────── fetch all profiles ─────────────────── */
     async function fetchUsers() {
         const { data, error, count } = await supabase
-            .from('profiles')
+            .from('users')
             .select('*', { count: 'exact' })
             .order('created_at', { ascending: false });
 
@@ -182,7 +183,8 @@
         container.innerHTML = users.map(u => {
             const date        = new Date(u.created_at).toLocaleDateString('en-IN');
             const isBanned    = !!u.is_banned;
-            const displayRole = isBanned ? 'banned' : (u.role || 'farmer');
+            const rawRole     = (u.role || 'Farmer').toLowerCase();
+            const displayRole = isBanned ? 'banned' : (rawRole === 'administrator' ? 'admin' : rawRole);
             const isSelf      = u.id === currentAdminId;
 
             return `
@@ -200,10 +202,10 @@
                         : !isBanned
                             ? `<select class="role-dropdown" onchange="changeRole('${u.id}',this.value)">
                                     <option value="" disabled selected>Change Role</option>
-                                    <option value="farmer"           ${u.role==='farmer'          ?'disabled':''}>Farmer</option>
-                                    <option value="buyer"            ${u.role==='buyer'           ?'disabled':''}>Buyer</option>
-                                    <option value="equipment_owner"  ${u.role==='equipment_owner' ?'disabled':''}>Equipment Owner</option>
-                                    <option value="admin"            ${u.role==='admin'           ?'disabled':''}>Admin</option>
+                                    <option value="Farmer"           ${rawRole==='farmer'          ?'disabled':''}>Farmer</option>
+                                    <option value="Buyer"            ${rawRole==='buyer'           ?'disabled':''}>Buyer</option>
+                                    <option value="Equipment Owner"  ${rawRole==='equipment_owner' ?'disabled':''}>Equipment Owner</option>
+                                    <option value="Administrator"    ${rawRole==='administrator'   ?'disabled':''}>Admin</option>
                                </select>
                                <button class="action-btn btn-ban" onclick="banUser('${u.id}')">
                                    <i class="fa-solid fa-ban"></i> Ban
@@ -251,7 +253,7 @@
         if (!confirm('Ban this user? They will lose platform access immediately.')) return;
         try {
             const { error } = await supabase
-                .from('profiles')
+                .from('users')
                 .update({ is_banned: true })
                 .eq('id', userId);
             if (error) throw error;
@@ -273,7 +275,7 @@
     async function unbanUser(userId) {
         try {
             const { error } = await supabase
-                .from('profiles')
+                .from('users')
                 .update({ is_banned: false })
                 .eq('id', userId);
             if (error) throw error;
@@ -295,7 +297,7 @@
         if (!newRole) return;
         try {
             const { error } = await supabase
-                .from('profiles')
+                .from('users')
                 .update({ role: newRole })
                 .eq('id', userId);
             if (error) throw error;

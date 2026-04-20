@@ -86,6 +86,8 @@ function buildListingCard(item, container) {
     let statusBg, statusColor, statusLabel;
     if (isSoldOut)       { statusLabel='Sold Out';    statusBg='#ffebee'; statusColor='#c62828'; }
     else if (activeBids) { statusLabel='Negotiating'; statusBg='#fff8e1'; statusColor='#f57c00'; }
+    else if (item.status === 'Pending') { statusLabel='Pending Admin'; statusBg='#fff3e0'; statusColor='#ef6c00'; }
+    else if (item.status === 'Rejected') { statusLabel='Rejected'; statusBg='#ffebee'; statusColor='#c62828'; }
     else                 { statusLabel='Available';   statusBg='#e8f5e9'; statusColor='#2e7d32'; }
 
     // Progress bar color

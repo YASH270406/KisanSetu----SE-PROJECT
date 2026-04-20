@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 harvest_date: harvestDateInput,
                 total_batches: totalBatches,
                 batch_size: batchSize,
-                status: 'Available'
+                status: 'Pending'
             };
 
             if (navigator.onLine) {

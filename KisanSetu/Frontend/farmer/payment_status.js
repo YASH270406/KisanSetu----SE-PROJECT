@@ -133,13 +133,20 @@ function renderPayments(transactions, isOffline = false) {
                 <span class="escrow-badge" style="background: #f5f5f5; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">${escrowText}</span>
                 <span style="font-size: 0.75rem; color: #888;">${formattedDate}</span>
             </div>
-            <button
-                class="btn-download"
-                data-invoice-id="${txn.id}"
-                onclick="window.downloadInvoice('${txn.id}')"
-                style="width:100%;margin-top:15px;padding:11px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
-                <i class="fa-solid fa-file-pdf"></i> Download Invoice (PDF)
-            </button>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button
+                    class="btn-download"
+                    data-invoice-id="${txn.id}"
+                    onclick="window.downloadInvoice('${txn.id}')"
+                    style="flex: 1; padding:11px; background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; border-radius:8px; font-weight:700; cursor:pointer; font-family:Poppins,sans-serif; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fa-solid fa-file-pdf"></i> Download Invoice
+                </button>
+                <button
+                    onclick="window.raiseIssue('${txn.id}', '${(txn.id || '').substring(0,8)}')"
+                    style="flex: 1; padding:11px; background:#ffebee; color:#d32f2f; border:1px solid #ffcdd2; border-radius:8px; font-weight:700; cursor:pointer; font-family:Poppins,sans-serif; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fa-solid fa-flag"></i> Raise Dispute
+                </button>
+            </div>
         `;
         container.appendChild(card);
     });
@@ -175,4 +182,52 @@ window.downloadInvoice = function (txnId) {
         quantity:   txn.quantity    || '',
         unit:       txn.unit        || ''
     }, btn);
+};
+
+// ── Raise Dispute Logic ───────────────────────────────────────────────────
+window.raiseIssue = (txnId, shortId) => {
+    document.getElementById('issue-order-id').textContent = `TXN-${shortId}`;
+    document.getElementById('issue-modal').style.display = 'flex';
+    document.getElementById('issue-modal').dataset.txnId = txnId;
+};
+
+window.closeIssueModal = () => {
+    document.getElementById('issue-modal').style.display = 'none';
+    document.getElementById('issue-desc').value = '';
+};
+
+window.submitIssue = async () => {
+    const desc = document.getElementById('issue-desc').value.trim();
+    if (!desc) {
+        alert('Please provide a description of the issue.');
+        return;
+    }
+
+    const txnId = document.getElementById('issue-modal').dataset.txnId;
+    
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Find the transaction record
+        const txn = allPayments.find(t => t.id === txnId);
+        
+        const { error } = await supabase.from('disputes').insert([{
+            title: `Farmer Dispute on TXN-${txnId.substring(0,8)}`,
+            description: desc,
+            raised_by: user.id,
+            against_user_id: txn ? txn.from_user_id : null, // The buyer
+            order_id: txnId,
+            reference_id: txnId, // satisfy not-null constraint if present
+            status: 'open'
+        }]);
+
+        if (error) throw error;
+
+        alert('Dispute submitted successfully to Admin oversight.');
+        window.closeIssueModal();
+    } catch (err) {
+        console.error('Dispute submission failed:', err);
+        alert('Could not submit dispute: ' + err.message);
+    }
 };

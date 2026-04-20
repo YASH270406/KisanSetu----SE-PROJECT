@@ -480,7 +480,7 @@ document.getElementById('listingForm').addEventListener('submit', async function
                         total_batches: listBatches,
                         batch_size: listBatchSize,
                         harvest_date: new Date().toISOString(),
-                        status: 'Available'
+                        status: 'Pending'
                     }]);
 
                     // 2. Subtract from Cloud Inventory

@@ -94,6 +94,34 @@
             font-weight: 600;
             cursor: pointer;
         }
+
+        /* Issue Modal Styles */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center;
+            z-index: 1000; padding: 20px;
+        }
+        .modal-content {
+            background: white; border-radius: 16px; padding: 25px; width: 100%; max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 1.1rem; color: #d32f2f; margin:0; }
+        .close-btn { cursor: pointer; font-size: 1.2rem; color: #999; }
+        
+        textarea {
+            width: 100%; height: 120px; padding: 12px; border: 1px solid #ddd; border-radius: 12px; 
+            font-size: 0.9rem; margin-bottom: 20px; resize: none; font-family: inherit;
+        }
+        .btn-submit {
+            width: 100%; padding: 12px; background: #d32f2f; color: white; border: none;
+            border-radius: 12px; font-weight: 600; cursor: pointer;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 
@@ -117,6 +145,22 @@
         <div style="text-align:center; padding: 50px 20px;" id="loading-view">
             <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-green);"></i>
             <p style="margin-top:15px;">Fetching your payment records...</p>
+        </div>
+    </div>
+
+    <!-- Dispute Modal -->
+    <div id="issue-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-triangle-exclamation"></i> Raise Dispute</h3>
+                <span class="close-btn" onclick="window.closeIssueModal()">&times;</span>
+            </div>
+            <p style="font-size: 0.8rem; color: #666; margin-bottom: 15px;">
+                Filing an issue for order <strong id="issue-order-id">#ID</strong>. 
+                Please explain the problem clearly (e.g. payment not received, incorrect amount).
+            </p>
+            <textarea id="issue-desc" placeholder="Describe the issue..."></textarea>
+            <button class="btn-submit" onclick="window.submitIssue()">Submit Dispute</button>
         </div>
     </div>
     

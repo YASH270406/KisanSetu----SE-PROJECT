@@ -6,7 +6,6 @@
     <title>KisanSetu | Moderate Listings</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="admin_dashboard_style.css">
     <link rel="stylesheet" href="../shared/common.css">
     <style>
         .admin-content { padding:20px; }
@@ -64,12 +63,13 @@
 <body>
 <div class="app-container">
 
-    <header class="dashboard-header" style="background:linear-gradient(135deg,#2e7d32,#1b5e20);color:white;padding:25px 20px;">
-        <div style="display:flex;align-items:center;gap:15px;">
-            <a href="admin_dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+    <!-- Premium Hero Header Sync (Matching Dashboard) -->
+    <header class="hero-header" style="background: #2e7d32; border-radius: 0 0 25px 25px; padding: 15px 25px 25px 25px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        <div style="display:flex; align-items:center; gap:15px; width:100%;">
+            <a href="admin_dashboard.html" class="back-btn" style="background: rgba(255,255,255,0.2); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items:center; justify-content:center; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
             <div>
-                <h1 style="font-size:1.5rem;">Marketplace Oversight</h1>
-                <p style="font-size:0.85rem;opacity:0.9;">Verify & moderate produce listings</p>
+                <h1 style="font-size:1.3rem; margin:0; color: white; font-weight: 700;">Marketplace Oversight</h1>
+                <p style="font-size:0.8rem; opacity:0.85; margin:0; color: white;">Verify & moderate produce listings</p>
             </div>
         </div>
     </header>
@@ -119,8 +119,9 @@
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { location.href = '../login.html'; return; }
         const { data: me } = await supabase
-            .from('profiles').select('role').eq('id', user.id).single();
-        if (!me || me.role !== 'admin') {
+            .from('users').select('role').eq('id', user.id).single();
+        const myRole = (me?.role || '').toLowerCase();
+        if (myRole !== 'admin' && myRole !== 'administrator') {
             window.showToast('Access denied.', 'error');
             setTimeout(() => location.href = '../index.html', 1200);
             return;
@@ -132,7 +133,7 @@
     async function fetchListings() {
         const { data, error } = await supabase
             .from('produce')
-            .select('*, farmer:farmer_id(full_name)')
+            .select('*, farmer:users!farmer_id(full_name)')
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -150,7 +151,11 @@
 
     function updateCounts() {
         const c = { all: allListings.length, Pending: 0, Verified: 0, Rejected: 0 };
-        allListings.forEach(l => { if (c[l.status] !== undefined) c[l.status]++; });
+        allListings.forEach(l => { 
+            let s = l.status;
+            if (s === 'Available') s = 'Pending'; // Legacy support
+            if (c[s] !== undefined) c[s]++; 
+        });
         document.getElementById('count-all').textContent      = c.all;
         document.getElementById('count-pending').textContent  = c.Pending;
         document.getElementById('count-verified').textContent = c.Verified;
@@ -158,14 +163,16 @@
     }
 
     function updateStats() {
-        const p = allListings.filter(l => l.status === 'Pending').length;
+        const p = allListings.filter(l => l.status === 'Pending' || l.status === 'Available').length;
         document.getElementById('listing-stats').innerHTML =
             `<strong>${allListings.length}</strong> total listings — ` +
             `<span style="color:#ef6c00"><strong>${p}</strong> awaiting review</span>`;
     }
 
     function byTab(tab) {
-        return tab === 'all' ? allListings : allListings.filter(l => l.status === tab);
+        if (tab === 'all') return allListings;
+        if (tab === 'Pending') return allListings.filter(l => l.status === 'Pending' || l.status === 'Available');
+        return allListings.filter(l => l.status === tab);
     }
 
     /* ────────────────── render ──────────────────── */
@@ -176,7 +183,9 @@
             return;
         }
         container.innerHTML = list.map(item => {
-            const status = item.status || 'Pending';
+            let status = item.status || 'Pending';
+            // Legacy support: Map 'Available' to 'Pending' visually if needed, 
+            // but keep the badge label as the raw value for clarity
             const date   = new Date(item.created_at).toLocaleDateString('en-IN');
             return `
             <div class="moderate-item ${status}" id="listing-${item.id}">
@@ -231,11 +240,12 @@
             if (listing?.farmer_id) {
                 await supabase.from('notifications').insert({
                     user_id: listing.farmer_id,
-                    notification_type: 'listing_moderated',
-                    message: `Your listing "${listing.crop_name}" has been ${newStatus.toLowerCase()} by an administrator.`,
-                    is_read: false,
-                    delivery_channel: 'in_app',
-                    related_id: listingId
+                    title: newStatus === 'Verified' ? 'Listing Verified' : 'Listing Rejected',
+                    message: newStatus === 'Verified' 
+                        ? `Your listed "${listing.crop_name}" produce verified successfully.`
+                        : `Your listed "${listing.crop_name}" has been rejected by an administrator.`,
+                    type: newStatus === 'Verified' ? 'success' : 'error',
+                    read_status: false
                 });
             }
 
