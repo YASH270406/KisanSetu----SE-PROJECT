@@ -2,6 +2,7 @@
 import { supabase } from '../supabase-config.js';
 
 let allPayments = [];
+let currentFarmerName = 'Registered Farmer'; // resolved at init
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadPayments();
@@ -18,6 +19,22 @@ async function loadPayments() {
             window.location.href = '../index.html';
             return;
         }
+
+        // Resolve farmer's real name: auth metadata -> profiles table -> email prefix
+        currentFarmerName =
+            user.user_metadata?.full_name ||
+            sessionStorage.getItem('kisansetu_user_name') ||
+            (user.email ? user.email.split('@')[0] : 'Registered Farmer');
+
+        // Also try fetching from profiles for the freshest name
+        try {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', user.id)
+                .single();
+            if (profile?.full_name) currentFarmerName = profile.full_name;
+        } catch (_) { /* non-critical */ }
 
         // Fetch ledger entries where this farmer is the receiver
         // We select crop_name directly from ledger first (since we save it there now)
@@ -145,9 +162,8 @@ window.downloadInvoice = function (txnId) {
     }
 
     const btn = document.querySelector(`[data-invoice-id="${txnId}"]`);
-    const farmerName = document.querySelector('.greeting') 
-        ? document.querySelector('.greeting').textContent.replace(/^Namaste,?\s*/i,'').trim() 
-        : 'Farmer';
+    // Use the pre-resolved name from Supabase auth — not the DOM greeting
+    const farmerName = currentFarmerName;
 
     KisanInvoice.download('farmer_payment', {
         txnId:      txn.id,

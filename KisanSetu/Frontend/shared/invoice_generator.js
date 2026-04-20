@@ -55,11 +55,14 @@
     }
 
     function fmt(n) {
-        return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        // jsPDF Helvetica only supports Latin-1 (Windows-1252).
+        // The Rupee sign (U+20B9) is NOT in Latin-1 and produces garbage bytes in PDF.
+        // 'Rs.' is the safe, universally readable alternative.
+        return 'Rs. ' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
     }
 
     function fmtDate(d) {
-        if (!d) return '—';
+        if (!d) return '-';
         const dt = d instanceof Date ? d : new Date(d);
         return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     }
@@ -198,8 +201,8 @@
 
         const badgeColor = isSettled ? C.green : C.blue;
         const badgeText  = isSettled
-            ? '✅  PAYMENT CONFIRMED — TRANSACTION SETTLED'
-            : '🔒  PAYMENT IN ESCROW — AWAITING DELIVERY CONFIRMATION';
+            ? '[OK] PAYMENT CONFIRMED - TRANSACTION SETTLED'
+            : '[ESCROW] PAYMENT IN ESCROW - AWAITING DELIVERY CONFIRMATION';
 
         drawHeader(doc, pw, 'PURCHASE INVOICE', badgeText, badgeColor, `TXN-${shortId}`, dateStr);
         let y = 60;
@@ -207,7 +210,7 @@
         // Party info
         y = drawSectionHeading(doc, pw, y, 'PARTIES', C.greyLight);
         y = drawRow(doc, pw, y, 'Buyer', data.buyerName || 'KisanSetu Buyer', true);
-        y = drawRow(doc, pw, y, 'Seller (Farmer)', data.farmerName || '—', false);
+        y = drawRow(doc, pw, y, 'Seller (Farmer)', data.farmerName || 'Verified Farmer', false);
         y = drawRow(doc, pw, y, 'Platform', 'KisanSetu Marketplace', true);
         y += 6;
 
@@ -215,7 +218,7 @@
         y = drawSectionHeading(doc, pw, y, 'TRANSACTION DETAILS', C.greenLight);
         y = drawRow(doc, pw, y, 'Commodity', data.cropName + (data.variety ? ` (${data.variety})` : ''), true);
         y = drawRow(doc, pw, y, 'Quantity', `${data.qty} ${data.unit}`, false);
-        y = drawRow(doc, pw, y, 'Batches', `${data.batchCount} × ${data.batchSize} ${data.unit}`, true);
+        y = drawRow(doc, pw, y, 'Batches', `${data.batchCount} x ${data.batchSize} ${data.unit}`, true);
         y = drawRow(doc, pw, y, 'Deal Price', `${fmt(data.dealPrice)} per ${data.unit}`, false);
         y = drawRow(doc, pw, y, 'GST / Platform Fee', 'Included (Agri exemption applies)', true);
         y = drawRow(doc, pw, y, 'Transaction ID', `TXN-${shortId}`, false);
@@ -228,11 +231,11 @@
         // Escrow note
         if (!isSettled) {
             y = drawNote(doc, pw, y,
-                '🔒 Escrow Notice: Funds are securely held by KisanSetu. Payment is released to the farmer only after you confirm receipt of goods. If any issue arises, raise a dispute within 48 hours.',
+                '[ESCROW] Escrow Notice: Funds are securely held by KisanSetu. Payment is released to the farmer only after you confirm receipt of goods. If any issue arises, raise a dispute within 48 hours.',
                 C.amberLight, C.amber);
         } else {
             y = drawNote(doc, pw, y,
-                '✅ Settlement: Payment has been successfully released from escrow to the farmer. This invoice is your permanent proof of purchase.',
+                '[SETTLED] Payment has been successfully released from escrow to the farmer. This invoice is your permanent proof of purchase.',
                 C.greenLight, C.greenDark);
         }
 
@@ -266,13 +269,13 @@
         let badgeColor, badgeText;
         if (isSettled) {
             badgeColor = C.green;
-            badgeText  = '✅  PAYMENT SETTLED — FUNDS DISBURSED TO YOUR ACCOUNT';
+            badgeText  = '[SETTLED] PAYMENT SETTLED - FUNDS DISBURSED TO YOUR ACCOUNT';
         } else if (isTransit) {
             badgeColor = C.blue;
-            badgeText  = '🚚  GOODS IN TRANSIT — ESCROW ACTIVE';
+            badgeText  = '[TRANSIT] GOODS IN TRANSIT - ESCROW ACTIVE';
         } else if (isEscrow) {
             badgeColor = C.amber;
-            badgeText  = '🔒  PAYMENT HELD IN ESCROW — PENDING DELIVERY CONFIRMATION';
+            badgeText  = '[ESCROW] PAYMENT HELD IN ESCROW - PENDING DELIVERY CONFIRMATION';
         } else {
             badgeColor = C.grey;
             badgeText  = `STATUS: ${status.toUpperCase()}`;
@@ -284,7 +287,7 @@
         y = drawSectionHeading(doc, pw, y, 'SALE DETAILS', C.greenLight);
         y = drawRow(doc, pw, y, 'Farmer', data.farmerName || 'Registered Farmer', true);
         y = drawRow(doc, pw, y, 'Crop / Product', data.cropName || 'Agri-Product', false);
-        y = drawRow(doc, pw, y, 'Quantity', data.quantity ? `${data.quantity} ${data.unit || ''}` : '—', true);
+        y = drawRow(doc, pw, y, 'Quantity', data.quantity ? `${data.quantity} ${data.unit || ''}` : '-', true);
         y = drawRow(doc, pw, y, 'Transaction Ref', `REF-${shortId}`, false);
         y = drawRow(doc, pw, y, 'Sale Date', dateStr, true);
         y = drawRow(doc, pw, y, 'Payment Status', status, false);
@@ -294,11 +297,11 @@
 
         if (isSettled) {
             y = drawNote(doc, pw, y,
-                '✅ Your funds have been released from escrow. Please check your registered bank account or UPI handle for the credit. Allow 1-2 business days for bank processing.',
+                '[OK] Your funds have been released from escrow. Please check your registered bank account or UPI handle for the credit. Allow 1-2 business days for bank processing.',
                 C.greenLight, C.greenDark);
         } else {
             y = drawNote(doc, pw, y,
-                '🔒 Your payment is securely held in KisanSetu Escrow. Funds will be released once the buyer confirms receipt of goods. No action required from your end.',
+                '[HOLD] Your payment is securely held in KisanSetu Escrow. Funds will be released once the buyer confirms receipt of goods. No action required from your end.',
                 C.amberLight, C.amber);
         }
 
@@ -324,21 +327,21 @@
         const bkId    = data.bookingId || 'BK-UNKNOWN';
         const dateStr = fmtDate(data.startDate || new Date());
 
-        drawHeader(doc, pw, 'RENTAL INVOICE', '🚜  EQUIPMENT RENTAL — CONFIRMED BOOKING', C.green, bkId, dateStr);
+        drawHeader(doc, pw, 'RENTAL INVOICE', '[RENTAL] EQUIPMENT RENTAL - CONFIRMED BOOKING', C.green, bkId, dateStr);
         let y = 60;
 
         // Equipment info
         y = drawSectionHeading(doc, pw, y, 'EQUIPMENT DETAILS', C.greenLight);
-        y = drawRow(doc, pw, y, 'Equipment', data.equipName || '—', true);
-        y = drawRow(doc, pw, y, 'Type', data.equipType || '—', false);
+        y = drawRow(doc, pw, y, 'Equipment', data.equipName || '-', true);
+        y = drawRow(doc, pw, y, 'Type', data.equipType || '-', false);
         y = drawRow(doc, pw, y, 'Owner', data.ownerName || 'KisanSetu Owner', true);
         y += 6;
 
         // Client info
         y = drawSectionHeading(doc, pw, y, 'CLIENT DETAILS', C.greyLight);
-        y = drawRow(doc, pw, y, 'Farmer Name', data.farmerName || '—', true);
-        y = drawRow(doc, pw, y, 'Contact', data.farmerPhone || '—', false);
-        y = drawRow(doc, pw, y, 'Village / Location', data.farmerVillage || '—', true);
+        y = drawRow(doc, pw, y, 'Farmer Name', data.farmerName || '-', true);
+        y = drawRow(doc, pw, y, 'Contact', data.farmerPhone || '-', false);
+        y = drawRow(doc, pw, y, 'Village / Location', data.farmerVillage || '-', true);
         y += 6;
 
         // Rental details
@@ -354,14 +357,14 @@
         // Cost breakdown
         y = drawSectionHeading(doc, pw, y, 'COST BREAKDOWN', C.greyLight);
         const totalHours = (data.days || 1) * (data.hoursPerDay || 0);
-        y = drawRow(doc, pw, y, `${totalHours} hrs × ${fmt(data.hourlyRate)}/hr`, fmt(data.totalCost), true);
+        y = drawRow(doc, pw, y, `${totalHours} hrs x ${fmt(data.hourlyRate)}/hr`, fmt(data.totalCost), true);
         y = drawRow(doc, pw, y, 'Platform Fee', 'Waived (Agri Scheme)', false);
         y += 6;
 
         y = drawTotal(doc, pw, y, 'Total Rental Cost', data.totalCost, C.green);
 
         y = drawNote(doc, pw, y,
-            '✅ This booking was confirmed through the KisanSetu Equipment Marketplace. The rental amount has been recorded in the earnings ledger for the owner.',
+            '[OK] This booking was confirmed through the KisanSetu Equipment Marketplace. The rental amount has been recorded in the earnings ledger for the owner.',
             C.greenLight, C.greenDark);
 
         y = drawNote(doc, pw, y,
